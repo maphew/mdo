@@ -8,12 +8,17 @@
 //! ## Usage
 //!
 //! ```sh
-//! md2htmlx [OPTIONS] <INPUT> <OUTPUT>
+//! md2htmlx [OPTIONS] <INPUT>
 //! ```
 //!
+//! If no output path is given, the output is written next to the input with
+//! the extension changed to `.html` (e.g. `foo.md` → `foo.html`). Existing
+//! files are overwritten.
+//!
 //! Options:
-//! - `-w, --watch`  Keep running and re-render on file changes
-//! - `-b, --bare`   Emit only the raw HTML fragment (no `<html>`, `<head>`, `<body>`, no CSS)
+//! - `-o, --output <FILE>`  Write to `<FILE>` instead of the derived name
+//! - `-w, --watch`          Keep running and re-render on file changes
+//! - `-b, --bare`           Emit only the raw HTML fragment (no `<html>`, `<head>`, `<body>`, no CSS)
 //!
 //! Without `--watch`, the tool converts once and exits.
 //!
@@ -36,6 +41,41 @@ use pulldown_cmark::{html, Options, Parser as MdParser};
 /// https://unpkg.com/simpledotcss/simple.min.css
 const SIMPLE_CSS: &str = include_str!("../assets/simple.min.css");
 
+// ─── BEGIN THEME TOGGLE ────────────────────────────────────────────────
+// Self-contained light/dark mode toggle. To remove this feature entirely:
+//   1. Delete this block (down to "END THEME TOGGLE").
+//   2. Delete the `{theme_toggle}` line and `theme_toggle = ...` arg in
+//      `wrap_html5` below.
+// Variable values mirror simple.css's @media (prefers-color-scheme: dark).
+const THEME_TOGGLE: &str = r#"<style>
+:root[data-theme="light"]{color-scheme:light;--bg:#fff;--accent-bg:#f5f7ff;--text:#212121;--text-light:#585858;--accent:#0d47a1;--accent-hover:#1266e2;--accent-text:var(--bg);--code:#d81b60;--preformatted:#444;--disabled:#efefef}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#212121;--accent-bg:#2b2b2b;--text:#dcdcdc;--text-light:#ababab;--accent:#ffb300;--accent-hover:#ffe099;--accent-text:var(--bg);--code:#f06292;--preformatted:#ccc;--disabled:#111}
+:root[data-theme="dark"] img,:root[data-theme="dark"] video{opacity:.8}
+#theme-toggle{position:fixed;top:.75rem;right:.75rem;z-index:1000;padding:.25rem .6rem;font-size:1rem;line-height:1;cursor:pointer;border-radius:var(--standard-border-radius);border:var(--border-width) solid var(--border);background:var(--accent-bg);color:var(--text)}
+</style>
+<script>
+(function(){
+  var saved=localStorage.getItem('theme');
+  var sys=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.dataset.theme=saved||sys;
+  document.addEventListener('DOMContentLoaded',function(){
+    var b=document.createElement('button');
+    b.id='theme-toggle';b.type='button';b.title='Toggle light/dark';
+    var sync=function(){b.textContent=document.documentElement.dataset.theme==='dark'?'\u2600':'\u263E';};
+    sync();
+    b.onclick=function(){
+      var next=document.documentElement.dataset.theme==='dark'?'light':'dark';
+      document.documentElement.dataset.theme=next;
+      localStorage.setItem('theme',next);
+      sync();
+    };
+    document.body.appendChild(b);
+  });
+})();
+</script>
+"#;
+// ─── END THEME TOGGLE ──────────────────────────────────────────────────
+
 /// Markdown to HTML converter. Converts once by default; pass --watch to keep watching.
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -43,8 +83,10 @@ struct Cli {
     /// Input Markdown file
     input: PathBuf,
 
-    /// Output HTML file
-    output: PathBuf,
+    /// Output HTML file (defaults to <input>.html alongside the input).
+    /// Existing files are overwritten.
+    #[arg(short, long)]
+    output: Option<PathBuf>,
 
     /// Watch the input file and re-render on every change
     #[arg(short, long)]
@@ -53,6 +95,10 @@ struct Cli {
     /// Emit only the raw HTML fragment (no <html>, <head>, <body>, no CSS)
     #[arg(short, long)]
     bare: bool,
+}
+
+fn derive_output(input: &PathBuf) -> PathBuf {
+    input.with_extension("html")
 }
 
 fn render_markdown(markdown: &str) -> String {
@@ -87,6 +133,7 @@ fn wrap_html5(body: &str, title: &str) -> String {
          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\
          <title>{title}</title>\n\
          <style>\n{css}\n</style>\n\
+         {theme_toggle}\
          </head>\n\
          <body>\n\
          <main>\n{body}\n</main>\n\
@@ -94,6 +141,7 @@ fn wrap_html5(body: &str, title: &str) -> String {
          </html>\n",
         title = html_escape(title),
         css = SIMPLE_CSS,
+        theme_toggle = THEME_TOGGLE, // ← THEME TOGGLE injection point (delete this line to remove)
         body = body,
     )
 }
@@ -135,8 +183,9 @@ fn convert(input: &PathBuf, output: &PathBuf, bare: bool) {
 
 fn main() -> notify::Result<()> {
     let args = Cli::parse();
+    let output = args.output.unwrap_or_else(|| derive_output(&args.input));
 
-    convert(&args.input, &args.output, args.bare);
+    convert(&args.input, &output, args.bare);
 
     if !args.watch {
         return Ok(());
@@ -160,7 +209,7 @@ fn main() -> notify::Result<()> {
                         continue;
                     }
                     println!("🔁 File changed, re-rendering...");
-                    convert(&args.input, &args.output, args.bare);
+                    convert(&args.input, &output, args.bare);
                     last_render = Instant::now();
                 }
             }
