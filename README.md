@@ -14,8 +14,10 @@ whenever the Markdown source is edited.
 
 - ✅ Converts `.md` files to standalone HTML5 documents
 - 🎨 Pretty default styling via embedded [simple.css](https://simplecss.org/)
+- 🌓 Automatic light/dark mode (follows OS) plus a manual toggle button
 - 📄 `--bare` flag emits a raw HTML fragment (no `<html>`/`<head>`/`<body>`/CSS)
 - 👀 `--watch` flag enables auto-rerender on file change (with debouncing)
+- 🌐 `--open` flag renders to a temp dir and launches the system default browser
 - ⚡ Fast and self-contained — single binary, no runtime assets
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
 
@@ -35,7 +37,7 @@ cargo install md2htmlx
 git clone https://github.com/maphew/md2htmlx.git
 cd md2htmlx
 cargo build --release
-./target/release/md2htmlx input.md output.html
+./target/release/md2htmlx input.md
 ```
 
 ---
@@ -43,38 +45,66 @@ cargo build --release
 ## 📦 Usage
 
 ```text
-Usage: md2htmlx [OPTIONS] <INPUT> <OUTPUT>
+Usage: md2htmlx [OPTIONS] <INPUT>
 
 Arguments:
-  <INPUT>   Input Markdown file
-  <OUTPUT>  Output HTML file
+  <INPUT>  Input Markdown file
 
 Options:
-  -w, --watch    Watch the input file and re-render on every change
-  -b, --bare     Emit only the raw HTML fragment (no <html>, <head>, <body>, no CSS)
-  -h, --help     Print help
-  -V, --version  Print version
+  -o, --output <OUTPUT>  Output HTML file (defaults to <input>.html alongside the input,
+                         or to a temp directory when --open is used). Existing files are overwritten
+  -w, --watch            Watch the input file and re-render on every change
+  -b, --bare             Emit only the raw HTML fragment (no <html>, <head>, <body>, no CSS)
+      --open             Render to a temp directory and launch the system default browser.
+                         The source folder is left untouched unless --output is given
+  -h, --help             Print help
+  -V, --version          Print version
 ```
+
+If `--output` is omitted, the output is written next to the input with the
+extension changed to `.html` (e.g. `foo.md` → `foo.html`). Existing files are
+overwritten without prompting.
+
+When `--open` is used without `--output`, the rendered HTML goes to a stable
+location under your OS temp directory (e.g.
+`%TEMP%\md2htmlx\<hash>\<name>.html` on Windows) so the source folder stays
+clean. Re-opening the same file overwrites the same temp output. A
+`<base href="file:///…">` tag pointing at the source folder is automatically
+injected whenever the output lives elsewhere, so relative images and links in
+the Markdown still resolve correctly.
 
 ### Examples
 
-Convert once and exit (default — produces a styled, standalone HTML5 page):
+Convert once and exit (default — produces a styled, standalone HTML5 page next to the input):
 
 ```bash
-md2htmlx input.md output.html
+md2htmlx input.md                    # writes input.html
+md2htmlx input.md -o docs/out.html   # writes docs/out.html
 ```
 
 Emit a bare HTML fragment (useful for embedding in another template):
 
 ```bash
-md2htmlx --bare input.md output.html
+md2htmlx --bare input.md
 ```
 
 Watch for changes and re-render on every save:
 
 ```bash
-md2htmlx --watch input.md output.html
+md2htmlx --watch input.md
 ```
+
+Render to a temp file and open it in your default browser (does **not**
+write next to the source):
+
+```bash
+md2htmlx --open input.md
+```
+
+This is the recommended setup for a Windows "Open with md2htmlx" file
+association — point the verb at `md2htmlx.exe --open "%1"` and double-clicking
+a `.md` file in Explorer will render and open it without leaving any artifacts
+in the source folder.
 
 ---
 
@@ -88,6 +118,8 @@ The default (non-`--bare`) output is a complete HTML5 document:
   input filename)
 - An inlined copy of [simple.css](https://simplecss.org/) inside `<style>`,
   giving you sensible typography and automatic light/dark mode out of the box
+- A small floating ☀/☾ button (top-right) for manually overriding the theme;
+  the choice is remembered in `localStorage`
 - Body content wrapped in `<main>`
 
 Markdown extensions enabled: tables, footnotes, task lists, strikethrough.
@@ -104,8 +136,12 @@ Markdown-to-HTML CLI and watch-mode skeleton. Thank you for the head start!
 This fork adds:
 
 - Convert-and-exit as the default; watch mode is now opt-in (`--watch`)
+- Optional `--output` (defaults to `<input>.html` next to the source)
 - Standalone HTML5 output with embedded [simple.css](https://simplecss.org/)
 - A `--bare` flag that preserves the original fragment-only behavior
+- An `--open` flag that renders to a temp directory and launches the system
+  default browser (with auto-injected `<base href>` so relative refs resolve)
+- Light/dark theme toggle button overlaid on the rendered page
 - Title auto-derived from the first heading
 - Debounced file-change events (no more duplicate renders per save)
 - Surfaced watcher errors instead of swallowing them
