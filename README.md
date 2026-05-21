@@ -108,6 +108,36 @@ in the source folder.
 
 ---
 
+## Linux file manager integration
+
+The repo also ships Linux helpers under [`scripts/`](scripts) for per-user
+file-manager integration:
+
+```bash
+# Add md2htmlx as an "Open With" Markdown handler and, on GNOME Files/Nautilus,
+# add a right-click Scripts entry named "Render with md2htmlx"
+./scripts/install-linux-file-manager.sh
+
+# Same, but also make md2htmlx the default Markdown handler
+./scripts/install-linux-file-manager.sh --set-default
+
+# Undo everything the install script did
+./scripts/uninstall-linux-file-manager.sh
+```
+
+The installer writes `~/.local/share/applications/md2htmlx.desktop`, whose
+command is `md2htmlx --open %f`, plus a small `Ⓜ` SVG icon under
+`~/.local/share/icons/hicolor/scalable/apps/md2htmlx.svg`. On GNOME
+Files/Nautilus it also writes
+`~/.local/share/nautilus/scripts/Render with md2htmlx`; use it from
+right-click → **Scripts** → **Render with md2htmlx**.
+
+Pass `--exe /path/to/md2htmlx` if the binary is not on `PATH`. The script looks
+for `md2htmlx` on `PATH` first, then falls back to `target/release/md2htmlx`
+next to this repo after `cargo build --release`.
+
+---
+
 ## 🪟 Windows Explorer integration
 
 The repo ships two PowerShell helpers under [`scripts/`](scripts) that wire

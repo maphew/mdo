@@ -21,6 +21,8 @@ include = [
     "src/**/*.rs",
     "assets/simple.min.css",
     "assets/simple.css.LICENSE",
+    "scripts/*.ps1",
+    "scripts/*.sh",
     "Cargo.toml",
     "README.md",
     "example.md",

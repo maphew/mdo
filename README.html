@@ -113,6 +113,63 @@ association — point the verb at <code>md2htmlx.exe --open "%1"</code> and doub
 a <code>.md</code> file in Explorer will render and open it without leaving any artifacts
 in the source folder.</p>
 <hr />
+<h2>Linux file manager integration</h2>
+<p>The repo also ships Linux helpers under <a href="scripts"><code>scripts/</code></a> for per-user
+file-manager integration:</p>
+<pre><code class="language-bash"># Add md2htmlx as an "Open With" Markdown handler and, on GNOME Files/Nautilus,
+# add a right-click Scripts entry named "Render with md2htmlx"
+./scripts/install-linux-file-manager.sh
+
+# Same, but also make md2htmlx the default Markdown handler
+./scripts/install-linux-file-manager.sh --set-default
+
+# Undo everything the install script did
+./scripts/uninstall-linux-file-manager.sh
+</code></pre>
+<p>The installer writes <code>~/.local/share/applications/md2htmlx.desktop</code>, whose
+command is <code>md2htmlx --open %f</code>, plus a small <code>Ⓜ</code> SVG icon under
+<code>~/.local/share/icons/hicolor/scalable/apps/md2htmlx.svg</code>. On GNOME
+Files/Nautilus it also writes
+<code>~/.local/share/nautilus/scripts/Render with md2htmlx</code>; use it from
+right-click → <strong>Scripts</strong> → <strong>Render with md2htmlx</strong>.</p>
+<p>Pass <code>--exe /path/to/md2htmlx</code> if the binary is not on <code>PATH</code>. The script looks
+for <code>md2htmlx</code> on <code>PATH</code> first, then falls back to <code>target/release/md2htmlx</code>
+next to this repo after <code>cargo build --release</code>.</p>
+<hr />
+<h2>🪟 Windows Explorer integration</h2>
+<p>The repo ships two PowerShell helpers under <a href="scripts"><code>scripts/</code></a> that wire
+md2htmlx into Explorer for the current user only (no admin, no HKLM changes):</p>
+<pre><code class="language-powershell"># Add: an "Open with → md2htmlx" entry and a
+#      "Render with md2htmlx" right-click verb on .md files
+powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
+
+# Undo everything the install script did
+powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-explorer.ps1
+</code></pre>
+<p>The install script registers <code>md2htmlx-open.exe</code>, a tiny windows-subsystem
+wrapper built alongside <code>md2htmlx.exe</code>. The wrapper exists for one reason:
+when Explorer launches a normal console binary it briefly flashes a black
+console window. <code>md2htmlx-open.exe</code> runs as a GUI subsystem app and spawns
+<code>md2htmlx.exe --open</code> with <code>CREATE_NO_WINDOW</code>, so double-clicking a <code>.md</code>
+file opens straight in the browser with no flash. The regular CLI is
+unchanged — <code>md2htmlx.exe</code> from a terminal still prints to stdout normally.</p>
+<p>The install script auto-locates <code>md2htmlx-open.exe</code> via <code>PATH</code>, falling
+back to <code>target\release\md2htmlx-open.exe</code> next to the repo. Pass
+<code>-ExePath C:\path\to\md2htmlx-open.exe</code> to override. <code>md2htmlx.exe</code> must
+sit next to <code>md2htmlx-open.exe</code>; both are produced by <code>cargo build --release</code> and <code>cargo install md2htmlx</code>.</p>
+<p>It also generates a small <code>.ico</code> at <code>%LOCALAPPDATA%\md2htmlx\md.ico</code> by
+rendering a single Unicode character — by default Ⓜ (circled M) in a
+mid-tone blue chosen so it stays legible in both light and dark Explorer
+themes. Override either via parameters:</p>
+<pre><code class="language-powershell">.\scripts\install-explorer.ps1 -IconChar "📄" -IconColor "#E64A19"
+</code></pre>
+<p><code>uninstall-explorer.ps1</code> removes the .ico (and its folder if empty)
+along with all the registry keys.</p>
+<p>To make md2htmlx the <em>default</em> <code>.md</code> handler after running the install
+script, right-click a <code>.md</code> file → <strong>Open with → Choose another app</strong> →
+pick <strong>md2htmlx</strong> → tick <strong>Always use this app</strong>. Windows requires that
+last step to be done interactively.</p>
+<hr />
 <h2>🎨 Default output</h2>
 <p>The default (non-<code>--bare</code>) output is a complete HTML5 document:</p>
 <ul>
