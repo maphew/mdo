@@ -1,16 +1,16 @@
 [package]
-name = "md2htmlx"
+name = "mdo-cli"
 version = "0.2.0"
 edition = "2021"
 authors = [
     "Matt Wilkie <matt.wilkie@yukon.ca>",
-    "Hafiz Ali Raza <haffizaliraza@gmail.com>",  # original author of rust-md2html
+    "Hafiz Ali Raza <haffizaliraza@gmail.com>",  # original upstream author
 ]
 description = "A simple Rust CLI to convert Markdown to HTML5 (styled with simple.css), with optional file watching"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/maphew/md2htmlx"
-homepage = "https://github.com/maphew/md2htmlx"
-documentation = "https://docs.rs/md2htmlx"
+repository = "https://github.com/maphew/mdo"
+homepage = "https://github.com/maphew/mdo"
+documentation = "https://docs.rs/mdo-cli"
 readme = "README.md"
 keywords = ["markdown", "html", "cli", "rust"]
 categories = ["command-line-utilities", "text-processing"]
@@ -24,11 +24,12 @@ include = [
     "scripts/*.ps1",
     "scripts/*.sh",
     "Cargo.toml",
+    "CHANGELOG.md",
     "README.md",
     "example.md",
 ]
 
-# Forked with gratitude from https://github.com/haffizaliraza/rust-md2html
+# Forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI
 # (© 2025 Hafiz Ali Raza, MIT/Apache-2.0).
 #
 # This crate also bundles simple.css (https://simplecss.org/, MIT-licensed,
@@ -38,3 +39,11 @@ include = [
 pulldown-cmark = "0.10"
 clap = { version = "4", features = ["derive"] }
 notify = "6"
+
+[[bin]]
+name = "mdo"
+path = "src/main.rs"
+
+[[bin]]
+name = "mdo-open"
+path = "src/bin/mdo-open.rs"

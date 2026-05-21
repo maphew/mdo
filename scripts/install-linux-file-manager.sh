@@ -3,23 +3,23 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Register md2htmlx with Linux file managers for the current user.
+Register mdo with Linux file managers for the current user.
 
 Usage:
   install-linux-file-manager.sh [--exe PATH] [--set-default] [--no-nautilus-script]
 
 Options:
-  --exe PATH             Path to md2htmlx. If omitted, uses PATH, then
-                         ../target/release/md2htmlx relative to this script.
-  --set-default          Make md2htmlx the default handler for Markdown files.
+  --exe PATH             Path to mdo. If omitted, uses PATH, then
+                         ../target/release/mdo relative to this script.
+  --set-default          Make mdo the default handler for Markdown files.
                          By default it is only added as an "Open With" option.
   --no-nautilus-script   Do not install the GNOME Files/Nautilus Scripts entry.
   -h, --help             Show this help.
 
 Installs:
-  ~/.local/share/applications/md2htmlx.desktop
-  ~/.local/share/icons/hicolor/scalable/apps/md2htmlx.svg
-  ~/.local/share/nautilus/scripts/Render with md2htmlx   (when Nautilus exists)
+  ~/.local/share/applications/mdo.desktop
+  ~/.local/share/icons/hicolor/scalable/apps/mdo.svg
+  ~/.local/share/nautilus/scripts/Render with mdo   (when Nautilus exists)
 EOF
 }
 
@@ -61,25 +61,25 @@ resolve_exe() {
 
     if [[ -n "$hint" ]]; then
         if [[ ! -x "$hint" ]]; then
-            echo "md2htmlx is not executable at: $hint" >&2
+            echo "mdo is not executable at: $hint" >&2
             exit 1
         fi
         realpath "$hint"
         return
     fi
 
-    if command -v md2htmlx >/dev/null 2>&1; then
-        command -v md2htmlx
+    if command -v mdo >/dev/null 2>&1; then
+        command -v mdo
         return
     fi
 
-    local local_build="$script_dir/../target/release/md2htmlx"
+    local local_build="$script_dir/../target/release/mdo"
     if [[ -x "$local_build" ]]; then
         realpath "$local_build"
         return
     fi
 
-    echo "Could not locate md2htmlx. Build it with 'cargo build --release', install it on PATH, or pass --exe PATH." >&2
+    echo "Could not locate mdo. Build it with 'cargo build --release', install it on PATH, or pass --exe PATH." >&2
     exit 1
 }
 
@@ -96,9 +96,9 @@ quote_desktop_exec_arg() {
 
 exe="$(resolve_exe "$exe_path")"
 desktop_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
-desktop_file="$desktop_dir/md2htmlx.desktop"
+desktop_file="$desktop_dir/mdo.desktop"
 icon_dir="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
-icon_file="$icon_dir/md2htmlx.svg"
+icon_file="$icon_dir/mdo.svg"
 mkdir -p "$desktop_dir"
 mkdir -p "$icon_dir"
 
@@ -119,11 +119,11 @@ quoted_exe="$(quote_desktop_exec_arg "$exe")"
 cat > "$desktop_file" <<EOF
 [Desktop Entry]
 Type=Application
-Name=md2htmlx
+Name=mdo
 GenericName=Markdown HTML Previewer
 Comment=Render Markdown as HTML and open it in the default browser
 Exec=$quoted_exe --open %f
-Icon=md2htmlx
+Icon=mdo
 Terminal=false
 NoDisplay=true
 MimeType=text/markdown;text/x-markdown;
@@ -140,13 +140,13 @@ if command -v gtk-update-icon-cache >/dev/null 2>&1; then
 fi
 
 if [[ "$set_default" -eq 1 ]] && command -v xdg-mime >/dev/null 2>&1; then
-    xdg-mime default md2htmlx.desktop text/markdown || true
-    xdg-mime default md2htmlx.desktop text/x-markdown || true
+    xdg-mime default mdo.desktop text/markdown || true
+    xdg-mime default mdo.desktop text/x-markdown || true
 fi
 
 if [[ "$install_nautilus_script" -eq 1 ]] && command -v nautilus >/dev/null 2>&1; then
     nautilus_dir="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts"
-    nautilus_script="$nautilus_dir/Render with md2htmlx"
+    nautilus_script="$nautilus_dir/Render with mdo"
     mkdir -p "$nautilus_dir"
     cat > "$nautilus_script" <<EOF
 #!/usr/bin/env bash
@@ -172,11 +172,11 @@ fi
 echo "Installed desktop entry: $desktop_file"
 echo "Installed icon: $icon_file"
 if [[ "$install_nautilus_script" -eq 1 ]] && command -v nautilus >/dev/null 2>&1; then
-    echo "Installed Nautilus script: ${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Render with md2htmlx"
-    echo "In GNOME Files, use right-click -> Scripts -> Render with md2htmlx."
+    echo "Installed Nautilus script: ${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Render with mdo"
+    echo "In GNOME Files, use right-click -> Scripts -> Render with mdo."
 fi
 if [[ "$set_default" -eq 1 ]]; then
-    echo "md2htmlx is now the default Markdown handler."
+    echo "mdo is now the default Markdown handler."
 else
-    echo "md2htmlx is available from Open With without changing your default Markdown handler."
+    echo "mdo is available from Open With without changing your default Markdown handler."
 fi

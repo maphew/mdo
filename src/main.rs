@@ -1,6 +1,6 @@
-//! # md2htmlx
+//! # mdo
 //!
-//! `md2htmlx` is a small command-line tool that converts Markdown (`.md`) files to HTML.
+//! `mdo` is a small command-line tool that converts Markdown (`.md`) files to HTML.
 //!
 //! By default it produces a complete, HTML5-compliant document styled with
 //! [simple.css](https://simplecss.org/) (vendored at build time, no network access at runtime).
@@ -8,7 +8,7 @@
 //! ## Usage
 //!
 //! ```sh
-//! md2htmlx [OPTIONS] <INPUT>
+//! mdo [OPTIONS] <INPUT>
 //! ```
 //!
 //! If no output path is given, the output is written next to the input with
@@ -24,8 +24,7 @@
 //!
 //! ## Credits
 //!
-//! Forked with gratitude from
-//! [rust-md2html](https://github.com/haffizaliraza/rust-md2html) by Hafiz Ali Raza.
+//! Forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.
 //! Bundles [simple.css](https://simplecss.org/) (© 2020 Kev Quirk, MIT).
 
 use std::collections::hash_map::DefaultHasher;
@@ -80,7 +79,7 @@ const THEME_TOGGLE: &str = r#"<style>
 
 /// Markdown to HTML converter. Converts once by default; pass --watch to keep watching.
 #[derive(Parser)]
-#[command(author, version, about)]
+#[command(name = "mdo", author, version, about)]
 struct Cli {
     /// Input Markdown file
     input: PathBuf,
@@ -109,7 +108,7 @@ fn derive_output(input: &Path) -> PathBuf {
 }
 
 /// Stable per-source-path location under the OS temp dir, e.g.
-/// `%TEMP%\md2htmlx\<hash>\<stem>.html`. Re-opening the same source
+/// `%TEMP%\mdo\<hash>\<stem>.html`. Re-opening the same source
 /// overwrites the same file rather than accumulating new ones.
 fn temp_output_for(input: &Path) -> PathBuf {
     let canonical = fs::canonicalize(input).unwrap_or_else(|_| input.to_path_buf());
@@ -123,7 +122,7 @@ fn temp_output_for(input: &Path) -> PathBuf {
         .unwrap_or("document");
 
     let mut p = std::env::temp_dir();
-    p.push("md2htmlx");
+    p.push("mdo");
     p.push(format!("{:016x}", hash));
     p.push(format!("{stem}.html"));
     p
@@ -254,7 +253,9 @@ fn convert(input: &Path, output: &Path, bare: bool) {
         // directory from the source — otherwise relative refs already
         // resolve correctly and a base tag would just add noise.
         let base_href = match (
-            fs::canonicalize(input).ok().and_then(|p| p.parent().map(Path::to_path_buf)),
+            fs::canonicalize(input)
+                .ok()
+                .and_then(|p| p.parent().map(Path::to_path_buf)),
             output.parent().and_then(|p| fs::canonicalize(p).ok()),
         ) {
             (Some(in_dir), Some(out_dir)) if in_dir != out_dir => Some(dir_to_file_url(&in_dir)),
@@ -310,7 +311,10 @@ fn main() -> notify::Result<()> {
     let mut watcher = recommended_watcher(tx)?;
     watcher.watch(&args.input, RecursiveMode::NonRecursive)?;
 
-    println!("👀 Watching {:?} for changes... (Ctrl+C to stop)", args.input);
+    println!(
+        "👀 Watching {:?} for changes... (Ctrl+C to stop)",
+        args.input
+    );
 
     // Simple debounce: ignore events that fire within DEBOUNCE_MS of the last render.
     const DEBOUNCE: Duration = Duration::from_millis(200);

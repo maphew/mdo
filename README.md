@@ -1,6 +1,6 @@
-# 📝 md2htmlx — Markdown to HTML5 Converter (with optional live watch)
+# 📝 mdo — Markdown to HTML5 Converter (with optional live watch)
 
-`md2htmlx` is a small, fast command-line tool written in Rust that converts
+`mdo` is a small, fast command-line tool written in Rust that converts
 Markdown files into HTML.
 
 By default it produces a complete, **HTML5-compliant** document styled with
@@ -28,16 +28,16 @@ whenever the Markdown source is edited.
 ### From crates.io
 
 ```bash
-cargo install md2htmlx
+cargo install mdo-cli
 ```
 
 ### Build from source
 
 ```bash
-git clone https://github.com/maphew/md2htmlx.git
-cd md2htmlx
+git clone https://github.com/maphew/mdo.git
+cd mdo
 cargo build --release
-./target/release/md2htmlx input.md
+./target/release/mdo input.md
 ```
 
 ---
@@ -45,7 +45,7 @@ cargo build --release
 ## 📦 Usage
 
 ```text
-Usage: md2htmlx [OPTIONS] <INPUT>
+Usage: mdo [OPTIONS] <INPUT>
 
 Arguments:
   <INPUT>  Input Markdown file
@@ -67,7 +67,7 @@ overwritten without prompting.
 
 When `--open` is used without `--output`, the rendered HTML goes to a stable
 location under your OS temp directory (e.g.
-`%TEMP%\md2htmlx\<hash>\<name>.html` on Windows) so the source folder stays
+`%TEMP%\mdo\<hash>\<name>.html` on Windows) so the source folder stays
 clean. Re-opening the same file overwrites the same temp output. A
 `<base href="file:///…">` tag pointing at the source folder is automatically
 injected whenever the output lives elsewhere, so relative images and links in
@@ -78,31 +78,31 @@ the Markdown still resolve correctly.
 Convert once and exit (default — produces a styled, standalone HTML5 page next to the input). The README.html in this repo is generated like this:
 
 ```bash
-md2htmlx input.md                    # writes input.html
-md2htmlx input.md -o docs/out.html   # writes docs/out.html
+mdo input.md                    # writes input.html
+mdo input.md -o docs/out.html   # writes docs/out.html
 ```
 
 Emit a bare HTML fragment (useful for embedding in another template):
 
 ```bash
-md2htmlx --bare input.md
+mdo --bare input.md
 ```
 
 Watch for changes and re-render on every save:
 
 ```bash
-md2htmlx --watch input.md
+mdo --watch input.md
 ```
 
 Render to a temp file and open it in your default browser (does **not**
 write next to the source):
 
 ```bash
-md2htmlx --open input.md
+mdo --open input.md
 ```
 
-This is the recommended setup for a Windows "Open with md2htmlx" file
-association — point the verb at `md2htmlx.exe --open "%1"` and double-clicking
+This is the recommended setup for a Windows "Open with mdo" file
+association — point the verb at `mdo.exe --open "%1"` and double-clicking
 a `.md` file in Explorer will render and open it without leaving any artifacts
 in the source folder.
 
@@ -114,26 +114,26 @@ The repo also ships Linux helpers under [`scripts/`](scripts) for per-user
 file-manager integration:
 
 ```bash
-# Add md2htmlx as an "Open With" Markdown handler and, on GNOME Files/Nautilus,
-# add a right-click Scripts entry named "Render with md2htmlx"
+# Add mdo as an "Open With" Markdown handler and, on GNOME Files/Nautilus,
+# add a right-click Scripts entry named "Render with mdo"
 ./scripts/install-linux-file-manager.sh
 
-# Same, but also make md2htmlx the default Markdown handler
+# Same, but also make mdo the default Markdown handler
 ./scripts/install-linux-file-manager.sh --set-default
 
 # Undo everything the install script did
 ./scripts/uninstall-linux-file-manager.sh
 ```
 
-The installer writes `~/.local/share/applications/md2htmlx.desktop`, whose
-command is `md2htmlx --open %f`, plus a small `Ⓜ` SVG icon under
-`~/.local/share/icons/hicolor/scalable/apps/md2htmlx.svg`. On GNOME
+The installer writes `~/.local/share/applications/mdo.desktop`, whose
+command is `mdo --open %f`, plus a small `Ⓜ` SVG icon under
+`~/.local/share/icons/hicolor/scalable/apps/mdo.svg`. On GNOME
 Files/Nautilus it also writes
-`~/.local/share/nautilus/scripts/Render with md2htmlx`; use it from
-right-click → **Scripts** → **Render with md2htmlx**.
+`~/.local/share/nautilus/scripts/Render with mdo`; use it from
+right-click → **Scripts** → **Render with mdo**.
 
-Pass `--exe /path/to/md2htmlx` if the binary is not on `PATH`. The script looks
-for `md2htmlx` on `PATH` first, then falls back to `target/release/md2htmlx`
+Pass `--exe /path/to/mdo` if the binary is not on `PATH`. The script looks
+for `mdo` on `PATH` first, then falls back to `target/release/mdo`
 next to this repo after `cargo build --release`.
 
 ---
@@ -141,32 +141,32 @@ next to this repo after `cargo build --release`.
 ## 🪟 Windows Explorer integration
 
 The repo ships two PowerShell helpers under [`scripts/`](scripts) that wire
-md2htmlx into Explorer for the current user only (no admin, no HKLM changes):
+mdo into Explorer for the current user only (no admin, no HKLM changes):
 
 ```powershell
-# Add: an "Open with → md2htmlx" entry and a
-#      "Render with md2htmlx" right-click verb on .md files
+# Add: an "Open with → mdo" entry and a
+#      "Render with mdo" right-click verb on .md files
 powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
 
 # Undo everything the install script did
 powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-explorer.ps1
 ```
 
-The install script registers `md2htmlx-open.exe`, a tiny windows-subsystem
-wrapper built alongside `md2htmlx.exe`. The wrapper exists for one reason:
+The install script registers `mdo-open.exe`, a tiny windows-subsystem
+wrapper built alongside `mdo.exe`. The wrapper exists for one reason:
 when Explorer launches a normal console binary it briefly flashes a black
-console window. `md2htmlx-open.exe` runs as a GUI subsystem app and spawns
-`md2htmlx.exe --open` with `CREATE_NO_WINDOW`, so double-clicking a `.md`
+console window. `mdo-open.exe` runs as a GUI subsystem app and spawns
+`mdo.exe --open` with `CREATE_NO_WINDOW`, so double-clicking a `.md`
 file opens straight in the browser with no flash. The regular CLI is
-unchanged — `md2htmlx.exe` from a terminal still prints to stdout normally.
+unchanged — `mdo.exe` from a terminal still prints to stdout normally.
 
-The install script auto-locates `md2htmlx-open.exe` via `PATH`, falling
-back to `target\release\md2htmlx-open.exe` next to the repo. Pass
-`-ExePath C:\path\to\md2htmlx-open.exe` to override. `md2htmlx.exe` must
-sit next to `md2htmlx-open.exe`; both are produced by `cargo build
---release` and `cargo install md2htmlx`.
+The install script auto-locates `mdo-open.exe` via `PATH`, falling
+back to `target\release\mdo-open.exe` next to the repo. Pass
+`-ExePath C:\path\to\mdo-open.exe` to override. `mdo.exe` must
+sit next to `mdo-open.exe`; both are produced by `cargo build
+--release` and `cargo install mdo-cli`.
 
-It also generates a small `.ico` at `%LOCALAPPDATA%\md2htmlx\md.ico` by
+It also generates a small `.ico` at `%LOCALAPPDATA%\mdo\md.ico` by
 rendering a single Unicode character — by default Ⓜ (circled M) in a
 mid-tone blue chosen so it stays legible in both light and dark Explorer
 themes. Override either via parameters:
@@ -178,9 +178,9 @@ themes. Override either via parameters:
 `uninstall-explorer.ps1` removes the .ico (and its folder if empty)
 along with all the registry keys.
 
-To make md2htmlx the *default* `.md` handler after running the install
+To make mdo the *default* `.md` handler after running the install
 script, right-click a `.md` file → **Open with → Choose another app** →
-pick **md2htmlx** → tick **Always use this app**. Windows requires that
+pick **mdo** → tick **Always use this app**. Windows requires that
 last step to be done interactively.
 
 ---
@@ -205,10 +205,9 @@ Markdown extensions enabled: tables, footnotes, task lists, strikethrough.
 
 ## 🙏 Credits
 
-This project is a grateful fork of
-**[rust-md2html](https://github.com/haffizaliraza/rust-md2html)** by
-[Hafiz Ali Raza](https://github.com/haffizaliraza), which provided the original
-Markdown-to-HTML CLI and watch-mode skeleton. Thank you for the head start!
+This project is a grateful fork of Hafiz Ali Raza's original
+Markdown-to-HTML CLI. Hafiz remains credited as an author, and this fork keeps
+that lineage explicit so future improvements can be offered back upstream.
 
 This fork adds:
 
