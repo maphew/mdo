@@ -170,6 +170,19 @@ script, right-click a <code>.md</code> file → <strong>Open with → Choose ano
 pick <strong>mdo</strong> → tick <strong>Always use this app</strong>. Windows requires that
 last step to be done interactively.</p>
 <hr />
+<h2>🚢 Release process</h2>
+<p>GitHub releases are automated by
+<a href=".github/workflows/release.yml"><code>release.yml</code></a>. To publish a release:</p>
+<pre><code class="language-bash">cargo test
+cargo package
+git tag -a v0.3.0 -m "Release v0.3.0"
+git push origin v0.3.0
+</code></pre>
+<p>Pushing a <code>v*</code> tag builds release binaries for Linux, macOS Intel,
+macOS Apple Silicon, and Windows. The workflow creates the GitHub release
+with generated release notes and uploads the built binaries. On Windows it
+also uploads <code>mdo-open.exe</code> for Explorer integration.</p>
+<hr />
 <h2>🎨 Default output</h2>
 <p>The default (non-<code>--bare</code>) output is a complete HTML5 document:</p>
 <ul>

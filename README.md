@@ -185,6 +185,25 @@ last step to be done interactively.
 
 ---
 
+## 🚢 Release process
+
+GitHub releases are automated by
+[`release.yml`](.github/workflows/release.yml). To publish a release:
+
+```bash
+cargo test
+cargo package
+git tag -a v0.3.0 -m "Release v0.3.0"
+git push origin v0.3.0
+```
+
+Pushing a `v*` tag builds release binaries for Linux, macOS Intel,
+macOS Apple Silicon, and Windows. The workflow creates the GitHub release
+with generated release notes and uploads the built binaries. On Windows it
+also uploads `mdo-open.exe` for Explorer integration.
+
+---
+
 ## 🎨 Default output
 
 The default (non-`--bare`) output is a complete HTML5 document:
