@@ -31,13 +31,25 @@ whenever the Markdown source is edited.
 cargo install mdo-cli
 ```
 
-### Build from source
+### From source
 
 ```bash
 git clone https://github.com/maphew/mdo.git
 cd mdo
+cargo install --path .
+```
+
+To build without installing:
+
+```bash
 cargo build --release
 ./target/release/mdo input.md
+```
+
+### Uninstall
+
+```bash
+cargo uninstall mdo-cli
 ```
 
 ---

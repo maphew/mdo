@@ -60,11 +60,17 @@ whenever the Markdown source is edited.</p>
 <h3>From crates.io</h3>
 <pre><code class="language-bash">cargo install mdo-cli
 </code></pre>
-<h3>Build from source</h3>
+<h3>From source</h3>
 <pre><code class="language-bash">git clone https://github.com/maphew/mdo.git
 cd mdo
-cargo build --release
+cargo install --path .
+</code></pre>
+<p>To build without installing:</p>
+<pre><code class="language-bash">cargo build --release
 ./target/release/mdo input.md
+</code></pre>
+<h3>Uninstall</h3>
+<pre><code class="language-bash">cargo uninstall mdo-cli
 </code></pre>
 <hr />
 <h2>📦 Usage</h2>
