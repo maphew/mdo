@@ -1,38 +1,38 @@
 <#
 .SYNOPSIS
-    Register md2htmlx with Windows Explorer for .md files (current user only).
+    Register mdo with Windows Explorer for .md files (current user only).
 
 .DESCRIPTION
-    Adds md2htmlx to the per-user Explorer integration for .md files:
-      1. Registers an "Application" entry so md2htmlx shows up in
+    Adds mdo to the per-user Explorer integration for .md files:
+      1. Registers an "Application" entry so mdo shows up in
          "Open with -> Choose another app".
       2. Adds .md to its OpenWithProgids list so Explorer offers it.
-      3. Adds a "Render with md2htmlx" right-click verb on .md files.
+      3. Adds a "Render with mdo" right-click verb on .md files.
 
     All changes are written under HKCU (HKEY_CURRENT_USER), so no admin
     rights are required and nothing system-wide is touched.
 
-    To make md2htmlx the *default* handler for .md, after running this
+    To make mdo the *default* handler for .md, after running this
     script: right-click a .md file -> Open with -> Choose another app ->
-    pick md2htmlx -> tick "Always use this app". Windows requires that
+    pick mdo -> tick "Always use this app". Windows requires that
     last step to be done interactively.
 
     Run scripts/uninstall-explorer.ps1 to undo everything this script does.
 
 .PARAMETER ExePath
-    Full path to md2htmlx-open.exe. If omitted, the script tries
-    `Get-Command md2htmlx-open` and then falls back to
-    ..\target\release\md2htmlx-open.exe relative to this script.
+    Full path to mdo-open.exe. If omitted, the script tries
+    `Get-Command mdo-open` and then falls back to
+    ..\target\release\mdo-open.exe relative to this script.
 
-    md2htmlx-open.exe is a tiny windows-subsystem wrapper shipped alongside
-    md2htmlx.exe specifically so Explorer launches do not flash a console
-    window. It must live in the same directory as md2htmlx.exe.
+    mdo-open.exe is a tiny windows-subsystem wrapper shipped alongside
+    mdo.exe specifically so Explorer launches do not flash a console
+    window. It must live in the same directory as mdo.exe.
 
 .PARAMETER IconChar
     Single character to render into a .ico used by Explorer for the
     "Open with" entry and the right-click verb. Defaults to Ⓜ (U+24C2,
     "circled latin capital letter M"). Try "📄" for a page-curl emoji.
-    The generated icon is written to %LOCALAPPDATA%\md2htmlx\md.ico.
+    The generated icon is written to %LOCALAPPDATA%\mdo\md.ico.
 
 .PARAMETER IconColor
     Hex color (e.g. "#1E66E2" or "1E66E2") for the rendered glyph. The
@@ -44,7 +44,7 @@
     powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
 
 .EXAMPLE
-    .\scripts\install-explorer.ps1 -ExePath "C:\Tools\md2htmlx-open.exe"
+    .\scripts\install-explorer.ps1 -ExePath "C:\Tools\mdo-open.exe"
 
 .EXAMPLE
     .\scripts\install-explorer.ps1 -IconChar "📄" -IconColor "#E64A19"
@@ -63,20 +63,20 @@ function Resolve-ExePath {
 
     if ($Hint) {
         if (-not (Test-Path -LiteralPath $Hint)) {
-            throw "md2htmlx-open.exe not found at: $Hint"
+            throw "mdo-open.exe not found at: $Hint"
         }
         return (Resolve-Path -LiteralPath $Hint).Path
     }
 
-    $cmd = Get-Command md2htmlx-open -ErrorAction SilentlyContinue
+    $cmd = Get-Command mdo-open -ErrorAction SilentlyContinue
     if ($cmd) { return $cmd.Source }
 
-    $local = Join-Path $PSScriptRoot '..\target\release\md2htmlx-open.exe'
+    $local = Join-Path $PSScriptRoot '..\target\release\mdo-open.exe'
     if (Test-Path -LiteralPath $local) {
         return (Resolve-Path -LiteralPath $local).Path
     }
 
-    throw "Could not locate md2htmlx-open.exe. Build it with ``cargo build --release`` or pass -ExePath C:\path\to\md2htmlx-open.exe"
+    throw "Could not locate mdo-open.exe. Build it with ``cargo build --release`` or pass -ExePath C:\path\to\mdo-open.exe"
 }
 
 function New-CharIcon {
@@ -175,56 +175,56 @@ function New-CharIcon {
 
 $exe = Resolve-ExePath -Hint $ExePath
 
-# md2htmlx-open.exe always implies --open, so the registry value is just
-# `"<exe>" "%1"` — no extra flags. The wrapper itself spawns md2htmlx.exe
+# mdo-open.exe always implies --open, so the registry value is just
+# `"<exe>" "%1"` — no extra flags. The wrapper itself spawns mdo.exe
 # with CREATE_NO_WINDOW, which is what eliminates the Explorer console flash.
 $cmd = '"{0}" "%1"' -f $exe
 
-# Sanity check: md2htmlx.exe must live next to md2htmlx-open.exe so the
+# Sanity check: mdo.exe must live next to mdo-open.exe so the
 # wrapper can find it at runtime.
-$sibling = Join-Path (Split-Path -Parent $exe) 'md2htmlx.exe'
+$sibling = Join-Path (Split-Path -Parent $exe) 'mdo.exe'
 if (-not (Test-Path -LiteralPath $sibling)) {
-    Write-Warning "md2htmlx.exe not found next to md2htmlx-open.exe at: $sibling"
+    Write-Warning "mdo.exe not found next to mdo-open.exe at: $sibling"
     Write-Warning "Explorer integration will be registered, but double-clicking will fail until the main binary is in place."
 }
 
 # Render the requested glyph into a .ico used by every Explorer surface
 # below (Open-with picker, ProgId, right-click verb).
-$iconPath = Join-Path $env:LOCALAPPDATA 'md2htmlx\md.ico'
+$iconPath = Join-Path $env:LOCALAPPDATA 'mdo\md.ico'
 New-CharIcon -Char $IconChar -HexColor $IconColor -OutPath $iconPath | Out-Null
 $iconRef = '"{0}",0' -f $iconPath
 
-Write-Host "Using md2htmlx-open: $exe"
+Write-Host "Using mdo-open: $exe"
 Write-Host "Command line       : $cmd"
 Write-Host "Icon ($IconChar)            : $iconPath"
 Write-Host ""
 
 # 1. Register the application so Explorer's "Open with" picker can find it.
-$appRoot = 'HKCU:\Software\Classes\Applications\md2htmlx.exe'
+$appRoot = 'HKCU:\Software\Classes\Applications\mdo.exe'
 New-Item -Path "$appRoot\shell\open\command" -Force | Out-Null
 Set-ItemProperty -Path "$appRoot\shell\open\command" -Name '(Default)' -Value $cmd
-Set-ItemProperty -Path $appRoot -Name 'FriendlyAppName' -Value 'md2htmlx (Markdown -> HTML)'
+Set-ItemProperty -Path $appRoot -Name 'FriendlyAppName' -Value 'mdo (Markdown -> HTML)'
 # DefaultIcon under Applications\<exe> is what the Open-with picker shows.
 New-Item -Path "$appRoot\DefaultIcon" -Force | Out-Null
 Set-ItemProperty -Path "$appRoot\DefaultIcon" -Name '(Default)' -Value $iconRef
 
-# 2. Offer md2htmlx as a choice for .md files in the Open-with list.
+# 2. Offer mdo as a choice for .md files in the Open-with list.
 $openWith = 'HKCU:\Software\Classes\.md\OpenWithProgids'
 New-Item -Path $openWith -Force | Out-Null
-New-ItemProperty -Path $openWith -Name 'md2htmlx.md' -Value '' -PropertyType String -Force | Out-Null
+New-ItemProperty -Path $openWith -Name 'mdo.md' -Value '' -PropertyType String -Force | Out-Null
 
-$progid = 'HKCU:\Software\Classes\md2htmlx.md'
+$progid = 'HKCU:\Software\Classes\mdo.md'
 New-Item -Path "$progid\shell\open\command" -Force | Out-Null
-Set-ItemProperty -Path $progid -Name '(Default)' -Value 'Markdown document (md2htmlx)'
+Set-ItemProperty -Path $progid -Name '(Default)' -Value 'Markdown document (mdo)'
 Set-ItemProperty -Path "$progid\shell\open\command" -Name '(Default)' -Value $cmd
 # DefaultIcon under the ProgId is what Explorer shows for files whose
-# default app is md2htmlx.
+# default app is mdo.
 New-Item -Path "$progid\DefaultIcon" -Force | Out-Null
 Set-ItemProperty -Path "$progid\DefaultIcon" -Name '(Default)' -Value $iconRef
 
-# 3. Add a "Render with md2htmlx" right-click verb on every .md file
+# 3. Add a "Render with mdo" right-click verb on every .md file
 #    (works alongside whatever the current default handler is).
-$verb = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with md2htmlx'
+$verb = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo'
 New-Item -Path "$verb\command" -Force | Out-Null
 Set-ItemProperty -Path "$verb\command" -Name '(Default)' -Value $cmd
 Set-ItemProperty -Path $verb -Name 'Icon' -Value $iconRef
@@ -232,5 +232,5 @@ Set-ItemProperty -Path $verb -Name 'Icon' -Value $iconRef
 Write-Host "Done." -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:"
-Write-Host "  - Right-click any .md file -> 'Render with md2htmlx' (Win11: Show more options)."
-Write-Host "  - To make it the default: Open with -> Choose another app -> md2htmlx -> Always."
+Write-Host "  - Right-click any .md file -> 'Render with mdo' (Win11: Show more options)."
+Write-Host "  - To make it the default: Open with -> Choose another app -> mdo -> Always."

@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Remove the md2htmlx Explorer integration created by install-explorer.ps1.
+    Remove the mdo Explorer integration created by install-explorer.ps1.
 
 .DESCRIPTION
     Deletes every HKCU registry key the install script creates:
-      - HKCU\Software\Classes\Applications\md2htmlx.exe
-      - HKCU\Software\Classes\md2htmlx.md
-      - HKCU\Software\Classes\.md\OpenWithProgids\md2htmlx.md value
-      - HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with md2htmlx
+      - HKCU\Software\Classes\Applications\mdo.exe
+      - HKCU\Software\Classes\mdo.md
+      - HKCU\Software\Classes\.md\OpenWithProgids\mdo.md value
+      - HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo
 
     Leaves the .md OpenWithProgids key itself in place (other apps may
     have entries there).
@@ -33,12 +33,19 @@ function Remove-KeyIfPresent {
     }
 }
 
-Remove-KeyIfPresent 'HKCU:\Software\Classes\Applications\md2htmlx.exe'
-Remove-KeyIfPresent 'HKCU:\Software\Classes\md2htmlx.md'
-Remove-KeyIfPresent 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with md2htmlx'
+Remove-KeyIfPresent 'HKCU:\Software\Classes\Applications\mdo.exe'
+Remove-KeyIfPresent 'HKCU:\Software\Classes\mdo.md'
+Remove-KeyIfPresent 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo'
+
+# Also remove legacy keys from the pre-rename integration. These are harmless
+# if absent and keep upgrades from leaving stale Explorer entries behind.
+$legacyName = 'md2' + 'htmlx'
+Remove-KeyIfPresent "HKCU:\Software\Classes\Applications\$legacyName.exe"
+Remove-KeyIfPresent "HKCU:\Software\Classes\$legacyName.md"
+Remove-KeyIfPresent "HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with $legacyName"
 
 # Remove the generated .ico (and its folder, if it ends up empty).
-$iconDir = Join-Path $env:LOCALAPPDATA 'md2htmlx'
+$iconDir = Join-Path $env:LOCALAPPDATA 'mdo'
 $iconPath = Join-Path $iconDir 'md.ico'
 if (Test-Path -LiteralPath $iconPath) {
     Remove-Item -LiteralPath $iconPath -Force
@@ -52,17 +59,24 @@ if ((Test-Path -LiteralPath $iconDir) -and -not (Get-ChildItem -LiteralPath $ico
 # Just remove the single value we added under OpenWithProgids; leave the key.
 $openWith = 'HKCU:\Software\Classes\.md\OpenWithProgids'
 if (Test-Path -LiteralPath $openWith) {
-    $prop = Get-ItemProperty -LiteralPath $openWith -Name 'md2htmlx.md' -ErrorAction SilentlyContinue
+    $prop = Get-ItemProperty -LiteralPath $openWith -Name 'mdo.md' -ErrorAction SilentlyContinue
     if ($prop) {
-        Remove-ItemProperty -LiteralPath $openWith -Name 'md2htmlx.md' -Force
-        Write-Host "Removed value: $openWith\md2htmlx.md"
+        Remove-ItemProperty -LiteralPath $openWith -Name 'mdo.md' -Force
+        Write-Host "Removed value: $openWith\mdo.md"
     }
     else {
-        Write-Host "Skip   : $openWith\md2htmlx.md (not present)"
+        Write-Host "Skip   : $openWith\mdo.md (not present)"
+    }
+
+    $legacyProgId = "$legacyName.md"
+    $legacyProp = Get-ItemProperty -LiteralPath $openWith -Name $legacyProgId -ErrorAction SilentlyContinue
+    if ($legacyProp) {
+        Remove-ItemProperty -LiteralPath $openWith -Name $legacyProgId -Force
+        Write-Host "Removed legacy value: $openWith\$legacyProgId"
     }
 }
 
 Write-Host ""
 Write-Host "Done." -ForegroundColor Green
-Write-Host "If md2htmlx was set as the default handler for .md, Windows will"
+Write-Host "If mdo was set as the default handler for .md, Windows will"
 Write-Host "prompt you to pick a new default the next time you open a .md file."

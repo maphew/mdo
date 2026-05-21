@@ -3,27 +3,27 @@ set -euo pipefail
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     cat <<'EOF'
-Remove the md2htmlx Linux file-manager integration for the current user.
+Remove the mdo Linux file-manager integration for the current user.
 
 Usage:
   uninstall-linux-file-manager.sh
 
 Removes:
-  ~/.local/share/applications/md2htmlx.desktop
-  ~/.local/share/icons/hicolor/scalable/apps/md2htmlx.svg
-  ~/.local/share/nautilus/scripts/Render with md2htmlx
+  ~/.local/share/applications/mdo.desktop
+  ~/.local/share/icons/hicolor/scalable/apps/mdo.svg
+  ~/.local/share/nautilus/scripts/Render with mdo
 
-It also removes md2htmlx.desktop from Markdown MIME defaults/associations
+It also removes mdo.desktop from Markdown MIME defaults/associations
 in per-user mimeapps.list files.
 EOF
     exit 0
 fi
 
 desktop_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
-desktop_file="$desktop_dir/md2htmlx.desktop"
+desktop_file="$desktop_dir/mdo.desktop"
 icon_root="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor"
-icon_file="$icon_root/scalable/apps/md2htmlx.svg"
-nautilus_script="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Render with md2htmlx"
+icon_file="$icon_root/scalable/apps/mdo.svg"
+nautilus_script="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Render with mdo"
 
 remove_file() {
     local path="$1"
@@ -49,10 +49,10 @@ do
         /^\[Default Applications\]$/ { section = "default"; print; next }
         /^\[Added Associations\]$/ { section = "added"; print; next }
         /^\[/ { section = ""; print; next }
-        section == "default" && ($0 ~ /^text\/markdown=md2htmlx.desktop/ || $0 ~ /^text\/x-markdown=md2htmlx.desktop/) { next }
+        section == "default" && ($0 ~ /^text\/markdown=mdo.desktop/ || $0 ~ /^text\/x-markdown=mdo.desktop/) { next }
         section == "added" && ($0 ~ /^text\/markdown=/ || $0 ~ /^text\/x-markdown=/) {
-            sub(/(^text\/[^=]+=|;)md2htmlx.desktop;/, "\\1")
-            sub(/(^text\/[^=]+=|;)md2htmlx.desktop$/, "\\1")
+            sub(/(^text\/[^=]+=|;)mdo.desktop;/, "\\1")
+            sub(/(^text\/[^=]+=|;)mdo.desktop$/, "\\1")
             if ($0 ~ /^text\/[^=]+=$/) next
         }
         { print }
