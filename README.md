@@ -102,9 +102,9 @@ mdo --open input.md
 ```
 
 This is the recommended setup for a Windows "Open with mdo" file
-association — point the verb at `mdo.exe --open "%1"` and double-clicking
-a `.md` file in Explorer will render and open it without leaving any artifacts
-in the source folder.
+association — use the bundled `mdo-open.exe` wrapper and double-clicking
+a `.md` file in Explorer will render to the platform temp directory and
+open it without leaving any artifacts in the source folder.
 
 ---
 
@@ -115,7 +115,7 @@ file-manager integration:
 
 ```bash
 # Add mdo as an "Open With" Markdown handler and, on GNOME Files/Nautilus,
-# add a right-click Scripts entry named "Render with mdo"
+# add a right-click Scripts entry named "Preview with mdo"
 ./scripts/install-linux-file-manager.sh
 
 # Same, but also make mdo the default Markdown handler
@@ -129,8 +129,9 @@ The installer writes `~/.local/share/applications/mdo.desktop`, whose
 command is `mdo --open %f`, plus a small `Ⓜ` SVG icon under
 `~/.local/share/icons/hicolor/scalable/apps/mdo.svg`. On GNOME
 Files/Nautilus it also writes
-`~/.local/share/nautilus/scripts/Render with mdo`; use it from
-right-click → **Scripts** → **Render with mdo**.
+`~/.local/share/nautilus/scripts/Preview with mdo`; use it from
+right-click → **Scripts** → **Preview with mdo**. Older installs may still
+show **Render with mdo** until you rerun the installer.
 
 Pass `--exe /path/to/mdo` if the binary is not on `PATH`. The script looks
 for `mdo` on `PATH` first, then falls back to `target/release/mdo`
@@ -145,7 +146,7 @@ mdo into Explorer for the current user only (no admin, no HKLM changes):
 
 ```powershell
 # Add: an "Open with → mdo" entry and a
-#      "Render with mdo" right-click verb on .md files
+#      "Preview with mdo" right-click verb on .md files
 powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
 
 # Undo everything the install script did
@@ -157,7 +158,8 @@ wrapper built alongside `mdo.exe`. The wrapper exists for one reason:
 when Explorer launches a normal console binary it briefly flashes a black
 console window. `mdo-open.exe` runs as a GUI subsystem app and spawns
 `mdo.exe --open` with `CREATE_NO_WINDOW`, so double-clicking a `.md`
-file opens straight in the browser with no flash. The regular CLI is
+file previews from the platform temp directory and opens straight in the
+browser with no flash. The regular CLI is
 unchanged — `mdo.exe` from a terminal still prints to stdout normally.
 
 The install script auto-locates `mdo-open.exe` via `PATH`, falling
@@ -176,7 +178,8 @@ themes. Override either via parameters:
 ```
 
 `uninstall-explorer.ps1` removes the .ico (and its folder if empty)
-along with all the registry keys.
+along with all the registry keys. It also removes the old **Render with mdo**
+verb from earlier installs.
 
 To make mdo the *default* `.md` handler after running the install
 script, right-click a `.md` file → **Open with → Choose another app** →

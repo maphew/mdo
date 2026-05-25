@@ -11,7 +11,8 @@ Usage:
 Removes:
   ~/.local/share/applications/mdo.desktop
   ~/.local/share/icons/hicolor/scalable/apps/mdo.svg
-  ~/.local/share/nautilus/scripts/Render with mdo
+  ~/.local/share/nautilus/scripts/Preview with mdo
+  ~/.local/share/nautilus/scripts/Render with mdo (old installs)
 
 It also removes mdo.desktop from Markdown MIME defaults/associations
 in per-user mimeapps.list files.
@@ -23,7 +24,8 @@ desktop_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 desktop_file="$desktop_dir/mdo.desktop"
 icon_root="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor"
 icon_file="$icon_root/scalable/apps/mdo.svg"
-nautilus_script="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Render with mdo"
+nautilus_script="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Preview with mdo"
+old_nautilus_script="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Render with mdo"
 
 remove_file() {
     local path="$1"
@@ -38,6 +40,7 @@ remove_file() {
 remove_file "$desktop_file"
 remove_file "$icon_file"
 remove_file "$nautilus_script"
+remove_file "$old_nautilus_script"
 
 for file in \
     "${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list" \

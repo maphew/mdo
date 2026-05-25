@@ -7,7 +7,7 @@
       - HKCU\Software\Classes\Applications\mdo.exe
       - HKCU\Software\Classes\mdo.md
       - HKCU\Software\Classes\.md\OpenWithProgids\mdo.md value
-      - HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo
+      - HKCU\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo
 
     Leaves the .md OpenWithProgids key itself in place (other apps may
     have entries there).
@@ -35,6 +35,7 @@ function Remove-KeyIfPresent {
 
 Remove-KeyIfPresent 'HKCU:\Software\Classes\Applications\mdo.exe'
 Remove-KeyIfPresent 'HKCU:\Software\Classes\mdo.md'
+Remove-KeyIfPresent 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo'
 Remove-KeyIfPresent 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo'
 
 # Also remove legacy keys from the pre-rename integration. These are harmless

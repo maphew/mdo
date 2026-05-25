@@ -7,7 +7,7 @@
       1. Registers an "Application" entry so mdo shows up in
          "Open with -> Choose another app".
       2. Adds .md to its OpenWithProgids list so Explorer offers it.
-      3. Adds a "Render with mdo" right-click verb on .md files.
+      3. Adds a "Preview with mdo" right-click verb on .md files.
 
     All changes are written under HKCU (HKEY_CURRENT_USER), so no admin
     rights are required and nothing system-wide is touched.
@@ -222,9 +222,15 @@ Set-ItemProperty -Path "$progid\shell\open\command" -Name '(Default)' -Value $cm
 New-Item -Path "$progid\DefaultIcon" -Force | Out-Null
 Set-ItemProperty -Path "$progid\DefaultIcon" -Name '(Default)' -Value $iconRef
 
-# 3. Add a "Render with mdo" right-click verb on every .md file
-#    (works alongside whatever the current default handler is).
-$verb = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo'
+# 3. Add a "Preview with mdo" right-click verb on every .md file
+#    (works alongside whatever the current default handler is). Remove the
+#    old "Render with mdo" verb so rerunning this installer upgrades the
+#    visible Explorer label instead of leaving duplicate entries.
+$oldVerb = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo'
+if (Test-Path -LiteralPath $oldVerb) {
+    Remove-Item -LiteralPath $oldVerb -Recurse -Force
+}
+$verb = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo'
 New-Item -Path "$verb\command" -Force | Out-Null
 Set-ItemProperty -Path "$verb\command" -Name '(Default)' -Value $cmd
 Set-ItemProperty -Path $verb -Name 'Icon' -Value $iconRef
@@ -232,5 +238,5 @@ Set-ItemProperty -Path $verb -Name 'Icon' -Value $iconRef
 Write-Host "Done." -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:"
-Write-Host "  - Right-click any .md file -> 'Render with mdo' (Win11: Show more options)."
+Write-Host "  - Right-click any .md file -> 'Preview with mdo' (Win11: Show more options)."
 Write-Host "  - To make it the default: Open with -> Choose another app -> mdo -> Always."

@@ -109,15 +109,15 @@ write next to the source):</p>
 <pre><code class="language-bash">mdo --open input.md
 </code></pre>
 <p>This is the recommended setup for a Windows "Open with mdo" file
-association — point the verb at <code>mdo.exe --open "%1"</code> and double-clicking
-a <code>.md</code> file in Explorer will render and open it without leaving any artifacts
-in the source folder.</p>
+association — use the bundled <code>mdo-open.exe</code> wrapper and double-clicking
+a <code>.md</code> file in Explorer will render to the platform temp directory and
+open it without leaving any artifacts in the source folder.</p>
 <hr />
 <h2>Linux file manager integration</h2>
 <p>The repo also ships Linux helpers under <a href="scripts"><code>scripts/</code></a> for per-user
 file-manager integration:</p>
 <pre><code class="language-bash"># Add mdo as an "Open With" Markdown handler and, on GNOME Files/Nautilus,
-# add a right-click Scripts entry named "Render with mdo"
+# add a right-click Scripts entry named "Preview with mdo"
 ./scripts/install-linux-file-manager.sh
 
 # Same, but also make mdo the default Markdown handler
@@ -130,8 +130,9 @@ file-manager integration:</p>
 command is <code>mdo --open %f</code>, plus a small <code>Ⓜ</code> SVG icon under
 <code>~/.local/share/icons/hicolor/scalable/apps/mdo.svg</code>. On GNOME
 Files/Nautilus it also writes
-<code>~/.local/share/nautilus/scripts/Render with mdo</code>; use it from
-right-click → <strong>Scripts</strong> → <strong>Render with mdo</strong>.</p>
+<code>~/.local/share/nautilus/scripts/Preview with mdo</code>; use it from
+right-click → <strong>Scripts</strong> → <strong>Preview with mdo</strong>. Older installs may still
+show <strong>Render with mdo</strong> until you rerun the installer.</p>
 <p>Pass <code>--exe /path/to/mdo</code> if the binary is not on <code>PATH</code>. The script looks
 for <code>mdo</code> on <code>PATH</code> first, then falls back to <code>target/release/mdo</code>
 next to this repo after <code>cargo build --release</code>.</p>
@@ -140,7 +141,7 @@ next to this repo after <code>cargo build --release</code>.</p>
 <p>The repo ships two PowerShell helpers under <a href="scripts"><code>scripts/</code></a> that wire
 mdo into Explorer for the current user only (no admin, no HKLM changes):</p>
 <pre><code class="language-powershell"># Add: an "Open with → mdo" entry and a
-#      "Render with mdo" right-click verb on .md files
+#      "Preview with mdo" right-click verb on .md files
 powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
 
 # Undo everything the install script did
@@ -151,12 +152,13 @@ wrapper built alongside <code>mdo.exe</code>. The wrapper exists for one reason:
 when Explorer launches a normal console binary it briefly flashes a black
 console window. <code>mdo-open.exe</code> runs as a GUI subsystem app and spawns
 <code>mdo.exe --open</code> with <code>CREATE_NO_WINDOW</code>, so double-clicking a <code>.md</code>
-file opens straight in the browser with no flash. The regular CLI is
+file previews from the platform temp directory and opens straight in the
+browser with no flash. The regular CLI is
 unchanged — <code>mdo.exe</code> from a terminal still prints to stdout normally.</p>
 <p>The install script auto-locates <code>mdo-open.exe</code> via <code>PATH</code>, falling
 back to <code>target\release\mdo-open.exe</code> next to the repo. Pass
 <code>-ExePath C:\path\to\mdo-open.exe</code> to override. <code>mdo.exe</code> must
-sit next to <code>mdo-open.exe</code>; both are produced by <code>cargo build --release</code> and <code>cargo install mdo-cli</code>.</p>
+sit next to <code>mdo-open.exe</code>; both are produced by <code>cargo build  --release</code> and <code>cargo install mdo-cli</code>.</p>
 <p>It also generates a small <code>.ico</code> at <code>%LOCALAPPDATA%\mdo\md.ico</code> by
 rendering a single Unicode character — by default Ⓜ (circled M) in a
 mid-tone blue chosen so it stays legible in both light and dark Explorer
@@ -164,7 +166,8 @@ themes. Override either via parameters:</p>
 <pre><code class="language-powershell">.\scripts\install-explorer.ps1 -IconChar "📄" -IconColor "#E64A19"
 </code></pre>
 <p><code>uninstall-explorer.ps1</code> removes the .ico (and its folder if empty)
-along with all the registry keys.</p>
+along with all the registry keys. It also removes the old <strong>Render with mdo</strong>
+verb from earlier installs.</p>
 <p>To make mdo the <em>default</em> <code>.md</code> handler after running the install
 script, right-click a <code>.md</code> file → <strong>Open with → Choose another app</strong> →
 pick <strong>mdo</strong> → tick <strong>Always use this app</strong>. Windows requires that

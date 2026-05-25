@@ -19,7 +19,7 @@ Options:
 Installs:
   ~/.local/share/applications/mdo.desktop
   ~/.local/share/icons/hicolor/scalable/apps/mdo.svg
-  ~/.local/share/nautilus/scripts/Render with mdo   (when Nautilus exists)
+  ~/.local/share/nautilus/scripts/Preview with mdo  (when Nautilus exists)
 EOF
 }
 
@@ -146,8 +146,10 @@ fi
 
 if [[ "$install_nautilus_script" -eq 1 ]] && command -v nautilus >/dev/null 2>&1; then
     nautilus_dir="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts"
-    nautilus_script="$nautilus_dir/Render with mdo"
+    nautilus_script="$nautilus_dir/Preview with mdo"
+    old_nautilus_script="$nautilus_dir/Render with mdo"
     mkdir -p "$nautilus_dir"
+    rm -f -- "$old_nautilus_script"
     cat > "$nautilus_script" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
@@ -172,8 +174,8 @@ fi
 echo "Installed desktop entry: $desktop_file"
 echo "Installed icon: $icon_file"
 if [[ "$install_nautilus_script" -eq 1 ]] && command -v nautilus >/dev/null 2>&1; then
-    echo "Installed Nautilus script: ${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Render with mdo"
-    echo "In GNOME Files, use right-click -> Scripts -> Render with mdo."
+    echo "Installed Nautilus script: ${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Preview with mdo"
+    echo "In GNOME Files, use right-click -> Scripts -> Preview with mdo."
 fi
 if [[ "$set_default" -eq 1 ]]; then
     echo "mdo is now the default Markdown handler."
