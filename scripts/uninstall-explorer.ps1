@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Remove the mdo Explorer integration created by install-explorer.ps1.
+    Remove the Open as HTML Explorer integration created by install-explorer.ps1.
 
 .DESCRIPTION
     Deletes every HKCU registry key the install script creates:
       - HKCU\Software\Classes\Applications\mdo.exe
       - HKCU\Software\Classes\mdo.md
       - HKCU\Software\Classes\.md\OpenWithProgids\mdo.md value
-      - HKCU\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo
+      - HKCU\Software\Classes\SystemFileAssociations\.md\shell\Open as HTML
 
     Leaves the .md OpenWithProgids key itself in place (other apps may
     have entries there).
@@ -35,6 +35,7 @@ function Remove-KeyIfPresent {
 
 Remove-KeyIfPresent 'HKCU:\Software\Classes\Applications\mdo.exe'
 Remove-KeyIfPresent 'HKCU:\Software\Classes\mdo.md'
+Remove-KeyIfPresent 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Open as HTML'
 Remove-KeyIfPresent 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo'
 Remove-KeyIfPresent 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo'
 
@@ -79,5 +80,5 @@ if (Test-Path -LiteralPath $openWith) {
 
 Write-Host ""
 Write-Host "Done." -ForegroundColor Green
-Write-Host "If mdo was set as the default handler for .md, Windows will"
+Write-Host "If Open as HTML was set as the default handler for .md, Windows will"
 Write-Host "prompt you to pick a new default the next time you open a .md file."

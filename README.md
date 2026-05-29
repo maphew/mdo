@@ -103,7 +103,7 @@ write next to the source):
 mdo --open input.md
 ```
 
-This is the recommended setup for a Windows "Open with mdo" file
+This is the recommended setup for a Windows **Open as HTML** file
 association — use the bundled `mdo-open.exe` wrapper and double-clicking
 a `.md` file in Explorer will render to the platform temp directory and
 open it without leaving any artifacts in the source folder.
@@ -116,11 +116,10 @@ The repo also ships Linux helpers under [`scripts/`](scripts) for per-user
 file-manager integration:
 
 ```bash
-# Add mdo as an "Open With" Markdown handler and, on GNOME Files/Nautilus,
-# add a right-click Scripts entry named "Preview with mdo"
+# Add "Open as HTML" as an "Open With" handler for Markdown files
 ./scripts/install-linux-file-manager.sh
 
-# Same, but also make mdo the default Markdown handler
+# Same, but also make it the default Markdown handler
 ./scripts/install-linux-file-manager.sh --set-default
 
 # Undo everything the install script did
@@ -129,15 +128,23 @@ file-manager integration:
 
 The installer writes `~/.local/share/applications/mdo.desktop`, whose
 command is `mdo --open %f`, plus a small `Ⓜ` SVG icon under
-`~/.local/share/icons/hicolor/scalable/apps/mdo.svg`. On GNOME
-Files/Nautilus it also writes
-`~/.local/share/nautilus/scripts/Preview with mdo`; use it from
-right-click → **Scripts** → **Preview with mdo**. Older installs may still
-show **Render with mdo** until you rerun the installer.
+`~/.local/share/icons/hicolor/scalable/apps/mdo.svg`. The desktop entry is
+named **Open as HTML**, so GNOME Files/Nautilus and other XDG file managers
+show an action-oriented entry instead of a tool-name-only entry. Rerunning the
+installer also removes older Nautilus Scripts entries named **Preview with
+mdo** or **Render with mdo**.
 
 Pass `--exe /path/to/mdo` if the binary is not on `PATH`. The script looks
 for `mdo` on `PATH` first, then falls back to `target/release/mdo`
 next to this repo after `cargo build --release`.
+
+Result examples after install:
+
+- Most XDG file managers: right-click a `.md` file → **Open With** →
+  **Open as HTML**.
+- With `--set-default`: double-clicking a Markdown file launches `mdo --open`.
+- The rendered page opens in your default browser from a temp path such as
+  `/tmp/mdo/<hash>/<name>.html`, and no `.html` file is left beside the source.
 
 ---
 
@@ -147,8 +154,7 @@ The repo ships two PowerShell helpers under [`scripts/`](scripts) that wire
 mdo into Explorer for the current user only (no admin, no HKLM changes):
 
 ```powershell
-# Add: an "Open with → mdo" entry and a
-#      "Preview with mdo" right-click verb on .md files
+# Add: an "Open as HTML" right-click verb and Open With app entry
 powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
 
 # Undo everything the install script did
@@ -160,7 +166,7 @@ wrapper built alongside `mdo.exe`. The wrapper exists for one reason:
 when Explorer launches a normal console binary it briefly flashes a black
 console window. `mdo-open.exe` runs as a GUI subsystem app and spawns
 `mdo.exe --open` with `CREATE_NO_WINDOW`, so double-clicking a `.md`
-file previews from the platform temp directory and opens straight in the
+file renders from the platform temp directory and opens straight in the
 browser with no flash. The regular CLI is
 unchanged — `mdo.exe` from a terminal still prints to stdout normally.
 
@@ -180,13 +186,51 @@ themes. Override either via parameters:
 ```
 
 `uninstall-explorer.ps1` removes the .ico (and its folder if empty)
-along with all the registry keys. It also removes the old **Render with mdo**
-verb from earlier installs.
+along with all the registry keys. It also removes the old **Preview with mdo**
+and **Render with mdo** verbs from earlier installs.
 
-To make mdo the *default* `.md` handler after running the install
+To make **Open as HTML** the *default* `.md` handler after running the install
 script, right-click a `.md` file → **Open with → Choose another app** →
-pick **mdo** → tick **Always use this app**. Windows requires that
+pick **Open as HTML** → tick **Always use this app**. Windows requires that
 last step to be done interactively.
+
+Result examples after install:
+
+- Right-click any `.md` file → **Open as HTML**. On Windows 11, this may
+  appear under **Show more options**.
+- **Open with → Open as HTML** appears as an available app for Markdown files.
+- If you make **Open as HTML** the default handler, double-clicking a `.md`
+  file opens the rendered page in your browser with no console-window flash.
+- The rendered page opens from `%TEMP%\mdo\<hash>\<name>.html`, and the source
+  folder stays unchanged.
+
+---
+
+## macOS Finder quick action
+
+mdo does not ship a macOS installer script yet, but Finder can run `mdo --open`
+through a per-user Automator Quick Action. Apple documents Quick Action
+workflows and shell-script actions in the Automator User Guide:
+
+- <https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0>
+- <https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac>
+
+Create a Quick Action in Automator, set it to receive files in Finder, add
+**Run Shell Script**, set **Pass input** to **as arguments**, and use the
+absolute path to `mdo`:
+
+```bash
+for file in "$@"; do
+  /path/to/mdo --open "$file"
+done
+```
+
+Save the workflow as **Open as HTML**. The result is:
+
+- Finder shows **Quick Actions → Open as HTML** for selected Markdown files.
+- Running the Quick Action opens the rendered page in your browser.
+- The rendered page opens from a temp path under `$TMPDIR/mdo/<hash>/<name>.html`,
+  and no `.html` file is left beside the source.
 
 ---
 

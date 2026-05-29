@@ -278,9 +278,16 @@ p {
   gap: 16px;
 }
 
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .step,
 .note,
 .link-panel {
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -289,7 +296,8 @@ p {
 
 .step p code,
 .note p code,
-.check-list code {
+.check-list code,
+.source-note code {
   border-radius: 5px;
   background: #e9efeb;
   padding: 0.12em 0.36em;
@@ -297,12 +305,18 @@ p {
 }
 
 .code-block {
+  max-width: 100%;
   margin: 0;
   padding: 16px;
   border-radius: 8px;
   background: var(--code-bg);
   color: var(--code-text);
   overflow-x: auto;
+}
+
+.code-block code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .two-column {
@@ -318,6 +332,38 @@ p {
 
 .check-list li + li {
   margin-top: 8px;
+}
+
+.platform-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.platform-card .code-block {
+  margin: 0;
+}
+
+.source-note {
+  margin-top: auto;
+  font-size: 14px;
+}
+
+.result-strip {
+  margin-top: 28px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+
+.result-strip p {
+  max-width: 760px;
+  margin: 10px 0 16px;
+  color: var(--muted);
+}
+
+.result-code {
+  max-width: 760px;
 }
 
 .note.warn {
@@ -344,6 +390,10 @@ p {
   }
 
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-grid {
     grid-template-columns: 1fr;
   }
 

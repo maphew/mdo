@@ -1,20 +1,20 @@
 <#
 .SYNOPSIS
-    Register mdo with Windows Explorer for .md files (current user only).
+    Register Open as HTML with Windows Explorer for .md files (current user only).
 
 .DESCRIPTION
-    Adds mdo to the per-user Explorer integration for .md files:
-      1. Registers an "Application" entry so mdo shows up in
+    Adds a per-user Explorer integration for .md files:
+      1. Registers an "Application" entry so "Open as HTML" shows up in
          "Open with -> Choose another app".
       2. Adds .md to its OpenWithProgids list so Explorer offers it.
-      3. Adds a "Preview with mdo" right-click verb on .md files.
+      3. Adds an "Open as HTML" right-click verb on .md files.
 
     All changes are written under HKCU (HKEY_CURRENT_USER), so no admin
     rights are required and nothing system-wide is touched.
 
-    To make mdo the *default* handler for .md, after running this
+    To make Open as HTML the *default* handler for .md, after running this
     script: right-click a .md file -> Open with -> Choose another app ->
-    pick mdo -> tick "Always use this app". Windows requires that
+    pick Open as HTML -> tick "Always use this app". Windows requires that
     last step to be done interactively.
 
     Run scripts/uninstall-explorer.ps1 to undo everything this script does.
@@ -203,7 +203,7 @@ Write-Host ""
 $appRoot = 'HKCU:\Software\Classes\Applications\mdo.exe'
 New-Item -Path "$appRoot\shell\open\command" -Force | Out-Null
 Set-ItemProperty -Path "$appRoot\shell\open\command" -Name '(Default)' -Value $cmd
-Set-ItemProperty -Path $appRoot -Name 'FriendlyAppName' -Value 'mdo (Markdown -> HTML)'
+Set-ItemProperty -Path $appRoot -Name 'FriendlyAppName' -Value 'Open as HTML'
 # DefaultIcon under Applications\<exe> is what the Open-with picker shows.
 New-Item -Path "$appRoot\DefaultIcon" -Force | Out-Null
 Set-ItemProperty -Path "$appRoot\DefaultIcon" -Name '(Default)' -Value $iconRef
@@ -215,28 +215,33 @@ New-ItemProperty -Path $openWith -Name 'mdo.md' -Value '' -PropertyType String -
 
 $progid = 'HKCU:\Software\Classes\mdo.md'
 New-Item -Path "$progid\shell\open\command" -Force | Out-Null
-Set-ItemProperty -Path $progid -Name '(Default)' -Value 'Markdown document (mdo)'
+Set-ItemProperty -Path $progid -Name '(Default)' -Value 'Markdown document (Open as HTML)'
 Set-ItemProperty -Path "$progid\shell\open\command" -Name '(Default)' -Value $cmd
 # DefaultIcon under the ProgId is what Explorer shows for files whose
-# default app is mdo.
+# default app is Open as HTML.
 New-Item -Path "$progid\DefaultIcon" -Force | Out-Null
 Set-ItemProperty -Path "$progid\DefaultIcon" -Name '(Default)' -Value $iconRef
 
-# 3. Add a "Preview with mdo" right-click verb on every .md file
-#    (works alongside whatever the current default handler is). Remove the
-#    old "Render with mdo" verb so rerunning this installer upgrades the
-#    visible Explorer label instead of leaving duplicate entries.
-$oldVerb = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo'
-if (Test-Path -LiteralPath $oldVerb) {
-    Remove-Item -LiteralPath $oldVerb -Recurse -Force
+# 3. Add an "Open as HTML" right-click verb on every .md file
+#    (works alongside whatever the current default handler is). Remove older
+#    mdo verbs so rerunning this installer upgrades the visible Explorer label
+#    instead of leaving duplicate entries.
+foreach ($oldVerb in @(
+    'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo',
+    'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo'
+)) {
+    if (Test-Path -LiteralPath $oldVerb) {
+        Remove-Item -LiteralPath $oldVerb -Recurse -Force
+    }
 }
-$verb = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo'
+$verb = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\Open as HTML'
 New-Item -Path "$verb\command" -Force | Out-Null
+Set-ItemProperty -Path $verb -Name '(Default)' -Value 'Open as HTML'
 Set-ItemProperty -Path "$verb\command" -Name '(Default)' -Value $cmd
 Set-ItemProperty -Path $verb -Name 'Icon' -Value $iconRef
 
 Write-Host "Done." -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:"
-Write-Host "  - Right-click any .md file -> 'Preview with mdo' (Win11: Show more options)."
-Write-Host "  - To make it the default: Open with -> Choose another app -> mdo -> Always."
+Write-Host "  - Right-click any .md file -> 'Open as HTML' (Win11: Show more options)."
+Write-Host "  - To make it the default: Open with -> Choose another app -> Open as HTML -> Always."

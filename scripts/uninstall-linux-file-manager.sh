@@ -11,6 +11,7 @@ Usage:
 Removes:
   ~/.local/share/applications/mdo.desktop
   ~/.local/share/icons/hicolor/scalable/apps/mdo.svg
+  ~/.local/share/nautilus/scripts/Open as HTML
   ~/.local/share/nautilus/scripts/Preview with mdo
   ~/.local/share/nautilus/scripts/Render with mdo (old installs)
 
@@ -24,6 +25,7 @@ desktop_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 desktop_file="$desktop_dir/mdo.desktop"
 icon_root="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor"
 icon_file="$icon_root/scalable/apps/mdo.svg"
+open_as_html_script="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Open as HTML"
 nautilus_script="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Preview with mdo"
 old_nautilus_script="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Render with mdo"
 
@@ -39,6 +41,7 @@ remove_file() {
 
 remove_file "$desktop_file"
 remove_file "$icon_file"
+remove_file "$open_as_html_script"
 remove_file "$nautilus_script"
 remove_file "$old_nautilus_script"
 

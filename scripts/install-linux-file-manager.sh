@@ -3,29 +3,26 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Register mdo with Linux file managers for the current user.
+Register Open as HTML with Linux file managers for the current user.
 
 Usage:
-  install-linux-file-manager.sh [--exe PATH] [--set-default] [--no-nautilus-script]
+  install-linux-file-manager.sh [--exe PATH] [--set-default]
 
 Options:
   --exe PATH             Path to mdo. If omitted, uses PATH, then
                          ../target/release/mdo relative to this script.
-  --set-default          Make mdo the default handler for Markdown files.
+  --set-default          Make Open as HTML the default handler for Markdown files.
                          By default it is only added as an "Open With" option.
-  --no-nautilus-script   Do not install the GNOME Files/Nautilus Scripts entry.
   -h, --help             Show this help.
 
 Installs:
   ~/.local/share/applications/mdo.desktop
   ~/.local/share/icons/hicolor/scalable/apps/mdo.svg
-  ~/.local/share/nautilus/scripts/Preview with mdo  (when Nautilus exists)
 EOF
 }
 
 exe_path=""
 set_default=0
-install_nautilus_script=1
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -36,10 +33,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --set-default)
             set_default=1
-            shift
-            ;;
-        --no-nautilus-script)
-            install_nautilus_script=0
             shift
             ;;
         -h|--help)
@@ -119,9 +112,9 @@ quoted_exe="$(quote_desktop_exec_arg "$exe")"
 cat > "$desktop_file" <<EOF
 [Desktop Entry]
 Type=Application
-Name=mdo
-GenericName=Markdown HTML Previewer
-Comment=Render Markdown as HTML and open it in the default browser
+Name=Open as HTML
+GenericName=Markdown HTML Opener
+Comment=Open Markdown as HTML in the default browser
 Exec=$quoted_exe --open %f
 Icon=mdo
 Terminal=false
@@ -144,41 +137,19 @@ if [[ "$set_default" -eq 1 ]] && command -v xdg-mime >/dev/null 2>&1; then
     xdg-mime default mdo.desktop text/x-markdown || true
 fi
 
-if [[ "$install_nautilus_script" -eq 1 ]] && command -v nautilus >/dev/null 2>&1; then
-    nautilus_dir="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts"
-    nautilus_script="$nautilus_dir/Preview with mdo"
-    old_nautilus_script="$nautilus_dir/Render with mdo"
-    mkdir -p "$nautilus_dir"
-    rm -f -- "$old_nautilus_script"
-    cat > "$nautilus_script" <<EOF
-#!/usr/bin/env bash
-set -euo pipefail
-
-exe=$(printf '%q' "$exe")
-
-if [[ -n "\${NAUTILUS_SCRIPT_SELECTED_FILE_PATHS:-}" ]]; then
-    while IFS= read -r path; do
-        [[ -n "\$path" ]] || continue
-        "\$exe" --open "\$path" &
-    done <<< "\$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS"
-else
-    for uri in "\$@"; do
-        path="\${uri#file://}"
-        "\$exe" --open "\$path" &
-    done
-fi
-EOF
-    chmod 0755 "$nautilus_script"
-fi
+# Older installers added GNOME Files/Nautilus Scripts entries. The desktop
+# entry now gives Nautilus a direct "Open With" action, so remove duplicates
+# during upgrade.
+nautilus_dir="${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts"
+rm -f -- \
+    "$nautilus_dir/Preview with mdo" \
+    "$nautilus_dir/Render with mdo" \
+    "$nautilus_dir/Open as HTML"
 
 echo "Installed desktop entry: $desktop_file"
 echo "Installed icon: $icon_file"
-if [[ "$install_nautilus_script" -eq 1 ]] && command -v nautilus >/dev/null 2>&1; then
-    echo "Installed Nautilus script: ${XDG_DATA_HOME:-$HOME/.local/share}/nautilus/scripts/Preview with mdo"
-    echo "In GNOME Files, use right-click -> Scripts -> Preview with mdo."
-fi
 if [[ "$set_default" -eq 1 ]]; then
-    echo "mdo is now the default Markdown handler."
+    echo "Open as HTML is now the default Markdown handler."
 else
-    echo "mdo is available from Open With without changing your default Markdown handler."
+    echo "Open as HTML is available from Open With without changing your default Markdown handler."
 fi

@@ -17,6 +17,7 @@
       <div class="nav-links">
         <a href="#install">Install</a>
         <a href="#usage">Usage</a>
+        <a href="#file-managers">File Managers</a>
         <a href="#migration">Migration</a>
         <a href="https://github.com/maphew/mdo">GitHub</a>
         <a href="https://crates.io/crates/mdo-cli">crates.io</a>
@@ -43,7 +44,7 @@
           </div>
         </div>
 
-        <div class="preview-shell" aria-label="Rendered Markdown preview">
+        <div class="preview-shell" aria-label="Rendered Markdown example">
           <div class="preview-toolbar" aria-hidden="true">
             <span class="dot"></span>
             <span class="dot"></span>
@@ -110,24 +111,51 @@ mdo --open notes.md</code></pre>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="file-managers">
       <div class="section-inner">
         <div class="section-heading">
           <h2>File Manager Integration</h2>
-          <p>The repository ships per-user helpers for opening Markdown files from Explorer and Linux file managers without changing system-wide defaults.</p>
+          <p>Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same <code>mdo --open</code> render-and-open path.</p>
         </div>
-        <div class="two-column">
-          <div class="note">
+        <div class="platform-grid">
+          <div class="step platform-card">
             <h3>Windows Explorer</h3>
             <pre class="code-block"><code>powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1</code></pre>
-            <p>Registers <code>mdo-open.exe</code> so Explorer can preview Markdown without a console-window flash.</p>
+            <ul class="check-list">
+              <li>Right-click a <code>.md</code> file and choose <strong>Open as HTML</strong>; on Windows 11 it may be under <strong>Show more options</strong>.</li>
+              <li><strong>Open with</strong> offers <strong>Open as HTML</strong>.</li>
+              <li>If <strong>Open as HTML</strong> is made the default handler, double-click opens the browser with no console-window flash.</li>
+            </ul>
           </div>
-          <div class="note">
+          <div class="step platform-card">
             <h3>Linux File Managers</h3>
             <pre class="code-block"><code>./scripts/install-linux-file-manager.sh
 ./scripts/install-linux-file-manager.sh --set-default</code></pre>
-            <p>Adds an Open With handler and a Nautilus script entry when GNOME Files is present.</p>
+            <ul class="check-list">
+              <li>Most XDG file managers show <strong>Open With &rarr; Open as HTML</strong> for Markdown files.</li>
+              <li>GNOME Files/Nautilus uses the same Open With entry; no duplicate Scripts item is installed.</li>
+              <li>With <code>--set-default</code>, double-clicking Markdown files launches the browser.</li>
+            </ul>
           </div>
+          <div class="step platform-card">
+            <h3>macOS Finder</h3>
+            <pre class="code-block"><code>for file in "$@"; do
+  /path/to/mdo --open "$file"
+done</code></pre>
+            <ul class="check-list">
+              <li>No bundled installer yet; create an Automator Quick Action that receives files in Finder.</li>
+              <li>Add <strong>Run Shell Script</strong>, pass input as arguments, and use the absolute path to <code>mdo</code>.</li>
+              <li>Save it as <strong>Open as HTML</strong> so Finder exposes it under Quick Actions.</li>
+            </ul>
+            <p class="source-note">Apple reference: <a href="https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0">Quick Action workflows</a> and <a href="https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac">Run Shell Script</a>.</p>
+          </div>
+        </div>
+        <div class="result-strip">
+          <h3>Result Examples</h3>
+          <p>Each path below is stable for the source file, so reopening the same Markdown overwrites the same rendered page instead of accumulating generated files.</p>
+          <pre class="code-block result-code"><code>Windows  %TEMP%\mdo\&lt;hash&gt;\notes.html
+Linux    /tmp/mdo/&lt;hash&gt;/notes.html
+macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
         </div>
       </div>
     </section>
