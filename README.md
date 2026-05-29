@@ -8,6 +8,8 @@ By default it produces a complete, **HTML5-compliant** document styled with
 access at runtime). An optional **watch mode** keeps re-rendering the output
 whenever the Markdown source is edited.
 
+Project site: <https://maphew.github.io/mdo/>
+
 ---
 
 ## 🚀 Features
@@ -236,7 +238,7 @@ The bundled [simple.css](https://simplecss.org/) is © 2020
 
 This project is dual-licensed under either of:
 
-- MIT License ([LICENSE-MIT](https://opensource.org/licenses/MIT))
-- Apache License, Version 2.0 ([LICENSE-APACHE](https://www.apache.org/licenses/LICENSE-2.0.html))
+- MIT License ([LICENSE-MIT](LICENSE-MIT))
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
 
 at your option, matching the licensing of the upstream project.

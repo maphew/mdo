@@ -2,14 +2,15 @@
 name = "mdo-cli"
 version = "0.2.0"
 edition = "2021"
+default-run = "mdo"
 authors = [
-    "Matt Wilkie <matt.wilkie@yukon.ca>",
+    "Matt Wilkie <maphew@gmail.com>",
     "Hafiz Ali Raza <haffizaliraza@gmail.com>",  # original upstream author
 ]
 description = "A simple Rust CLI to convert Markdown to HTML5 (styled with simple.css), with optional file watching"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/maphew/mdo"
-homepage = "https://github.com/maphew/mdo"
+homepage = "https://maphew.github.io/mdo/"
 documentation = "https://docs.rs/mdo-cli"
 readme = "README.md"
 keywords = ["markdown", "html", "cli", "rust"]
@@ -18,15 +19,19 @@ categories = ["command-line-utilities", "text-processing"]
 # Files shipped to crates.io. We must include `assets/` because the binary
 # embeds simple.min.css at build time via `include_str!`.
 include = [
-    "src/**/*.rs",
-    "assets/simple.min.css",
-    "assets/simple.css.LICENSE",
-    "scripts/*.ps1",
-    "scripts/*.sh",
-    "Cargo.toml",
-    "CHANGELOG.md",
-    "README.md",
-    "example.md",
+    "/src/**/*.rs",
+    "/tests/**/*.rs",
+    "/assets/simple.min.css",
+    "/assets/simple.css.LICENSE",
+    "/scripts/*.ps1",
+    "/scripts/*.sh",
+    "/Cargo.toml",
+    "/Cargo.lock",
+    "/CHANGELOG.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/README.md",
+    "/example.md",
 ]
 
 # Forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI

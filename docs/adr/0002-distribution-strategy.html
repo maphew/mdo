@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>📝 mdo — Markdown to HTML5 Converter (with optional live watch)</title>
+<title>ADR 0002: Distribution strategy for `mdo`</title>
 <style>
 :root{--sans-font:-apple-system,BlinkMacSystemFont,"Avenir Next",Avenir,"Nimbus Sans L",Roboto,"Noto Sans","Segoe UI",Arial,Helvetica,"Helvetica Neue",sans-serif;--mono-font:Consolas,Menlo,Monaco,"Andale Mono","Ubuntu Mono",monospace;--standard-border-radius:5px;--border-width:1px;--bg:#fff;--accent-bg:#f5f7ff;--text:#212121;--text-light:#585858;--border:#898ea4;--accent:#0d47a1;--accent-hover:#1266e2;--accent-text:var(--bg);--code:#d81b60;--preformatted:#444;--marked:#fd3;--disabled:#efefef}@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#212121;--accent-bg:#2b2b2b;--text:#dcdcdc;--text-light:#ababab;--accent:#ffb300;--accent-hover:#ffe099;--accent-text:var(--bg);--code:#f06292;--preformatted:#ccc;--disabled:#111}img,video{opacity:.8}}*,:before,:after{box-sizing:border-box}textarea,select,input,progress{-webkit-appearance:none;-moz-appearance:none;appearance:none}html{font-family:var(--sans-font);scroll-behavior:smooth}body{color:var(--text);background-color:var(--bg);grid-template-columns:1fr min(45rem,90%) 1fr;margin:0;font-size:1.15rem;line-height:1.5;display:grid}body>*{grid-column:2}body>header{background-color:var(--accent-bg);border-bottom:var(--border-width)solid var(--border);text-align:center;grid-column:1/-1;padding:0 .5rem 2rem}body>header>:only-child{margin-block-start:2rem}body>header h1{max-width:1200px;margin:1rem auto}body>header p{max-width:40rem;margin:1rem auto}main{padding-top:1.5rem}body>footer{color:var(--text-light);text-align:center;border-top:var(--border-width)solid var(--border);margin-top:4rem;padding:2rem 1rem 1.5rem;font-size:.9rem}h1{font-size:3rem}h2{margin-top:3rem;font-size:2.6rem}h3{margin-top:3rem;font-size:2rem}h4{font-size:1.44rem}h5{font-size:1.15rem}h6{font-size:.96rem}p{margin:1.5rem 0}p,h1,h2,h3,h4,h5,h6{overflow-wrap:break-word}h1,h2,h3{line-height:1.1}@media only screen and (width<=720px){h1{font-size:2.5rem}h2{font-size:2.1rem}h3{font-size:1.75rem}h4{font-size:1.25rem}}a,a:visited{color:var(--accent)}a:hover{text-decoration:none}button,.button,a.button,input[type=submit],input[type=reset],input[type=button]{border:var(--border-width)solid var(--accent);background-color:var(--accent);color:var(--accent-text);padding:.5rem .9rem;line-height:normal;text-decoration:none}.button[aria-disabled=true],input:disabled,textarea:disabled,select:disabled,button[disabled]{cursor:not-allowed;background-color:var(--disabled);border-color:var(--disabled);color:var(--text-light)}input[type=range]{padding:0}abbr[title]{cursor:help;text-decoration-line:underline;text-decoration-style:dotted}button:enabled:hover,.button:not([aria-disabled=true]):hover,input[type=submit]:enabled:hover,input[type=reset]:enabled:hover,input[type=button]:enabled:hover{background-color:var(--accent-hover);border-color:var(--accent-hover);cursor:pointer}.button:focus-visible,button:focus-visible:where(:enabled),input:enabled:focus-visible:where([type=submit],[type=reset],[type=button]){outline:2px solid var(--accent);outline-offset:1px}header nav{padding:1rem 0 0;font-size:1rem;line-height:2}header nav ul,header nav ol{flex-flow:wrap;place-content:space-around center;align-items:center;margin:0;padding:0;list-style-type:none;display:flex}header nav ul li,header nav ol li{display:inline-block}header nav a,header nav a:visited{border:var(--border-width)solid var(--border);border-radius:var(--standard-border-radius);color:var(--text);margin:0 .5rem 1rem;padding:.1rem 1rem;text-decoration:none;display:inline-block}header nav a:hover,header nav a.current,header nav a[aria-current=page],header nav a[aria-current=true]{border-color:var(--accent);color:var(--accent);cursor:pointer}@media only screen and (width<=720px){header nav a{border:none;padding:0;line-height:1;text-decoration:underline}}aside,details,pre,progress{background-color:var(--accent-bg);border:var(--border-width)solid var(--border);border-radius:var(--standard-border-radius);margin-bottom:1rem}aside{float:right;width:30%;margin-inline-start:15px;padding:0 15px;font-size:1rem}[dir=rtl] aside{float:left}@media only screen and (width<=720px){aside{float:none;width:100%;margin-inline-start:0}}article,fieldset,dialog{border:var(--border-width)solid var(--border);border-radius:var(--standard-border-radius);margin-bottom:1rem;padding:1rem}article h2:first-child,section h2:first-child,article h3:first-child,section h3:first-child{margin-top:1rem}section{border-top:var(--border-width)solid var(--border);border-bottom:var(--border-width)solid var(--border);margin:3rem 0;padding:2rem 1rem}section+section,section:first-child{border-top:0;padding-top:0}section+section{margin-top:0}section:last-child{border-bottom:0;padding-bottom:0}details{padding:.7rem 1rem}summary{cursor:pointer;word-break:break-all;margin:-.7rem -1rem;padding:.7rem 1rem;font-weight:700}details[open]>summary+*{margin-top:0}details[open]>summary{margin-bottom:.5rem}details[open]>:last-child{margin-bottom:0}table{border-collapse:collapse;margin:1.5rem 0}figure>table{width:max-content;margin:0}td,th{border:var(--border-width)solid var(--border);text-align:start;padding:.5rem}th{background-color:var(--accent-bg);font-weight:700}tr:nth-child(2n){background-color:var(--accent-bg)}table caption{margin-bottom:.5rem;font-weight:700}textarea,select,input,button,.button{font-size:inherit;border-radius:var(--standard-border-radius);box-shadow:none;max-width:100%;margin-bottom:.5rem;padding:.5em;font-family:inherit;display:inline-block}textarea,select,input{color:var(--text);background-color:var(--bg);border:var(--border-width)solid var(--border)}label{display:block}textarea:not([cols]){width:100%}select:not([multiple]){background-image:linear-gradient(45deg,transparent 49%,var(--text)51%),linear-gradient(135deg,var(--text)51%,transparent 49%);background-position:calc(100% - 15px),calc(100% - 10px);background-repeat:no-repeat;background-size:5px 5px,5px 5px;padding-inline-end:25px}[dir=rtl] select:not([multiple]){background-position:10px,15px}input[type=checkbox],input[type=radio]{vertical-align:middle;width:min-content;position:relative}input[type=checkbox]+label,input[type=radio]+label{display:inline-block}input[type=radio]{border-radius:100%}input[type=checkbox]:checked,input[type=radio]:checked{background-color:var(--accent)}input[type=checkbox]:checked:after{content:" ";border-right:solid var(--bg).08em;border-bottom:solid var(--bg).08em;background-color:#0000;border-radius:0;width:.2em;height:.4em;font-size:1.8em;position:absolute;top:.04em;left:.18em;transform:rotate(45deg)}input[type=radio]:checked:after{content:" ";background-color:var(--bg);border-radius:100%;width:.3em;height:.3em;font-size:1.8em;position:absolute;top:.125em;left:.125em}@media only screen and (width<=720px){textarea,select,input{width:100%}}input[type=color]{height:2.5rem;padding:.2rem}input[type=file]{border:0}hr{height:var(--border-width);background:var(--border);border:none;margin:1rem auto}mark{border-radius:var(--standard-border-radius);background-color:var(--marked);color:#000;padding:2px 5px}mark a{color:#0d47a1}img,video{border-radius:var(--standard-border-radius);max-width:100%;height:auto}figure{margin:0;display:block;overflow-x:auto}figure>img,figure>picture>img{margin-inline:auto;display:block}figcaption{text-align:center;color:var(--text-light);margin-block:1rem;font-size:.9rem;position:sticky;left:0}blockquote{border-inline-start:.35rem solid var(--accent);color:var(--text-light);margin-block:2rem;margin-inline:2rem 0;padding:.4rem .8rem;font-style:italic}cite{color:var(--text-light);font-size:.9rem;font-style:normal}dt{color:var(--text-light)}code,pre,pre span,kbd,samp{font-family:var(--mono-font);color:var(--code)}kbd{color:var(--preformatted);border:var(--border-width)solid var(--preformatted);border-bottom:3px solid var(--preformatted);border-radius:var(--standard-border-radius);padding:.1rem .4rem}pre{max-width:100%;color:var(--preformatted);padding:1rem 1.4rem;overflow:auto}pre code{color:var(--preformatted);background:0 0;margin:0;padding:0}progress{width:100%}progress:indeterminate{background-color:var(--accent-bg)}progress::-webkit-progress-bar{border-radius:var(--standard-border-radius);background-color:var(--accent-bg)}progress::-webkit-progress-value{border-radius:var(--standard-border-radius);background-color:var(--accent)}progress::-moz-progress-bar{border-radius:var(--standard-border-radius);background-color:var(--accent);transition-property:width;transition-duration:.3s}progress:indeterminate::-moz-progress-bar{background-color:var(--accent-bg)}dialog{background-color:var(--bg);max-width:40rem;margin:auto}dialog::backdrop{background-color:var(--bg);opacity:.8}@media only screen and (width<=720px){dialog{max-width:calc(100vw - 2rem)}}sup,sub{vertical-align:baseline;position:relative}sup{top:-.4em}sub{top:.3em}.notice{background:var(--accent-bg);border:var(--border-width)solid var(--border);border-radius:var(--standard-border-radius);margin:2rem 0;padding:1.5rem}@media print{@page{margin:1cm}body{display:block}body>header{background-color:unset}body>header nav,body>footer{display:none}article{border:none;padding:0}a[href^=http]:after{content:" <" attr(href)">"}abbr[title]:after{content:" (" attr(title)")"}a{text-decoration:none}p{widows:3;orphans:3}hr{border-top:var(--border-width)solid var(--border)}mark{border:var(--border-width)solid var(--border)}pre,table,figure,img,svg{break-inside:avoid}pre code{white-space:pre-wrap}}
 </style>
@@ -36,188 +36,74 @@
 </head>
 <body>
 <main>
-<h1>📝 mdo — Markdown to HTML5 Converter (with optional live watch)</h1>
-<p><code>mdo</code> is a small, fast command-line tool written in Rust that converts
-Markdown files into HTML.</p>
-<p>By default it produces a complete, <strong>HTML5-compliant</strong> document styled with
-<a href="https://simplecss.org/">simple.css</a> (vendored at build time — no network
-access at runtime). An optional <strong>watch mode</strong> keeps re-rendering the output
-whenever the Markdown source is edited.</p>
-<p>Project site: <a href="https://maphew.github.io/mdo/">https://maphew.github.io/mdo/</a></p>
-<hr />
-<h2>🚀 Features</h2>
+<h1>ADR 0002: Distribution strategy for <code>mdo</code></h1>
 <ul>
-<li>✅ Converts <code>.md</code> files to standalone HTML5 documents</li>
-<li>🎨 Pretty default styling via embedded <a href="https://simplecss.org/">simple.css</a></li>
-<li>🌓 Automatic light/dark mode (follows OS) plus a manual toggle button</li>
-<li>📄 <code>--bare</code> flag emits a raw HTML fragment (no <code>&lt;html&gt;</code>/<code>&lt;head&gt;</code>/<code>&lt;body&gt;</code>/CSS)</li>
-<li>👀 <code>--watch</code> flag enables auto-rerender on file change (with debouncing)</li>
-<li>🌐 <code>--open</code> flag renders to a temp dir and launches the system default browser</li>
-<li>⚡ Fast and self-contained — single binary, no runtime assets</li>
-<li>🧩 Built on <code>pulldown-cmark</code>, <code>clap</code>, and <code>notify</code></li>
+<li><strong>Status</strong>: Accepted</li>
+<li><strong>Date</strong>: 2026-05-29</li>
+<li><strong>Deciders</strong>: Matt</li>
+<li><strong>Supersedes</strong>: none</li>
 </ul>
-<hr />
-<h2>📦 Installation</h2>
-<h3>From crates.io</h3>
+<h2>Context</h2>
+<p>ADR 0001 renamed the project to <code>mdo</code> and chose <code>mdo-cli</code> as the
+crates.io package name while keeping <code>mdo</code> as the installed binary name.
+The follow-up question was whether to also claim matching package names
+across npm, PyPI, and other package indices.</p>
+<p>The registry state checked on 2026-05-29 was:</p>
+<table><thead><tr><th>index</th><th><code>mdo</code></th><th><code>mdo-cli</code></th><th>note</th></tr></thead><tbody>
+<tr><td>crates.io</td><td>taken</td><td>free</td><td><code>mdo</code> is a dormant monadic-do crate; <code>mdo-cli</code> is available</td></tr>
+<tr><td>npm</td><td>taken</td><td>taken</td><td><code>mdo-cli</code> is an old todo CLI and already exposes a <code>mdo</code> binary</td></tr>
+<tr><td>PyPI</td><td>taken</td><td>free</td><td><code>mdo-cli</code> is available but would need a real Python-facing package</td></tr>
+<tr><td>Homebrew core</td><td>free</td><td>free</td><td>no formula present</td></tr>
+<tr><td>WinGet</td><td>free</td><td>n/a</td><td>no matching package observed</td></tr>
+<tr><td>Scoop main</td><td>free</td><td>n/a</td><td>no matching package observed</td></tr>
+</tbody></table>
+<p>The project is a Rust CLI. The canonical user experience is installing a
+native binary, not importing a JavaScript or Python library.</p>
+<h2>Decision</h2>
+<p>Keep <strong><code>mdo</code></strong> as the executable name.</p>
+<p>Publish the canonical Rust package as <strong><code>mdo-cli</code></strong> on crates.io:</p>
 <pre><code class="language-bash">cargo install mdo-cli
 </code></pre>
-<h3>Build from source</h3>
-<pre><code class="language-bash">git clone https://github.com/maphew/mdo.git
-cd mdo
-cargo build --release
-./target/release/mdo input.md
-</code></pre>
-<hr />
-<h2>📦 Usage</h2>
-<pre><code class="language-text">Usage: mdo [OPTIONS] &lt;INPUT&gt;
-
-Arguments:
-  &lt;INPUT&gt;  Input Markdown file
-
-Options:
-  -o, --output &lt;OUTPUT&gt;  Output HTML file (defaults to &lt;input&gt;.html alongside the input,
-                         or to a temp directory when --open is used). Existing files are overwritten
-  -w, --watch            Watch the input file and re-render on every change
-  -b, --bare             Emit only the raw HTML fragment (no &lt;html&gt;, &lt;head&gt;, &lt;body&gt;, no CSS)
-      --open             Render to a temp directory and launch the system default browser.
-                         The source folder is left untouched unless --output is given
-  -h, --help             Print help
-  -V, --version          Print version
-</code></pre>
-<p>If <code>--output</code> is omitted, the output is written next to the input with the
-extension changed to <code>.html</code> (e.g. <code>foo.md</code> → <code>foo.html</code>). Existing files are
-overwritten without prompting.</p>
-<p>When <code>--open</code> is used without <code>--output</code>, the rendered HTML goes to a stable
-location under your OS temp directory (e.g.
-<code>%TEMP%\mdo\&lt;hash&gt;\&lt;name&gt;.html</code> on Windows) so the source folder stays
-clean. Re-opening the same file overwrites the same temp output. A
-<code>&lt;base href="file:///…"&gt;</code> tag pointing at the source folder is automatically
-injected whenever the output lives elsewhere, so relative images and links in
-the Markdown still resolve correctly.</p>
-<h3>Examples</h3>
-<p>Convert once and exit (default — produces a styled, standalone HTML5 page next to the input). The README.html in this repo is generated like this:</p>
-<pre><code class="language-bash">mdo input.md                    # writes input.html
-mdo input.md -o docs/out.html   # writes docs/out.html
-</code></pre>
-<p>Emit a bare HTML fragment (useful for embedding in another template):</p>
-<pre><code class="language-bash">mdo --bare input.md
-</code></pre>
-<p>Watch for changes and re-render on every save:</p>
-<pre><code class="language-bash">mdo --watch input.md
-</code></pre>
-<p>Render to a temp file and open it in your default browser (does <strong>not</strong>
-write next to the source):</p>
-<pre><code class="language-bash">mdo --open input.md
-</code></pre>
-<p>This is the recommended setup for a Windows "Open with mdo" file
-association — use the bundled <code>mdo-open.exe</code> wrapper and double-clicking
-a <code>.md</code> file in Explorer will render to the platform temp directory and
-open it without leaving any artifacts in the source folder.</p>
-<hr />
-<h2>Linux file manager integration</h2>
-<p>The repo also ships Linux helpers under <a href="scripts"><code>scripts/</code></a> for per-user
-file-manager integration:</p>
-<pre><code class="language-bash"># Add mdo as an "Open With" Markdown handler and, on GNOME Files/Nautilus,
-# add a right-click Scripts entry named "Preview with mdo"
-./scripts/install-linux-file-manager.sh
-
-# Same, but also make mdo the default Markdown handler
-./scripts/install-linux-file-manager.sh --set-default
-
-# Undo everything the install script did
-./scripts/uninstall-linux-file-manager.sh
-</code></pre>
-<p>The installer writes <code>~/.local/share/applications/mdo.desktop</code>, whose
-command is <code>mdo --open %f</code>, plus a small <code>Ⓜ</code> SVG icon under
-<code>~/.local/share/icons/hicolor/scalable/apps/mdo.svg</code>. On GNOME
-Files/Nautilus it also writes
-<code>~/.local/share/nautilus/scripts/Preview with mdo</code>; use it from
-right-click → <strong>Scripts</strong> → <strong>Preview with mdo</strong>. Older installs may still
-show <strong>Render with mdo</strong> until you rerun the installer.</p>
-<p>Pass <code>--exe /path/to/mdo</code> if the binary is not on <code>PATH</code>. The script looks
-for <code>mdo</code> on <code>PATH</code> first, then falls back to <code>target/release/mdo</code>
-next to this repo after <code>cargo build --release</code>.</p>
-<hr />
-<h2>🪟 Windows Explorer integration</h2>
-<p>The repo ships two PowerShell helpers under <a href="scripts"><code>scripts/</code></a> that wire
-mdo into Explorer for the current user only (no admin, no HKLM changes):</p>
-<pre><code class="language-powershell"># Add: an "Open with → mdo" entry and a
-#      "Preview with mdo" right-click verb on .md files
-powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
-
-# Undo everything the install script did
-powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-explorer.ps1
-</code></pre>
-<p>The install script registers <code>mdo-open.exe</code>, a tiny windows-subsystem
-wrapper built alongside <code>mdo.exe</code>. The wrapper exists for one reason:
-when Explorer launches a normal console binary it briefly flashes a black
-console window. <code>mdo-open.exe</code> runs as a GUI subsystem app and spawns
-<code>mdo.exe --open</code> with <code>CREATE_NO_WINDOW</code>, so double-clicking a <code>.md</code>
-file previews from the platform temp directory and opens straight in the
-browser with no flash. The regular CLI is
-unchanged — <code>mdo.exe</code> from a terminal still prints to stdout normally.</p>
-<p>The install script auto-locates <code>mdo-open.exe</code> via <code>PATH</code>, falling
-back to <code>target\release\mdo-open.exe</code> next to the repo. Pass
-<code>-ExePath C:\path\to\mdo-open.exe</code> to override. <code>mdo.exe</code> must
-sit next to <code>mdo-open.exe</code>; both are produced by <code>cargo build --release</code> and <code>cargo install mdo-cli</code>.</p>
-<p>It also generates a small <code>.ico</code> at <code>%LOCALAPPDATA%\mdo\md.ico</code> by
-rendering a single Unicode character — by default Ⓜ (circled M) in a
-mid-tone blue chosen so it stays legible in both light and dark Explorer
-themes. Override either via parameters:</p>
-<pre><code class="language-powershell">.\scripts\install-explorer.ps1 -IconChar "📄" -IconColor "#E64A19"
-</code></pre>
-<p><code>uninstall-explorer.ps1</code> removes the .ico (and its folder if empty)
-along with all the registry keys. It also removes the old <strong>Render with mdo</strong>
-verb from earlier installs.</p>
-<p>To make mdo the <em>default</em> <code>.md</code> handler after running the install
-script, right-click a <code>.md</code> file → <strong>Open with → Choose another app</strong> →
-pick <strong>mdo</strong> → tick <strong>Always use this app</strong>. Windows requires that
-last step to be done interactively.</p>
-<hr />
-<h2>🎨 Default output</h2>
-<p>The default (non-<code>--bare</code>) output is a complete HTML5 document:</p>
+<p>Use GitHub Releases for downloadable binaries and checksums.</p>
+<p>Treat OS package managers as the next packaging layer:</p>
 <ul>
-<li><code>&lt;!DOCTYPE html&gt;</code> + <code>&lt;html lang="en"&gt;</code></li>
-<li>UTF-8 charset and responsive viewport meta</li>
-<li><code>&lt;title&gt;</code> derived from the first <code># Heading</code> in the source (falls back to the
-input filename)</li>
-<li>An inlined copy of <a href="https://simplecss.org/">simple.css</a> inside <code>&lt;style&gt;</code>,
-giving you sensible typography and automatic light/dark mode out of the box</li>
-<li>A small floating ☀/☾ button (top-right) for manually overriding the theme;
-the choice is remembered in <code>localStorage</code></li>
-<li>Body content wrapped in <code>&lt;main&gt;</code></li>
+<li>Homebrew tap formula named <code>mdo</code></li>
+<li>WinGet package id such as <code>Maphew.Mdo</code></li>
+<li>Scoop manifest named <code>mdo</code></li>
 </ul>
-<p>Markdown extensions enabled: tables, footnotes, task lists, strikethrough.</p>
-<hr />
-<h2>🙏 Credits</h2>
-<p>This project is a grateful fork of Hafiz Ali Raza's original
-Markdown-to-HTML CLI. Hafiz remains credited as an author, and this fork keeps
-that lineage explicit so future improvements can be offered back upstream.</p>
-<p>This fork adds:</p>
+<p>Do not publish placeholder packages to npm or PyPI just to reserve names.
+Only publish there later if the packages provide real install value, such
+as a maintained wrapper that installs the native binary and clearly points
+back to the Rust project.</p>
+<h2>Consequences</h2>
+<p><strong>Positive</strong></p>
 <ul>
-<li>Convert-and-exit as the default; watch mode is now opt-in (<code>--watch</code>)</li>
-<li>Optional <code>--output</code> (defaults to <code>&lt;input&gt;.html</code> next to the source)</li>
-<li>Standalone HTML5 output with embedded <a href="https://simplecss.org/">simple.css</a></li>
-<li>A <code>--bare</code> flag that preserves the original fragment-only behavior</li>
-<li>An <code>--open</code> flag that renders to a temp directory and launches the system
-default browser (with auto-injected <code>&lt;base href&gt;</code> so relative refs resolve)</li>
-<li>Light/dark theme toggle button overlaid on the rendered page</li>
-<li>Title auto-derived from the first heading</li>
-<li>Debounced file-change events (no more duplicate renders per save)</li>
-<li>Surfaced watcher errors instead of swallowing them</li>
-<li>Markdown extensions: tables, footnotes, task lists (in addition to strikethrough)</li>
+<li>The command users type remains the strongest name: <code>mdo</code>.</li>
+<li>The primary package path matches the implementation language and current
+audience.</li>
+<li>The project avoids occupying unrelated ecosystems with empty packages.</li>
+<li>Native binary releases cover users who do not want a Rust toolchain.</li>
+<li>Homebrew, WinGet, and Scoop provide better CLI distribution paths than
+npm/PyPI for this project.</li>
 </ul>
-<p>The bundled <a href="https://simplecss.org/">simple.css</a> is © 2020
-<a href="https://kevquirk.com/">Kev Quirk</a> and distributed under the MIT License — see
-<a href="assets/simple.css.LICENSE"><code>assets/simple.css.LICENSE</code></a>.</p>
-<hr />
-<h2>📄 License</h2>
-<p>This project is dual-licensed under either of:</p>
+<p><strong>Negative / accepted</strong></p>
 <ul>
-<li>MIT License (<a href="LICENSE-MIT">LICENSE-MIT</a>)</li>
-<li>Apache License, Version 2.0 (<a href="LICENSE-APACHE">LICENSE-APACHE</a>)</li>
+<li>The package name is not uniform across all indices.</li>
+<li><code>cargo install mdo-cli</code> differs from the executable name <code>mdo</code>.</li>
+<li>npm cannot be used cleanly for <code>mdo</code> or <code>mdo-cli</code>; both names are already
+occupied, and <code>mdo-cli</code> already installs a <code>mdo</code> command.</li>
+<li>PyPI <code>mdo-cli</code> remains unclaimed unless a real Python package is created.</li>
 </ul>
-<p>at your option, matching the licensing of the upstream project.</p>
+<h2>Rejected options</h2>
+<p><strong>Rename to <code>mdoh</code>.</strong> This appeared clean across crates.io, npm, and PyPI
+on 2026-05-29, but it is a weaker name. <code>mdo</code> is shorter, easier to type,
+and maps directly to the "Markdown open" positioning.</p>
+<p><strong>Publish placeholder npm/PyPI packages.</strong> This would reserve names but
+would add maintenance burden and noise without improving the product. It
+also risks looking like namespace squatting.</p>
+<p><strong>Use npm or PyPI as first-class package channels.</strong> These ecosystems are
+not a natural fit for a Rust-native CLI unless the project later ships
+well-maintained wrappers.</p>
 
 </main>
 </body>
