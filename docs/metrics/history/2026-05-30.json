@@ -1,0 +1,168 @@
+{
+  "collected_at": "2026-05-30T04:37:45Z",
+  "crates_io": {
+    "crate": {
+      "created_at": "2026-05-30T00:01:38.591296Z",
+      "downloads": 0,
+      "html_url": "https://crates.io/crates/mdo-cli",
+      "id": "mdo-cli",
+      "max_version": "0.3.0",
+      "name": "mdo-cli",
+      "recent_downloads": null,
+      "updated_at": "2026-05-30T00:13:33.236683Z"
+    },
+    "source": "https://crates.io/api/v1/crates/mdo-cli",
+    "status": {
+      "ok": true,
+      "status": 200
+    }
+  },
+  "github": {
+    "releases": {
+      "releases": [
+        {
+          "asset_downloads": 0,
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.2.0/md2htmlx-open.exe",
+              "download_count": 0,
+              "name": "md2htmlx-open.exe",
+              "size": 1188515,
+              "updated_at": "2026-05-12T21:06:46Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.2.0/md2htmlx.exe",
+              "download_count": 0,
+              "name": "md2htmlx.exe",
+              "size": 2883476,
+              "updated_at": "2026-05-12T21:06:46Z"
+            }
+          ],
+          "html_url": "https://github.com/maphew/mdo/releases/tag/v0.2.0",
+          "name": "md2htmlx v0.2.0",
+          "published_at": "2026-05-12T21:06:47Z",
+          "tag_name": "v0.2.0"
+        }
+      ],
+      "source": "https://api.github.com/repos/maphew/mdo/releases",
+      "status": {
+        "ok": true,
+        "status": 200
+      },
+      "total_asset_downloads": 0
+    },
+    "repository": {
+      "repository": {
+        "created_at": "2026-05-11T18:15:30Z",
+        "description": "mdo is a fast, lightweight, and user-friendly command-line tool written in Rust that converts Markdown files into HTML. It also supports a live watch mode to automatically re-render your HTML output whenever the Markdown file is edited.",
+        "forks": 0,
+        "full_name": "maphew/mdo",
+        "html_url": "https://github.com/maphew/mdo",
+        "open_issues": 5,
+        "pushed_at": "2026-05-30T00:12:55Z",
+        "stars": 1,
+        "updated_at": "2026-05-30T00:09:52Z",
+        "watchers": 0
+      },
+      "source": "https://api.github.com/repos/maphew/mdo",
+      "status": {
+        "ok": true,
+        "status": 200
+      }
+    },
+    "traffic": {
+      "available": false,
+      "clones": null,
+      "minimum_public_count": 3,
+      "note": "GitHub traffic endpoints expose only recent aggregate windows. Entries with counts below the public threshold are omitted.",
+      "paths": [],
+      "referrers": [],
+      "skip_reason": "Set METRICS_GITHUB_TOKEN or GITHUB_TOKEN to collect GitHub traffic aggregates.",
+      "sources": {},
+      "views": null
+    }
+  },
+  "package_presence": [
+    {
+      "ecosystem": "crates.io",
+      "name": "mdo-cli",
+      "present": true,
+      "source": "https://crates.io/api/v1/crates/mdo-cli",
+      "status": {
+        "ok": true,
+        "status": 200
+      }
+    },
+    {
+      "ecosystem": "Homebrew",
+      "name": "mdo",
+      "present": false,
+      "source": "https://formulae.brew.sh/api/formula/mdo.json",
+      "status": {
+        "error": "HTTP 404",
+        "ok": false,
+        "status": 404
+      }
+    },
+    {
+      "ecosystem": "Scoop main",
+      "name": "mdo",
+      "present": false,
+      "source": "https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket/mdo.json",
+      "status": {
+        "error": "HTTP 404",
+        "ok": false,
+        "status": 404
+      }
+    },
+    {
+      "ecosystem": "WinGet",
+      "name": "Maphew.Mdo",
+      "present": false,
+      "source": "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/m/Maphew/Mdo",
+      "status": {
+        "error": "HTTP 404: Not Found",
+        "ok": false,
+        "status": 404
+      }
+    },
+    {
+      "ecosystem": "AUR",
+      "name": "mdo",
+      "present": false,
+      "source": "https://aur.archlinux.org/rpc/v5/info/mdo",
+      "status": {
+        "ok": true,
+        "status": 200
+      }
+    },
+    {
+      "ecosystem": "AUR",
+      "name": "mdo-bin",
+      "present": false,
+      "source": "https://aur.archlinux.org/rpc/v5/info/mdo-bin",
+      "status": {
+        "ok": true,
+        "status": 200
+      }
+    }
+  ],
+  "privacy": {
+    "excluded": [
+      "runtime telemetry",
+      "IP addresses",
+      "user agents",
+      "cookies",
+      "unique installation IDs",
+      "raw server logs"
+    ],
+    "summary": "Only aggregate or already-public adoption signals are collected. The mdo binary does not phone home."
+  },
+  "project": {
+    "crate": "https://crates.io/crates/mdo-cli",
+    "name": "mdo",
+    "repository": "https://github.com/maphew/mdo",
+    "site": "https://maphew.github.io/mdo/"
+  },
+  "schema_version": 1
+}

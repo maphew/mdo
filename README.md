@@ -10,6 +10,8 @@ whenever the Markdown source is edited.
 
 Project site: <https://maphew.github.io/mdo/>
 
+Public metrics: <https://maphew.github.io/mdo/metrics/>
+
 ---
 
 ## 🚀 Features

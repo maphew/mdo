@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mdo metrics privacy</title>
+  <meta name="description" content="Privacy boundary for mdo public metrics.">
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">&#9410;</span>
+        <span>mdo</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="index.html">Metrics</a>
+        <a href="latest.json">JSON</a>
+        <a href="https://github.com/maphew/mdo">GitHub</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="section-inner">
+        <div class="section-heading">
+          <h1>Metrics Privacy</h1>
+          <p>mdo's public metrics are designed to show adoption without adding telemetry to the tool or collecting personal data.</p>
+        </div>
+        <div class="two-column">
+          <div class="note">
+            <h2>Collected</h2>
+            <ul class="check-list">
+              <li>Aggregate GitHub release download counts</li>
+              <li>Aggregate crates.io download counts</li>
+              <li>Public repository signals such as stars and forks</li>
+              <li>Public package-presence checks in package ecosystems</li>
+              <li>GitHub traffic aggregates when an authorized maintainer token is configured</li>
+            </ul>
+          </div>
+          <div class="note warn">
+            <h2>Not Collected</h2>
+            <ul class="check-list">
+              <li>No runtime telemetry from the <code>mdo</code> binary</li>
+              <li>No IP addresses</li>
+              <li>No user agents</li>
+              <li>No cookies</li>
+              <li>No unique installation IDs</li>
+              <li>No raw server logs</li>
+            </ul>
+          </div>
+        </div>
+        <div class="result-strip">
+          <h2>Publication Rule</h2>
+          <p>Everything collected by the metrics workflow is written to the public repository under <code>docs/metrics</code>. If a source cannot be published openly, it does not belong in this pipeline.</p>
+          <p>GitHub traffic data requires maintainer-level API access. Configure the optional <code>METRICS_GITHUB_TOKEN</code> repository secret if the default workflow token cannot read those aggregate endpoints.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>The source for the collector lives in <code>scripts/collect-metrics.py</code>.</p>
+  </footer>
+</body>
+</html>

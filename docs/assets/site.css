@@ -266,6 +266,11 @@ p {
   margin-bottom: 28px;
 }
 
+.section-heading h1 {
+  max-width: none;
+  font-size: 34px;
+}
+
 .section-heading p,
 .step p,
 .note p {
@@ -276,6 +281,34 @@ p {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.metric-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 16px;
+}
+
+.metric-card span,
+.metric-card small {
+  display: block;
+  color: var(--muted);
+}
+
+.metric-card strong {
+  display: block;
+  margin: 6px 0;
+  font-size: 28px;
+  line-height: 1.1;
 }
 
 .platform-grid {
@@ -366,6 +399,28 @@ p {
   max-width: 760px;
 }
 
+.table-wrap {
+  overflow-x: auto;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+}
+
+.metrics-table th,
+.metrics-table td {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.metrics-table th {
+  background: var(--panel-alt);
+}
+
 .note.warn {
   background: var(--warn-bg);
 }
@@ -391,6 +446,10 @@ p {
 
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .platform-grid {
@@ -421,5 +480,9 @@ p {
 
   .preview-frame {
     height: 330px;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
   }
 }

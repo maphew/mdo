@@ -1,0 +1,45 @@
+name: Metrics
+
+on:
+  schedule:
+    - cron: "17 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: metrics
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: Collect public metrics
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Collect metrics
+        env:
+          METRICS_GITHUB_TOKEN: ${{ secrets.METRICS_GITHUB_TOKEN || github.token }}
+        run: python3 scripts/collect-metrics.py
+
+      - name: Commit metrics
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- docs/metrics)" ]; then
+            echo "No metrics changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/metrics
+          git commit -m "Update public metrics"
+          git push
