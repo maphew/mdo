@@ -240,6 +240,7 @@ The default (non-`--bare`) output is a complete HTML5 document:
 
 - `<!DOCTYPE html>` + `<html lang="en">`
 - UTF-8 charset and responsive viewport meta
+- A `<meta name="generator" content="mdo <version>">` marker
 - `<title>` derived from the first `# Heading` in the source (falls back to the
   input filename)
 - An inlined copy of [simple.css](https://simplecss.org/) inside `<style>`,
@@ -247,6 +248,7 @@ The default (non-`--bare`) output is a complete HTML5 document:
 - A small floating ☀/☾ button (top-right) for manually overriding the theme;
   the choice is remembered in `localStorage`
 - Body content wrapped in `<main>`
+- A tiny footer showing the mdo version, render duration, and UTC generation date
 
 Markdown extensions enabled: tables, footnotes, task lists, strikethrough.
 
@@ -268,6 +270,8 @@ This fork adds:
   default browser (with auto-injected `<base href>` so relative refs resolve)
 - Light/dark theme toggle button overlaid on the rendered page
 - Title auto-derived from the first heading
+- Passive generated-page attribution via generator metadata and a tiny
+  dated footer; no network calls or identifiers are added
 - Debounced file-change events (no more duplicate renders per save)
 - Surfaced watcher errors instead of swallowing them
 - Markdown extensions: tables, footnotes, task lists (in addition to strikethrough)
