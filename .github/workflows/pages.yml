@@ -26,6 +26,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build mdo
+        run: cargo build --release --locked
+
+      - name: Generate ADR HTML
+        run: |
+          for adr in docs/adr/*.md; do
+            ./target/release/mdo "$adr"
+          done
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

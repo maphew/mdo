@@ -1,6 +1,7 @@
 /target
 __pycache__/
 *.pyc
+docs/adr/*.html
 
 # Beads / Dolt files (added by bd init)
 .dolt/
