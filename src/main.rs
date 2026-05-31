@@ -49,6 +49,9 @@ const SIMPLE_CSS: &str = include_str!("../assets/simple.min.css");
 const APP_DISPLAY_NAME: &str = "mdo";
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 const APP_HOMEPAGE: &str = env!("CARGO_PKG_HOMEPAGE");
+const UNSAFE_TEMP_OUTPUT_STEM_CHARS: &[char] = &[
+    '&', '^', '%', '(', ')', '!', '"', '\'', '<', '>', '|', ';', '`', '$', '\\', '/', ':',
+];
 
 // ─── BEGIN THEME TOGGLE ────────────────────────────────────────────────
 // Self-contained light/dark mode toggle. To remove this feature entirely:
@@ -132,6 +135,7 @@ fn temp_output_for(input: &Path) -> io::Result<PathBuf> {
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("document");
+    let stem = sanitize_temp_output_stem(stem);
 
     let root = private_temp_root();
     ensure_private_dir(&root)?;
@@ -140,6 +144,24 @@ fn temp_output_for(input: &Path) -> io::Result<PathBuf> {
     ensure_private_dir(&source_dir)?;
 
     Ok(source_dir.join(format!("{stem}.html")))
+}
+
+fn sanitize_temp_output_stem(stem: &str) -> String {
+    let mut sanitized = String::with_capacity(stem.len());
+
+    for ch in stem.chars() {
+        if ch.is_control() || UNSAFE_TEMP_OUTPUT_STEM_CHARS.contains(&ch) {
+            sanitized.push('_');
+        } else {
+            sanitized.push(ch);
+        }
+    }
+
+    if sanitized.chars().any(|ch| ch != '_') {
+        sanitized
+    } else {
+        "document".to_string()
+    }
 }
 
 fn private_temp_root() -> PathBuf {
@@ -533,6 +555,30 @@ fn main() -> notify::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn temp_output_stem_replaces_shell_metacharacters() {
+        let output = temp_output_for(Path::new("a&calc&.md")).expect("temp path should be built");
+        let file_name = output
+            .file_name()
+            .and_then(|s| s.to_str())
+            .expect("temp path should end with unicode filename");
+
+        assert_eq!(file_name, "a_calc_.html");
+        assert!(!file_name.contains('&'));
+    }
+
+    #[test]
+    fn temp_output_stem_keeps_readable_normal_names() {
+        let output =
+            temp_output_for(Path::new("résumé-draft_2026.md")).expect("temp path should be built");
+        let file_name = output
+            .file_name()
+            .and_then(|s| s.to_str())
+            .expect("temp path should end with unicode filename");
+
+        assert_eq!(file_name, "résumé-draft_2026.html");
+    }
 
     #[test]
     fn formats_unix_timestamps_as_utc_dates() {
