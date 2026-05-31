@@ -47,6 +47,13 @@ pulldown-cmark = "0.10"
 clap = { version = "4", features = ["derive"] }
 notify = "6"
 
+# Windows-only. Opens the rendered file via the Win32 ShellExecuteW API
+# instead of `cmd /C start`, so cmd metacharacters in the path can never be
+# interpreted as commands. See the SECURITY note in launch_browser
+# (src/main.rs). opener calls ShellExecuteW directly — no cmd.exe.
+[target.'cfg(windows)'.dependencies]
+opener = "0.8"
+
 [[bin]]
 name = "mdo"
 path = "src/main.rs"

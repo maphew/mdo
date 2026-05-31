@@ -237,11 +237,15 @@ fn dir_to_file_url(dir: &Path) -> String {
 fn launch_browser(path: &Path) -> std::io::Result<()> {
     #[cfg(target_os = "windows")]
     {
-        // The empty "" is the title arg that `start` requires when the
-        // first quoted arg would otherwise be interpreted as the title.
-        std::process::Command::new("cmd")
-            .args(["/C", "start", "", &path.to_string_lossy()])
-            .spawn()?;
+        // SECURITY: open via the Win32 ShellExecuteW API (through the `opener`
+        // crate) rather than `cmd /C start`. `start` runs the path through
+        // cmd.exe's command-line parser, so cmd metacharacters (`&`, `^`, …) —
+        // which are legal in Windows filenames and reach us via the input
+        // file's stem in temp_output_for — would be interpreted as commands
+        // (e.g. opening `a&calc&.md` would launch calc.exe). ShellExecuteW
+        // takes the path as a single typed argument, so those characters stay
+        // inert. It is non-blocking, preserving the fire-and-forget behavior.
+        opener::open(path).map_err(io::Error::other)?;
     }
     #[cfg(target_os = "macos")]
     {
