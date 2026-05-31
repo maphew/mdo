@@ -18,7 +18,8 @@
 //! Options:
 //! - `-o, --output <FILE>`  Write to `<FILE>` instead of the derived name
 //! - `-w, --watch`          Keep running and re-render on file changes
-//! - `-b, --bare`           Emit only the raw HTML fragment (no `<html>`, `<head>`, `<body>`, no CSS)
+//! - `-b, --bare`           Emit only the HTML fragment (no `<html>`, `<head>`, `<body>`, no CSS)
+//! - `--unsafe-html`        Preserve raw HTML from the Markdown source
 //!
 //! Without `--watch`, the tool converts once and exits.
 //!
@@ -28,8 +29,9 @@
 //! Bundles [simple.css](https://simplecss.org/) (© 2020 Kev Quirk, MIT).
 
 use std::collections::hash_map::DefaultHasher;
-use std::fs;
+use std::fs::{self, OpenOptions};
 use std::hash::{Hash, Hasher};
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::channel;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -37,6 +39,9 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use clap::Parser;
 use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
 use pulldown_cmark::{html, Options, Parser as MdParser};
+
+#[cfg(unix)]
+use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 
 /// Embedded simple.css (https://simplecss.org/), vendored from
 /// https://unpkg.com/simpledotcss/simple.min.css
@@ -96,9 +101,13 @@ struct Cli {
     #[arg(short, long)]
     watch: bool,
 
-    /// Emit only the raw HTML fragment (no <html>, <head>, <body>, no CSS)
+    /// Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
     #[arg(short, long)]
     bare: bool,
+
+    /// Preserve raw HTML from the Markdown source instead of sanitizing it
+    #[arg(long)]
+    unsafe_html: bool,
 
     /// Render to a temp directory and launch the system default browser.
     /// The source folder is left untouched unless --output is given.
@@ -110,10 +119,10 @@ fn derive_output(input: &Path) -> PathBuf {
     input.with_extension("html")
 }
 
-/// Stable per-source-path location under the OS temp dir, e.g.
-/// `%TEMP%\mdo\<hash>\<stem>.html`. Re-opening the same source
+/// Stable per-source-path location under a private temp/cache dir, e.g.
+/// `%TEMP%\mdo-<uid>\<hash>\<stem>.html`. Re-opening the same source
 /// overwrites the same file rather than accumulating new ones.
-fn temp_output_for(input: &Path) -> PathBuf {
+fn temp_output_for(input: &Path) -> io::Result<PathBuf> {
     let canonical = fs::canonicalize(input).unwrap_or_else(|_| input.to_path_buf());
     let mut hasher = DefaultHasher::new();
     canonical.hash(&mut hasher);
@@ -124,11 +133,63 @@ fn temp_output_for(input: &Path) -> PathBuf {
         .and_then(|s| s.to_str())
         .unwrap_or("document");
 
+    let root = private_temp_root();
+    ensure_private_dir(&root)?;
+
+    let source_dir = root.join(format!("{:016x}", hash));
+    ensure_private_dir(&source_dir)?;
+
+    Ok(source_dir.join(format!("{stem}.html")))
+}
+
+fn private_temp_root() -> PathBuf {
     let mut p = std::env::temp_dir();
+    #[cfg(unix)]
+    p.push(format!("mdo-{}", unsafe { libc::geteuid() }));
+    #[cfg(not(unix))]
     p.push("mdo");
-    p.push(format!("{:016x}", hash));
-    p.push(format!("{stem}.html"));
     p
+}
+
+#[cfg(unix)]
+fn ensure_private_dir(path: &Path) -> io::Result<()> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) => {
+            let file_type = metadata.file_type();
+            if file_type.is_symlink() || !file_type.is_dir() {
+                return Err(io::Error::new(
+                    io::ErrorKind::AlreadyExists,
+                    format!("{path:?} exists but is not a directory"),
+                ));
+            }
+
+            let uid = unsafe { libc::geteuid() };
+            if metadata.uid() != uid {
+                return Err(io::Error::new(
+                    io::ErrorKind::PermissionDenied,
+                    format!("{path:?} is not owned by the current user"),
+                ));
+            }
+
+            let mode = metadata.permissions().mode();
+            if mode & 0o077 != 0 {
+                fs::set_permissions(path, fs::Permissions::from_mode(mode & !0o077))?;
+            }
+        }
+        Err(e) if e.kind() == io::ErrorKind::NotFound => {
+            let mut builder = fs::DirBuilder::new();
+            builder.mode(0o700);
+            builder.create(path)?;
+        }
+        Err(e) => return Err(e),
+    }
+
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn ensure_private_dir(path: &Path) -> io::Result<()> {
+    fs::create_dir_all(path)
 }
 
 /// Build a `file://` URL for a directory, suitable for use as `<base href>`.
@@ -171,7 +232,7 @@ fn launch_browser(path: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-fn render_markdown(markdown: &str) -> String {
+fn render_markdown(markdown: &str, unsafe_html: bool) -> String {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
     options.insert(Options::ENABLE_TABLES);
@@ -181,7 +242,23 @@ fn render_markdown(markdown: &str) -> String {
     let parser = MdParser::new_ext(markdown, options);
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
-    html_output
+
+    if unsafe_html {
+        return html_output;
+    }
+
+    sanitize_html(&html_output)
+}
+
+fn sanitize_html(html: &str) -> String {
+    ammonia::Builder::default()
+        .add_tags(&["input"])
+        .add_tag_attributes("input", &["checked", "type"])
+        .add_tag_attribute_values("input", "checked", &[""])
+        .add_tag_attribute_values("input", "type", &["checkbox"])
+        .set_tag_attribute_value("input", "disabled", "")
+        .clean(html)
+        .to_string()
 }
 
 fn derive_title(markdown: &str, fallback: &str) -> String {
@@ -288,17 +365,17 @@ fn html_escape(s: &str) -> String {
         .replace('"', "&quot;")
 }
 
-fn convert(input: &Path, output: &Path, bare: bool) {
+fn convert(input: &Path, output: &Path, bare: bool, unsafe_html: bool) -> bool {
     let markdown = match fs::read_to_string(input) {
         Ok(s) => s,
         Err(e) => {
             eprintln!("❌ Failed to read {:?}: {}", input, e);
-            return;
+            return false;
         }
     };
 
     let render_started = Instant::now();
-    let body = render_markdown(&markdown);
+    let body = render_markdown(&markdown, unsafe_html);
     let render_duration = render_started.elapsed();
     let final_html = if bare {
         body
@@ -335,16 +412,35 @@ fn convert(input: &Path, output: &Path, bare: bool) {
         if !parent.as_os_str().is_empty() {
             if let Err(e) = fs::create_dir_all(parent) {
                 eprintln!("❌ Failed to create {:?}: {}", parent, e);
-                return;
+                return false;
             }
         }
     }
 
-    if let Err(e) = fs::write(output, final_html) {
+    if let Err(e) = write_output_file(output, &final_html) {
         eprintln!("❌ Failed to write to {:?}: {}", output, e);
+        false
     } else {
         println!("✅ Converted {:?} → {:?}", input, output);
+        true
     }
+}
+
+#[cfg(unix)]
+fn write_output_file(output: &Path, contents: &str) -> io::Result<()> {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .mode(0o600)
+        .custom_flags(libc::O_NOFOLLOW)
+        .open(output)?;
+    file.write_all(contents.as_bytes())
+}
+
+#[cfg(not(unix))]
+fn write_output_file(output: &Path, contents: &str) -> io::Result<()> {
+    fs::write(output, contents)
 }
 
 fn main() -> notify::Result<()> {
@@ -356,13 +452,19 @@ fn main() -> notify::Result<()> {
     //   3. neither                     → next to the input
     let output = match (args.output.clone(), args.open) {
         (Some(p), _) => p,
-        (None, true) => temp_output_for(&args.input),
+        (None, true) => match temp_output_for(&args.input) {
+            Ok(path) => path,
+            Err(e) => {
+                eprintln!("❌ Failed to prepare temp output directory: {}", e);
+                return Ok(());
+            }
+        },
         (None, false) => derive_output(&args.input),
     };
 
-    convert(&args.input, &output, args.bare);
+    let converted = convert(&args.input, &output, args.bare, args.unsafe_html);
 
-    if args.open {
+    if args.open && converted {
         match launch_browser(&output) {
             Ok(()) => println!("🌐 Opened {:?} in default browser", output),
             Err(e) => eprintln!("⚠️  Failed to launch browser: {}", e),
@@ -394,7 +496,7 @@ fn main() -> notify::Result<()> {
                         continue;
                     }
                     println!("🔁 File changed, re-rendering...");
-                    convert(&args.input, &output, args.bare);
+                    convert(&args.input, &output, args.bare, args.unsafe_html);
                     last_render = Instant::now();
                 }
             }

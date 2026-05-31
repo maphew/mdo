@@ -19,7 +19,8 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 - ✅ Converts `.md` files to standalone HTML5 documents
 - 🎨 Pretty default styling via embedded [simple.css](https://simplecss.org/)
 - 🌓 Automatic light/dark mode (follows OS) plus a manual toggle button
-- 📄 `--bare` flag emits a raw HTML fragment (no `<html>`/`<head>`/`<body>`/CSS)
+- 📄 `--bare` flag emits a sanitized HTML fragment (no `<html>`/`<head>`/`<body>`/CSS)
+- 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
 - 👀 `--watch` flag enables auto-rerender on file change (with debouncing)
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
 - ⚡ Fast and self-contained — single binary, no runtime assets
@@ -58,7 +59,8 @@ Options:
   -o, --output <OUTPUT>  Output HTML file (defaults to <input>.html alongside the input,
                          or to a temp directory when --open is used). Existing files are overwritten
   -w, --watch            Watch the input file and re-render on every change
-  -b, --bare             Emit only the raw HTML fragment (no <html>, <head>, <body>, no CSS)
+  -b, --bare             Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
+      --unsafe-html      Preserve raw HTML from the Markdown source instead of sanitizing it
       --open             Render to a temp directory and launch the system default browser.
                          The source folder is left untouched unless --output is given
   -h, --help             Print help
@@ -71,7 +73,8 @@ overwritten without prompting.
 
 When `--open` is used without `--output`, the rendered HTML goes to a stable
 location under your OS temp directory (e.g.
-`%TEMP%\mdo\<hash>\<name>.html` on Windows) so the source folder stays
+`%TEMP%\mdo\<hash>\<name>.html` on Windows, or `/tmp/mdo-<uid>/<hash>/<name>.html`
+on Unix-like systems) so the source folder stays
 clean. Re-opening the same file overwrites the same temp output. A
 `<base href="file:///…">` tag pointing at the source folder is automatically
 injected whenever the output lives elsewhere, so relative images and links in
@@ -90,6 +93,13 @@ Emit a bare HTML fragment (useful for embedding in another template):
 
 ```bash
 mdo --bare input.md
+```
+
+Raw HTML from the Markdown source is sanitized by default. Preserve it only
+when the source is trusted:
+
+```bash
+mdo --unsafe-html input.md
 ```
 
 Watch for changes and re-render on every save:
@@ -253,6 +263,8 @@ The default (non-`--bare`) output is a complete HTML5 document:
 - A tiny footer showing the mdo version, render duration, and UTC generation date
 
 Markdown extensions enabled: tables, footnotes, task lists, strikethrough.
+Rendered Markdown HTML is sanitized by default to remove active content such as
+scripts and event-handler attributes.
 
 ---
 
@@ -268,6 +280,8 @@ This fork adds:
 - Optional `--output` (defaults to `<input>.html` next to the source)
 - Standalone HTML5 output with embedded [simple.css](https://simplecss.org/)
 - A `--bare` flag that preserves the original fragment-only behavior
+- Default sanitization for rendered Markdown HTML, with `--unsafe-html` for
+  trusted sources that need raw HTML preserved
 - An `--open` flag that renders to a temp directory and launches the system
   default browser (with auto-injected `<base href>` so relative refs resolve)
 - Light/dark theme toggle button overlaid on the rendered page
