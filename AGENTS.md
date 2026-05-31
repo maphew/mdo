@@ -13,6 +13,9 @@ This project uses **bd** (beads) for issue tracking. Run `bd prime` for full wor
 > source of truth; don't `bd import` during normal operation; don't
 > reach for third-party Dolt hosting before trying the default).
 
+Assume you are not the only one working here, simultaneous sessions are common.
+
+
 ## Quick Reference
 
 ```bash
