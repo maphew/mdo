@@ -9,7 +9,28 @@
   const dock = shell.querySelector(".preview-dock");
   const dockLauncher = shell.querySelector("[data-preview-action='restore']");
   const maximizeButton = shell.querySelector("[data-preview-action='maximize']");
+  const clock = shell.querySelector("[data-preview-clock]");
   const actions = shell.querySelectorAll("[data-preview-action]");
+
+  function updateClock() {
+    if (!clock) {
+      return;
+    }
+
+    const now = new Date();
+    const dateParts = new Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }).formatToParts(now);
+    const time = new Intl.DateTimeFormat(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(now);
+    const getPart = (type) => dateParts.find((part) => part.type === type)?.value;
+
+    clock.textContent = `${getPart("weekday")} ${getPart("month")} ${getPart("day")}  ${time}`;
+  }
 
   function setState(state) {
     shell.dataset.previewState = state;
@@ -46,4 +67,6 @@
   });
 
   setState(shell.dataset.previewState || "maximized");
+  updateClock();
+  setInterval(updateClock, 15000);
 })();

@@ -238,10 +238,249 @@ p {
   opacity: 1;
 }
 
-.preview-window {
+.desktop-scene {
   position: absolute;
   inset: 0;
   z-index: 1;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.preview-shell[data-preview-state="windowed"] .desktop-scene,
+.preview-shell[data-preview-state="minimized"] .desktop-scene,
+.preview-shell[data-preview-state="closed"] .desktop-scene {
+  opacity: 1;
+}
+
+.desktop-topbar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: grid;
+  height: 24px;
+  place-items: center;
+  background: #171f25;
+  color: rgba(241, 245, 246, 0.92);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.44);
+}
+
+.snowfall,
+.bird-flight,
+.perched-birds,
+.herd-trail,
+.mammoth-motion {
+  position: absolute;
+  inset: 0;
+}
+
+.snowfall span {
+  position: absolute;
+  top: -22px;
+  width: 2px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(231, 240, 242, 0.48);
+  filter: blur(0.4px);
+  animation: preview-snow 9s linear infinite;
+  transform: rotate(-22deg);
+}
+
+.snowfall span:nth-child(1) { left: 8%; animation-delay: -1.4s; animation-duration: 8.5s; }
+.snowfall span:nth-child(2) { left: 16%; animation-delay: -5.8s; animation-duration: 11s; }
+.snowfall span:nth-child(3) { left: 23%; animation-delay: -3.1s; animation-duration: 9.4s; }
+.snowfall span:nth-child(4) { left: 31%; animation-delay: -7.2s; animation-duration: 12.5s; }
+.snowfall span:nth-child(5) { left: 39%; animation-delay: -2.6s; animation-duration: 10.2s; }
+.snowfall span:nth-child(6) { left: 47%; animation-delay: -8.1s; animation-duration: 13s; }
+.snowfall span:nth-child(7) { left: 55%; animation-delay: -4.9s; animation-duration: 9.8s; }
+.snowfall span:nth-child(8) { left: 63%; animation-delay: -0.7s; animation-duration: 10.8s; }
+.snowfall span:nth-child(9) { left: 71%; animation-delay: -6.4s; animation-duration: 12s; }
+.snowfall span:nth-child(10) { left: 79%; animation-delay: -2.2s; animation-duration: 9.2s; }
+.snowfall span:nth-child(11) { left: 87%; animation-delay: -7.7s; animation-duration: 11.4s; }
+.snowfall span:nth-child(12) { left: 94%; animation-delay: -3.9s; animation-duration: 10.6s; }
+.snowfall span:nth-child(13) { left: 4%; animation-delay: -6s; animation-duration: 13.6s; }
+.snowfall span:nth-child(14) { left: 35%; animation-delay: -9.2s; animation-duration: 12.8s; }
+.snowfall span:nth-child(15) { left: 68%; animation-delay: -4.4s; animation-duration: 14s; }
+.snowfall span:nth-child(16) { left: 98%; animation-delay: -10.3s; animation-duration: 13.2s; }
+
+.bird-flight span {
+  position: absolute;
+  top: 35%;
+  left: 62%;
+  width: 13px;
+  height: 8px;
+  opacity: 0.34;
+  animation: preview-bird 16s ease-in-out infinite;
+}
+
+.bird-flight span::before,
+.bird-flight span::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  width: 8px;
+  border-top: 2px solid rgba(8, 17, 21, 0.62);
+}
+
+.bird-flight span::before {
+  left: 0;
+  transform: rotate(24deg);
+  transform-origin: right center;
+}
+
+.bird-flight span::after {
+  right: 0;
+  transform: rotate(-24deg);
+  transform-origin: left center;
+}
+
+.bird-flight span:nth-child(2) {
+  top: 42%;
+  left: 65%;
+  transform: scale(0.72);
+  animation-delay: -6s;
+  animation-duration: 18s;
+}
+
+.bird-flight span:nth-child(3) {
+  top: 36%;
+  left: 78%;
+  transform: scale(0.7);
+  animation-delay: -11s;
+  animation-duration: 20s;
+}
+
+.bird-flight span:nth-child(4) {
+  top: 34%;
+  left: 86%;
+  transform: scale(0.78);
+  animation-delay: -8s;
+  animation-duration: 17s;
+}
+
+.bird-flight span:nth-child(5) {
+  top: 38%;
+  left: 74%;
+  transform: scale(0.58);
+  animation-delay: -13s;
+  animation-duration: 21s;
+}
+
+.perched-birds span {
+  position: absolute;
+  top: 39%;
+  left: 79%;
+  width: 9px;
+  height: 6px;
+  opacity: 0.2;
+  animation: preview-perched 7s ease-in-out infinite;
+}
+
+.perched-birds span::before,
+.perched-birds span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  width: 6px;
+  border-top: 1px solid rgba(9, 17, 21, 0.72);
+}
+
+.perched-birds span::before {
+  left: 0;
+  transform: rotate(26deg);
+  transform-origin: right center;
+}
+
+.perched-birds span::after {
+  right: 0;
+  transform: rotate(-26deg);
+  transform-origin: left center;
+}
+
+.perched-birds span:nth-child(2) {
+  top: 40%;
+  left: 83%;
+  animation-delay: -2.4s;
+}
+
+.perched-birds span:nth-child(3) {
+  top: 43%;
+  left: 89%;
+  transform: scale(0.78);
+  animation-delay: -4.8s;
+}
+
+.herd-trail {
+  top: auto;
+  right: auto;
+  bottom: 17%;
+  left: -2%;
+  width: 44%;
+  height: 21%;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  transform: rotate(-6deg);
+  animation: preview-herd 28s ease-in-out infinite alternate;
+}
+
+.herd-trail::before {
+  content: "";
+  position: absolute;
+  inset: 18% 0 0;
+  background:
+    radial-gradient(ellipse at 12% 62%, rgba(8, 16, 19, 0.28) 0 4px, transparent 5px),
+    radial-gradient(ellipse at 23% 54%, rgba(8, 16, 19, 0.24) 0 3px, transparent 4px),
+    radial-gradient(ellipse at 34% 68%, rgba(8, 16, 19, 0.26) 0 4px, transparent 5px),
+    radial-gradient(ellipse at 48% 50%, rgba(8, 16, 19, 0.2) 0 3px, transparent 4px),
+    radial-gradient(ellipse at 62% 64%, rgba(8, 16, 19, 0.24) 0 4px, transparent 5px);
+  filter: blur(0.8px);
+}
+
+.mammoth-motion {
+  top: 29%;
+  right: 7%;
+  bottom: auto;
+  left: auto;
+  width: 36%;
+  height: 44%;
+}
+
+.mammoth-trunk {
+  position: absolute;
+  left: 4%;
+  top: 42%;
+  width: 30%;
+  height: 34%;
+  border-left: 5px solid rgba(22, 24, 27, 0.28);
+  border-bottom: 4px solid rgba(22, 24, 27, 0.24);
+  border-radius: 0 0 0 72%;
+  filter: blur(0.2px);
+  transform: rotate(20deg) scaleY(0.72);
+  transform-origin: 90% 8%;
+  animation: preview-trunk 12s ease-in-out infinite;
+}
+
+.mammoth-foot {
+  position: absolute;
+  left: 48%;
+  top: 72%;
+  width: 13%;
+  height: 24%;
+  border-radius: 45% 45% 36% 36%;
+  background: rgba(19, 21, 23, 0.34);
+  filter: blur(0.2px);
+  transform-origin: 50% 8%;
+  animation: preview-foot 9s ease-in-out infinite;
+}
+
+.preview-window {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -382,7 +621,7 @@ p {
   position: absolute;
   left: 50%;
   bottom: 14px;
-  z-index: 2;
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -465,6 +704,77 @@ p {
   top: 10px;
   border-radius: 50%;
   background: radial-gradient(circle at 42% 38%, #9adfff 0 42%, #226dd7 43% 100%);
+}
+
+@keyframes preview-snow {
+  0% {
+    transform: translate3d(-18px, -10px, 0) rotate(-22deg);
+  }
+  100% {
+    transform: translate3d(56px, 560px, 0) rotate(-22deg);
+  }
+}
+
+@keyframes preview-bird {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(0.86);
+  }
+  45% {
+    transform: translate3d(-46px, -14px, 0) scale(0.86);
+  }
+  70% {
+    transform: translate3d(-82px, -4px, 0) scale(0.86);
+  }
+}
+
+@keyframes preview-herd {
+  0% {
+    transform: translateX(0) rotate(-6deg);
+  }
+  100% {
+    transform: translateX(22px) rotate(-6deg);
+  }
+}
+
+@keyframes preview-perched {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  48% {
+    transform: translateY(-2px) scale(0.92);
+  }
+}
+
+@keyframes preview-trunk {
+  0%, 100% {
+    transform: rotate(20deg) scaleY(0.72);
+  }
+  45% {
+    transform: rotate(9deg) scaleY(0.96);
+  }
+  68% {
+    transform: rotate(13deg) scaleY(0.9);
+  }
+}
+
+@keyframes preview-foot {
+  0%, 100% {
+    transform: translateY(-8px) rotate(-3deg);
+  }
+  28%, 76% {
+    transform: translateY(2px) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snowfall span,
+  .bird-flight span,
+  .perched-birds span,
+  .herd-trail,
+  .mammoth-trunk,
+  .mammoth-foot {
+    animation-play-state: paused;
+  }
 }
 
 .section-inner {
