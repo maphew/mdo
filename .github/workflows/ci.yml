@@ -48,3 +48,20 @@ jobs:
 
       - name: Verify crate package
         run: cargo package --locked
+
+  windows-check:
+    name: Windows compile check
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check Windows build
+        run: cargo check --all-targets --all-features --locked
