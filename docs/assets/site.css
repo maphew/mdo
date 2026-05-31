@@ -218,32 +218,65 @@ p {
 .preview-toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
   height: 38px;
-  padding: 0 14px;
+  padding: 0 0 0 14px;
   border-bottom: 1px solid var(--line);
-  background: #f2f5f1;
+  background: #edf1f3;
   color: var(--muted);
   font-size: 13px;
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #d55b52;
-}
-
-.dot:nth-child(2) {
-  background: #d6a93f;
-}
-
-.dot:nth-child(3) {
-  background: #4f9d64;
-}
-
 .preview-title {
-  margin-left: 8px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.preview-window-actions {
+  display: flex;
+  align-self: stretch;
+  margin-left: auto;
+}
+
+.window-control {
+  position: relative;
+  width: 42px;
+  border-left: 1px solid rgba(139, 154, 162, 0.22);
+}
+
+.window-control::before,
+.window-control::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.window-control.minimize::before {
+  width: 12px;
+  border-top: 2px solid #66757d;
+}
+
+.window-control.maximize::before {
+  width: 11px;
+  height: 9px;
+  border: 2px solid #66757d;
+}
+
+.window-control.close::before,
+.window-control.close::after {
+  width: 13px;
+  border-top: 2px solid #66757d;
+}
+
+.window-control.close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.window-control.close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .preview-frame {
