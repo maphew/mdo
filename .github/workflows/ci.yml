@@ -26,6 +26,14 @@ jobs:
       - name: Cache Rust build artifacts
         uses: Swatinem/rust-cache@v2
 
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      - name: Audit Rust dependencies
+        run: cargo audit --deny warnings
+
       - name: Check formatting
         run: cargo fmt --all -- --check
 
