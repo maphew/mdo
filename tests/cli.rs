@@ -166,6 +166,63 @@ fn sanitizer_keeps_markdown_task_list_checkboxes() {
     fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
 }
 
+#[test]
+fn sanitizer_keeps_markdown_footnote_links() {
+    let dir = fixture_dir("footnotes");
+    let input = dir.join("notes.md");
+    let output_path = dir.join("notes.html");
+    fs::write(&input, "A footnote ref[^1].\n\n[^1]: Footnote text.\n")
+        .expect("failed to write markdown fixture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .args(["--bare", "--output"])
+        .arg(&output_path)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let html = fs::read_to_string(output_path).expect("failed to read html output");
+    assert!(html.contains(r#"class="footnote-reference""#));
+    assert!(html.contains(r##"href="#1""##));
+    assert!(html.contains(r#"class="footnote-definition""#));
+    assert!(html.contains(r#"id="1""#));
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn normal_output_respects_umask_for_new_files() {
+    let dir = fixture_dir("normal-permissions");
+    let input = dir.join("sample.md");
+    let output_path = dir.join("sample.html");
+    fs::write(&input, "# Permissions\n").expect("failed to write markdown fixture");
+
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg("umask 022; exec \"$@\"")
+        .arg("mdo-test-sh")
+        .arg(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--output")
+        .arg(&output_path)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo through shell");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let mode = fs::metadata(&output_path)
+        .expect("failed to stat html output")
+        .permissions()
+        .mode()
+        & 0o777;
+    assert_eq!(mode, 0o644);
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
 #[cfg(target_os = "linux")]
 #[test]
 fn open_output_refuses_precreated_symlink() {

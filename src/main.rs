@@ -252,6 +252,7 @@ fn render_markdown(markdown: &str, unsafe_html: bool) -> String {
 
 fn sanitize_html(html: &str) -> String {
     ammonia::Builder::default()
+        .add_generic_attributes(&["class", "id"])
         .add_tags(&["input"])
         .add_tag_attributes("input", &["checked", "type"])
         .add_tag_attribute_values("input", "checked", &[""])
@@ -365,7 +366,13 @@ fn html_escape(s: &str) -> String {
         .replace('"', "&quot;")
 }
 
-fn convert(input: &Path, output: &Path, bare: bool, unsafe_html: bool) -> bool {
+fn convert(
+    input: &Path,
+    output: &Path,
+    bare: bool,
+    unsafe_html: bool,
+    private_output: bool,
+) -> bool {
     let markdown = match fs::read_to_string(input) {
         Ok(s) => s,
         Err(e) => {
@@ -417,7 +424,7 @@ fn convert(input: &Path, output: &Path, bare: bool, unsafe_html: bool) -> bool {
         }
     }
 
-    if let Err(e) = write_output_file(output, &final_html) {
+    if let Err(e) = write_output_file(output, &final_html, private_output) {
         eprintln!("❌ Failed to write to {:?}: {}", output, e);
         false
     } else {
@@ -427,19 +434,24 @@ fn convert(input: &Path, output: &Path, bare: bool, unsafe_html: bool) -> bool {
 }
 
 #[cfg(unix)]
-fn write_output_file(output: &Path, contents: &str) -> io::Result<()> {
-    let mut file = OpenOptions::new()
+fn write_output_file(output: &Path, contents: &str, private_output: bool) -> io::Result<()> {
+    let mut options = OpenOptions::new();
+    options
         .write(true)
         .create(true)
         .truncate(true)
-        .mode(0o600)
-        .custom_flags(libc::O_NOFOLLOW)
-        .open(output)?;
+        .custom_flags(libc::O_NOFOLLOW);
+
+    if private_output {
+        options.mode(0o600);
+    }
+
+    let mut file = options.open(output)?;
     file.write_all(contents.as_bytes())
 }
 
 #[cfg(not(unix))]
-fn write_output_file(output: &Path, contents: &str) -> io::Result<()> {
+fn write_output_file(output: &Path, contents: &str, _private_output: bool) -> io::Result<()> {
     fs::write(output, contents)
 }
 
@@ -450,19 +462,25 @@ fn main() -> notify::Result<()> {
     //   1. explicit --output           (always wins)
     //   2. --open without --output     → temp dir (don't pollute the source folder)
     //   3. neither                     → next to the input
-    let output = match (args.output.clone(), args.open) {
-        (Some(p), _) => p,
+    let (output, private_output) = match (args.output.clone(), args.open) {
+        (Some(p), _) => (p, false),
         (None, true) => match temp_output_for(&args.input) {
-            Ok(path) => path,
+            Ok(path) => (path, true),
             Err(e) => {
                 eprintln!("❌ Failed to prepare temp output directory: {}", e);
                 return Ok(());
             }
         },
-        (None, false) => derive_output(&args.input),
+        (None, false) => (derive_output(&args.input), false),
     };
 
-    let converted = convert(&args.input, &output, args.bare, args.unsafe_html);
+    let converted = convert(
+        &args.input,
+        &output,
+        args.bare,
+        args.unsafe_html,
+        private_output,
+    );
 
     if args.open && converted {
         match launch_browser(&output) {
@@ -496,7 +514,13 @@ fn main() -> notify::Result<()> {
                         continue;
                     }
                     println!("🔁 File changed, re-rendering...");
-                    convert(&args.input, &output, args.bare, args.unsafe_html);
+                    convert(
+                        &args.input,
+                        &output,
+                        args.bare,
+                        args.unsafe_html,
+                        private_output,
+                    );
                     last_render = Instant::now();
                 }
             }

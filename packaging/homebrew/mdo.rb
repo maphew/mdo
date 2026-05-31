@@ -10,8 +10,10 @@ class Mdo < Formula
   end
 
   on_linux do
-    url "https://github.com/maphew/mdo/releases/download/v0.3.0/mdo-x86_64-unknown-linux-gnu.tar.gz"
-    sha256 "69d855334208b1b3021de240dbe591e733dd4425d951ab7dbedfd46ac0d8902d"
+    on_intel do
+      url "https://github.com/maphew/mdo/releases/download/v0.3.0/mdo-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "69d855334208b1b3021de240dbe591e733dd4425d951ab7dbedfd46ac0d8902d"
+    end
   end
 
   def install
