@@ -15,6 +15,19 @@ This project uses **bd** (beads) for issue tracking. Run `bd prime` for full wor
 
 Assume you are not the only one working here, simultaneous sessions are common.
 
+## Active Agent Profile
+
+This repository opts into agent commits by default.
+
+When an agent completes implementation work, it is authorized to:
+- run relevant quality gates,
+- close completed beads,
+- create a git commit for its own completed changes.
+
+Agents must inspect `git status` before committing and must not include
+unrelated user changes.
+
+Do not push git commits or run `bd dolt push` unless explicitly asked.
 
 ## Quick Reference
 
