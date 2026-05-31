@@ -45,16 +45,23 @@
           </div>
         </div>
 
-        <div class="preview-shell" aria-label="Rendered Markdown example">
-          <div class="preview-toolbar" aria-hidden="true">
-            <span class="preview-title">sample.md rendered by mdo</span>
-            <span class="preview-window-actions">
-              <span class="window-control minimize"></span>
-              <span class="window-control maximize"></span>
-              <span class="window-control close"></span>
-            </span>
+        <div class="preview-shell" data-preview-shell data-preview-state="maximized" aria-label="Rendered Markdown example desktop">
+          <div class="preview-window">
+            <div class="preview-toolbar">
+              <span class="preview-title">sample.md rendered by mdo</span>
+              <span class="preview-window-actions">
+                <button class="window-control minimize" type="button" data-preview-action="minimize" aria-label="Minimize preview"></button>
+                <button class="window-control maximize" type="button" data-preview-action="maximize" aria-label="Maximize preview"></button>
+                <button class="window-control close" type="button" data-preview-action="close" aria-label="Close preview"></button>
+              </span>
+            </div>
+            <iframe class="preview-frame" src="assets/sample.html" title="Example Markdown rendered as HTML"></iframe>
           </div>
-          <iframe class="preview-frame" src="assets/sample.html" title="Example Markdown rendered as HTML"></iframe>
+          <div class="preview-dock" aria-label="Preview dock">
+            <button class="dock-launcher" type="button" data-preview-action="restore" aria-label="Open rendered Markdown preview" tabindex="-1" disabled>
+              <span class="firefox-mark" aria-hidden="true"></span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -209,5 +216,6 @@ macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
   <footer class="site-footer">
     <p>mdo is dual-licensed under MIT or Apache-2.0 and forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.</p>
   </footer>
+  <script src="assets/site.js"></script>
 </body>
 </html>
