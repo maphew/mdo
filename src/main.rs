@@ -562,7 +562,8 @@ mod tests {
 
     #[test]
     fn temp_output_stem_replaces_shell_metacharacters() {
-        let output = temp_output_for(Path::new("a&calc&.md")).expect("temp path should be built");
+        let input = unique_temp_input("a&calc&.md");
+        let output = temp_output_for(&input).expect("temp path should be built");
         let file_name = output
             .file_name()
             .and_then(|s| s.to_str())
@@ -570,18 +571,44 @@ mod tests {
 
         assert_eq!(file_name, "a_calc_.html");
         assert!(!file_name.contains('&'));
+
+        cleanup_temp_fixture(&input, &output);
     }
 
     #[test]
     fn temp_output_stem_keeps_readable_normal_names() {
-        let output =
-            temp_output_for(Path::new("résumé-draft_2026.md")).expect("temp path should be built");
+        let input = unique_temp_input("résumé-draft_2026.md");
+        let output = temp_output_for(&input).expect("temp path should be built");
         let file_name = output
             .file_name()
             .and_then(|s| s.to_str())
             .expect("temp path should end with unicode filename");
 
         assert_eq!(file_name, "résumé-draft_2026.html");
+
+        cleanup_temp_fixture(&input, &output);
+    }
+
+    fn unique_temp_input(file_name: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time should be after epoch")
+            .as_nanos();
+        let dir =
+            std::env::temp_dir().join(format!("mdo-unit-test-{}-{nonce}", std::process::id()));
+        fs::create_dir_all(&dir).expect("test temp dir should be created");
+        let input = dir.join(file_name);
+        fs::write(&input, "# Test\n").expect("test input should be written");
+        input
+    }
+
+    fn cleanup_temp_fixture(input: &Path, output: &Path) {
+        if let Some(parent) = output.parent() {
+            let _ = fs::remove_dir_all(parent);
+        }
+        if let Some(parent) = input.parent() {
+            let _ = fs::remove_dir_all(parent);
+        }
     }
 
     #[test]
