@@ -15,6 +15,7 @@
         <span>mdo</span>
       </a>
       <div class="nav-links">
+        <a href="#why">Why</a>
         <a href="#install">Install</a>
         <a href="#usage">Usage</a>
         <a href="#file-managers">File Managers</a>
@@ -101,6 +102,39 @@
             <button class="dock-launcher" type="button" data-preview-action="restore" aria-label="Open rendered Markdown preview" tabindex="-1" disabled>
               <span class="firefox-mark" aria-hidden="true"></span>
             </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="why">
+      <div class="section-inner">
+        <div class="section-heading">
+          <h2>Why mdo?</h2>
+          <p>Markdown is excellent for authoring and diffs, but long local Markdown files are calmer to read as browser-rendered HTML.</p>
+        </div>
+        <div class="why-layout">
+          <div class="why-copy">
+            <p>There are countless Markdown-to-HTML converters available, so why make another one and risk becoming another <a href="https://xkcd.com/927/">xkcd:927</a> footnote?</p>
+            <p>I could not find a simple, fast, and self-contained solution. Everything I looked at wanted to be a full-featured editor, relied on node or python in <code>PATH</code>, or needed another runtime dependency. <code>md2htmlx</code> was close, but every day I read dozens to hundreds of Markdown files, and reading them as HTML is richer and calmer.</p>
+            <p><code>mdo</code> plus file-manager integration creates disposable HTML pages quickly enough that opening Markdown can feel like opening a text file. That means fewer generated artifacts in source folders and fewer agent-workflow prompts that spend tokens asking for an HTML report.</p>
+          </div>
+          <div class="why-points" aria-label="Project goals">
+            <div>
+              <span>01</span>
+              <strong>Fast local reading</strong>
+              <p>Render and open Markdown from your desktop or shell without waiting on a runtime stack.</p>
+            </div>
+            <div>
+              <span>02</span>
+              <strong>Throw-away friendly</strong>
+              <p><code>--open</code> writes to a stable temp path, so source folders stay clean by default.</p>
+            </div>
+            <div>
+              <span>03</span>
+              <strong>Self-contained output</strong>
+              <p>Generated pages include their own styling and work offline with no network assets.</p>
+            </div>
           </div>
         </div>
       </div>

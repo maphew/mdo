@@ -41,18 +41,18 @@
 <main>
 <h1>📝 mdo — Markdown to HTML5 Converter (with optional live watch)</h1>
 <p><code>mdo</code> is a small, fast, self-contained command-line tool that converts Markdown
-files into HTML on Linux, MacOS, and Windows.</p>
+files into HTML on Linux, macOS, and Windows.</p>
 <p>Optional file-manager integration turns 2x-click of any .md file into rendered HTML in default browser with the same speed as opening the .md in a text editor.</p>
 <p>By default it produces a complete, <strong>HTML5-compliant</strong> document styled with
-<a href="https://simplecss.org/">simple.css</a> (vendored at build time, no network
+<a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> (vendored at build time, no network
 access at runtime). An optional <strong>watch mode</strong> keeps re-rendering the output
 whenever the Markdown source is edited.</p>
-<p>Project site: <a href="https://maphew.github.io/mdo/">https://maphew.github.io/mdo/</a><br />
-Public metrics: <a href="https://maphew.github.io/mdo/metrics/">https://maphew.github.io/mdo/metrics/</a></p>
+<p>Project site: <a href="https://maphew.github.io/mdo/" rel="noopener noreferrer">https://maphew.github.io/mdo/</a><br>
+Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener noreferrer">https://maphew.github.io/mdo/metrics/</a></p>
 <h2>🚀 Features</h2>
 <ul>
 <li>✅ Converts <code>.md</code> files to standalone HTML5 documents</li>
-<li>🎨 Pretty default styling via embedded <a href="https://simplecss.org/">simple.css</a></li>
+<li>🎨 Pretty default styling via embedded <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a></li>
 <li>🌓 Automatic light/dark mode (follows OS) plus a manual toggle button</li>
 <li>📄 <code>--bare</code> flag emits a sanitized HTML fragment (no <code>&lt;html&gt;</code>/<code>&lt;head&gt;</code>/<code>&lt;body&gt;</code>/CSS)</li>
 <li>🔒 Raw Markdown HTML is sanitized by default; use <code>--unsafe-html</code> to preserve it for trusted input</li>
@@ -62,10 +62,10 @@ Public metrics: <a href="https://maphew.github.io/mdo/metrics/">https://maphew.g
 <li>🧩 Built on <code>pulldown-cmark</code>, <code>clap</code>, and <code>notify</code></li>
 </ul>
 <h3>Why?</h3>
-<p>There are countless Markdown-to-HTML converters available, so why make another one, becoming yet another <a href="https://xkcd.com/927/">xkcd:927 joke</a>?</p>
+<p>There are countless Markdown-to-HTML converters available, so why make another one, becoming yet another <a href="https://xkcd.com/927/" rel="noopener noreferrer">xkcd:927 joke</a>?</p>
 <p>I could not find a simple, fast, and self-contained solution. Everything I looked at wanted to be a full-featured editor, relied on node or python in PATH, or needed some other runtime dependency. <code>md2htmlx</code> was very close, but did not calm my primary itch: every day I read dozens to hundreds of md files. Markdown is pretty darn good for authoring, awesome for diffs relative to other formats, but they're not very nice for reading. HTML is richer and calmer, and I find I absorb and understand more deeply.</p>
 <p>Mdo + file-manager integration creates html pages so quickly they are throw-away friendly. I don't have to create an HTML file for every long Markdown file I want to read, or add a "make this an html report" to an agent workflow, regularly saving thousands of tokens.</p>
-<hr />
+<hr>
 <h2>📦 Installation</h2>
 <h3>From crates.io</h3>
 <pre><code class="language-bash">cargo install mdo-cli
@@ -76,7 +76,7 @@ cd mdo
 cargo build --release
 ./target/release/mdo input.md
 </code></pre>
-<hr />
+<hr>
 <h2>📦 Usage</h2>
 <pre><code class="language-text">Usage: mdo [OPTIONS] &lt;INPUT&gt;
 
@@ -128,9 +128,9 @@ write next to the source):</p>
 association — use the bundled <code>mdo-open.exe</code> wrapper and double-clicking
 a <code>.md</code> file in Explorer will render to the platform temp directory and
 open it without leaving any artifacts in the source folder.</p>
-<hr />
+<hr>
 <h2>Linux file manager integration</h2>
-<p>The repo also ships Linux helpers under <a href="scripts"><code>scripts/</code></a> for per-user
+<p>The repo also ships Linux helpers under <a href="scripts" rel="noopener noreferrer"><code>scripts/</code></a> for per-user
 file-manager integration:</p>
 <pre><code class="language-bash"># Add "Open as HTML" as an "Open With" handler for Markdown files
 ./scripts/install-linux-file-manager.sh
@@ -159,9 +159,9 @@ next to this repo after <code>cargo build --release</code>.</p>
 <li>The rendered page opens in your default browser from a temp path such as
 <code>/tmp/mdo/&lt;hash&gt;/&lt;name&gt;.html</code>, and no <code>.html</code> file is left beside the source.</li>
 </ul>
-<hr />
+<hr>
 <h2>🪟 Windows Explorer integration</h2>
-<p>The repo ships two PowerShell helpers under <a href="scripts"><code>scripts/</code></a> that wire
+<p>The repo ships two PowerShell helpers under <a href="scripts" rel="noopener noreferrer"><code>scripts/</code></a> that wire
 mdo into Explorer for the current user only (no admin, no HKLM changes):</p>
 <pre><code class="language-powershell"># Add: an "Open as HTML" right-click verb and Open With app entry
 powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
@@ -204,14 +204,14 @@ file opens the rendered page in your browser with no console-window flash.</li>
 <li>The rendered page opens from <code>%TEMP%\mdo\&lt;hash&gt;\&lt;name&gt;.html</code>, and the source
 folder stays unchanged.</li>
 </ul>
-<hr />
+<hr>
 <h2>macOS Finder quick action</h2>
 <p>mdo does not ship a macOS installer script yet, but Finder can run <code>mdo --open</code>
 through a per-user Automator Quick Action. Apple documents Quick Action
 workflows and shell-script actions in the Automator User Guide:</p>
 <ul>
-<li><a href="https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0">https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0</a></li>
-<li><a href="https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac">https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac</a></li>
+<li><a href="https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0" rel="noopener noreferrer">https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0</a></li>
+<li><a href="https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac" rel="noopener noreferrer">https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac</a></li>
 </ul>
 <p>Create a Quick Action in Automator, set it to receive files in Finder, add
 <strong>Run Shell Script</strong>, set <strong>Pass input</strong> to <strong>as arguments</strong>, and use the
@@ -227,7 +227,7 @@ done
 <li>The rendered page opens from a temp path under <code>$TMPDIR/mdo/&lt;hash&gt;/&lt;name&gt;.html</code>,
 and no <code>.html</code> file is left beside the source.</li>
 </ul>
-<hr />
+<hr>
 <h2>🎨 Default output</h2>
 <p>The default (non-<code>--bare</code>) output is a complete HTML5 document:</p>
 <ul>
@@ -236,7 +236,7 @@ and no <code>.html</code> file is left beside the source.</li>
 <li>A <code>&lt;meta name="generator" content="mdo &lt;version&gt;"&gt;</code> marker</li>
 <li><code>&lt;title&gt;</code> derived from the first <code># Heading</code> in the source (falls back to the
 input filename)</li>
-<li>An inlined copy of <a href="https://simplecss.org/">simple.css</a> inside <code>&lt;style&gt;</code>,
+<li>An inlined copy of <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> inside <code>&lt;style&gt;</code>,
 giving you sensible typography and automatic light/dark mode out of the box</li>
 <li>A small floating ☀/☾ button (top-right) for manually overriding the theme;
 the choice is remembered in <code>localStorage</code></li>
@@ -246,7 +246,7 @@ the choice is remembered in <code>localStorage</code></li>
 <p>Markdown extensions enabled: tables, footnotes, task lists, strikethrough.
 Rendered Markdown HTML is sanitized by default to remove active content such as
 scripts and event-handler attributes.</p>
-<hr />
+<hr>
 <h2>🙏 Credits</h2>
 <p>This project is a grateful fork of Hafiz Ali Raza's original
 Markdown-to-HTML CLI. Hafiz remains credited as an author, and this fork keeps
@@ -255,7 +255,7 @@ that lineage explicit so future improvements can be offered back upstream.</p>
 <ul>
 <li>Convert-and-exit as the default; watch mode is now opt-in (<code>--watch</code>)</li>
 <li>Optional <code>--output</code> (defaults to <code>&lt;input&gt;.html</code> next to the source)</li>
-<li>Standalone HTML5 output with embedded <a href="https://simplecss.org/">simple.css</a></li>
+<li>Standalone HTML5 output with embedded <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a></li>
 <li>A <code>--bare</code> flag that preserves the original fragment-only behavior</li>
 <li>Default sanitization for rendered Markdown HTML, with <code>--unsafe-html</code> for
 trusted sources that need raw HTML preserved</li>
@@ -269,19 +269,19 @@ dated footer; no network calls or identifiers are added</li>
 <li>Surfaced watcher errors instead of swallowing them</li>
 <li>Markdown extensions: tables, footnotes, task lists (in addition to strikethrough)</li>
 </ul>
-<p>The bundled <a href="https://simplecss.org/">simple.css</a> is © 2020
-<a href="https://kevquirk.com/">Kev Quirk</a> and distributed under the MIT License — see
-<a href="assets/simple.css.LICENSE"><code>assets/simple.css.LICENSE</code></a>.</p>
-<hr />
+<p>The bundled <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> is © 2020
+<a href="https://kevquirk.com/" rel="noopener noreferrer">Kev Quirk</a> and distributed under the MIT License — see
+<a href="assets/simple.css.LICENSE" rel="noopener noreferrer"><code>assets/simple.css.LICENSE</code></a>.</p>
+<hr>
 <h2>📄 License</h2>
 <p>This project is dual-licensed under either of:</p>
 <ul>
-<li>MIT License (<a href="LICENSE-MIT">LICENSE-MIT</a>)</li>
-<li>Apache License, Version 2.0 (<a href="LICENSE-APACHE">LICENSE-APACHE</a>)</li>
+<li>MIT License (<a href="LICENSE-MIT" rel="noopener noreferrer">LICENSE-MIT</a>)</li>
+<li>Apache License, Version 2.0 (<a href="LICENSE-APACHE" rel="noopener noreferrer">LICENSE-APACHE</a>)</li>
 </ul>
 <p>at your option, matching the licensing of the upstream project.</p>
 
 </main>
-<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.3.0 in 0.001s on <time datetime="2026-06-01">2026-06-01</time>.</footer>
+<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.3.0 in 0.005s on <time datetime="2026-06-01">2026-06-01</time>.</footer>
 </body>
 </html>

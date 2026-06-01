@@ -881,6 +881,54 @@ p {
   gap: 18px;
 }
 
+.why-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.why-copy {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.why-copy p + p {
+  margin-top: 16px;
+}
+
+.why-points {
+  display: grid;
+  gap: 12px;
+}
+
+.why-points div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 16px;
+}
+
+.why-points span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.why-points strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 17px;
+}
+
+.why-points p {
+  color: var(--muted);
+}
+
 .check-list {
   margin: 0;
   padding-left: 20px;
@@ -959,7 +1007,8 @@ p {
 @media (max-width: 880px) {
   .hero-inner,
   .section-heading,
-  .two-column {
+  .two-column,
+  .why-layout {
     grid-template-columns: 1fr;
   }
 

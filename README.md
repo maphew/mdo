@@ -1,7 +1,7 @@
 # 📝 mdo — Markdown to HTML5 Converter (with optional live watch)
 
 `mdo` is a small, fast, self-contained command-line tool that converts Markdown
-files into HTML on Linux, MacOS, and Windows.
+files into HTML on Linux, macOS, and Windows.
 
 Optional file-manager integration turns 2x-click of any .md file into rendered HTML in default browser with the same speed as opening the .md in a text editor.
 
