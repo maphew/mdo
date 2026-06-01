@@ -1,18 +1,17 @@
 # 📝 mdo — Markdown to HTML5 Converter (with optional live watch)
 
-`mdo` is a small, fast command-line tool written in Rust that converts
-Markdown files into HTML.
+`mdo` is a small, fast, self-contained command-line tool that converts Markdown
+files into HTML on Linux, MacOS, and Windows.
+
+Optional file-manager integration turns 2x-click of any .md file into rendered HTML in default browser with the same speed as opening the .md in a text editor.
 
 By default it produces a complete, **HTML5-compliant** document styled with
-[simple.css](https://simplecss.org/) (vendored at build time — no network
+[simple.css](https://simplecss.org/) (vendored at build time, no network
 access at runtime). An optional **watch mode** keeps re-rendering the output
 whenever the Markdown source is edited.
 
-Project site: <https://maphew.github.io/mdo/>
-
+Project site: <https://maphew.github.io/mdo/>  
 Public metrics: <https://maphew.github.io/mdo/metrics/>
-
----
 
 ## 🚀 Features
 
@@ -25,6 +24,14 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
 - ⚡ Fast and self-contained — single binary, no runtime assets
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
+
+### Why?
+
+There are countless Markdown-to-HTML converters available, so why make another one, becoming yet another [xkcd:927 joke](https://xkcd.com/927/)?
+
+I could not find a simple, fast, and self-contained solution. Everything I looked at wanted to be a full-featured editor, relied on node or python in PATH, or needed some other runtime dependency. `md2htmlx` was very close, but did not calm my primary itch: every day I read dozens to hundreds of md files. Markdown is pretty darn good for authoring, awesome for diffs relative to other formats, but they're not very nice for reading. HTML is richer and calmer, and I find I absorb and understand more deeply.
+
+Mdo + file-manager integration creates html pages so quickly they are throw-away friendly. I don't have to create an HTML file for every long Markdown file I want to read, or add a "make this an html report" to an agent workflow, regularly saving thousands of tokens. 
 
 ---
 

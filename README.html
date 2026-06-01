@@ -40,26 +40,31 @@
 <body>
 <main>
 <h1>📝 mdo — Markdown to HTML5 Converter (with optional live watch)</h1>
-<p><code>mdo</code> is a small, fast command-line tool written in Rust that converts
-Markdown files into HTML.</p>
+<p><code>mdo</code> is a small, fast, self-contained command-line tool that converts Markdown
+files into HTML on Linux, MacOS, and Windows.</p>
+<p>Optional file-manager integration turns 2x-click of any .md file into rendered HTML in default browser with the same speed as opening the .md in a text editor.</p>
 <p>By default it produces a complete, <strong>HTML5-compliant</strong> document styled with
-<a href="https://simplecss.org/">simple.css</a> (vendored at build time — no network
+<a href="https://simplecss.org/">simple.css</a> (vendored at build time, no network
 access at runtime). An optional <strong>watch mode</strong> keeps re-rendering the output
 whenever the Markdown source is edited.</p>
-<p>Project site: <a href="https://maphew.github.io/mdo/">https://maphew.github.io/mdo/</a></p>
-<p>Public metrics: <a href="https://maphew.github.io/mdo/metrics/">https://maphew.github.io/mdo/metrics/</a></p>
-<hr />
+<p>Project site: <a href="https://maphew.github.io/mdo/">https://maphew.github.io/mdo/</a><br />
+Public metrics: <a href="https://maphew.github.io/mdo/metrics/">https://maphew.github.io/mdo/metrics/</a></p>
 <h2>🚀 Features</h2>
 <ul>
 <li>✅ Converts <code>.md</code> files to standalone HTML5 documents</li>
 <li>🎨 Pretty default styling via embedded <a href="https://simplecss.org/">simple.css</a></li>
 <li>🌓 Automatic light/dark mode (follows OS) plus a manual toggle button</li>
-<li>📄 <code>--bare</code> flag emits a raw HTML fragment (no <code>&lt;html&gt;</code>/<code>&lt;head&gt;</code>/<code>&lt;body&gt;</code>/CSS)</li>
+<li>📄 <code>--bare</code> flag emits a sanitized HTML fragment (no <code>&lt;html&gt;</code>/<code>&lt;head&gt;</code>/<code>&lt;body&gt;</code>/CSS)</li>
+<li>🔒 Raw Markdown HTML is sanitized by default; use <code>--unsafe-html</code> to preserve it for trusted input</li>
 <li>👀 <code>--watch</code> flag enables auto-rerender on file change (with debouncing)</li>
 <li>🌐 <code>--open</code> flag renders to a temp dir and launches the system default browser</li>
 <li>⚡ Fast and self-contained — single binary, no runtime assets</li>
 <li>🧩 Built on <code>pulldown-cmark</code>, <code>clap</code>, and <code>notify</code></li>
 </ul>
+<h3>Why?</h3>
+<p>There are countless Markdown-to-HTML converters available, so why make another one, becoming yet another <a href="https://xkcd.com/927/">xkcd:927 joke</a>?</p>
+<p>I could not find a simple, fast, and self-contained solution. Everything I looked at wanted to be a full-featured editor, relied on node or python in PATH, or needed some other runtime dependency. <code>md2htmlx</code> was very close, but did not calm my primary itch: every day I read dozens to hundreds of md files. Markdown is pretty darn good for authoring, awesome for diffs relative to other formats, but they're not very nice for reading. HTML is richer and calmer, and I find I absorb and understand more deeply.</p>
+<p>Mdo + file-manager integration creates html pages so quickly they are throw-away friendly. I don't have to create an HTML file for every long Markdown file I want to read, or add a "make this an html report" to an agent workflow, regularly saving thousands of tokens.</p>
 <hr />
 <h2>📦 Installation</h2>
 <h3>From crates.io</h3>
@@ -82,7 +87,8 @@ Options:
   -o, --output &lt;OUTPUT&gt;  Output HTML file (defaults to &lt;input&gt;.html alongside the input,
                          or to a temp directory when --open is used). Existing files are overwritten
   -w, --watch            Watch the input file and re-render on every change
-  -b, --bare             Emit only the raw HTML fragment (no &lt;html&gt;, &lt;head&gt;, &lt;body&gt;, no CSS)
+  -b, --bare             Emit only the HTML fragment (no &lt;html&gt;, &lt;head&gt;, &lt;body&gt;, no CSS)
+      --unsafe-html      Preserve raw HTML from the Markdown source instead of sanitizing it
       --open             Render to a temp directory and launch the system default browser.
                          The source folder is left untouched unless --output is given
   -h, --help             Print help
@@ -93,7 +99,8 @@ extension changed to <code>.html</code> (e.g. <code>foo.md</code> → <code>foo.
 overwritten without prompting.</p>
 <p>When <code>--open</code> is used without <code>--output</code>, the rendered HTML goes to a stable
 location under your OS temp directory (e.g.
-<code>%TEMP%\mdo\&lt;hash&gt;\&lt;name&gt;.html</code> on Windows) so the source folder stays
+<code>%TEMP%\mdo\&lt;hash&gt;\&lt;name&gt;.html</code> on Windows, or <code>/tmp/mdo-&lt;uid&gt;/&lt;hash&gt;/&lt;name&gt;.html</code>
+on Unix-like systems) so the source folder stays
 clean. Re-opening the same file overwrites the same temp output. A
 <code>&lt;base href="file:///…"&gt;</code> tag pointing at the source folder is automatically
 injected whenever the output lives elsewhere, so relative images and links in
@@ -105,6 +112,10 @@ mdo input.md -o docs/out.html   # writes docs/out.html
 </code></pre>
 <p>Emit a bare HTML fragment (useful for embedding in another template):</p>
 <pre><code class="language-bash">mdo --bare input.md
+</code></pre>
+<p>Raw HTML from the Markdown source is sanitized by default. Preserve it only
+when the source is trusted:</p>
+<pre><code class="language-bash">mdo --unsafe-html input.md
 </code></pre>
 <p>Watch for changes and re-render on every save:</p>
 <pre><code class="language-bash">mdo --watch input.md
@@ -232,7 +243,9 @@ the choice is remembered in <code>localStorage</code></li>
 <li>Body content wrapped in <code>&lt;main&gt;</code></li>
 <li>A tiny footer showing the mdo version, render duration, and UTC generation date</li>
 </ul>
-<p>Markdown extensions enabled: tables, footnotes, task lists, strikethrough.</p>
+<p>Markdown extensions enabled: tables, footnotes, task lists, strikethrough.
+Rendered Markdown HTML is sanitized by default to remove active content such as
+scripts and event-handler attributes.</p>
 <hr />
 <h2>🙏 Credits</h2>
 <p>This project is a grateful fork of Hafiz Ali Raza's original
@@ -244,6 +257,8 @@ that lineage explicit so future improvements can be offered back upstream.</p>
 <li>Optional <code>--output</code> (defaults to <code>&lt;input&gt;.html</code> next to the source)</li>
 <li>Standalone HTML5 output with embedded <a href="https://simplecss.org/">simple.css</a></li>
 <li>A <code>--bare</code> flag that preserves the original fragment-only behavior</li>
+<li>Default sanitization for rendered Markdown HTML, with <code>--unsafe-html</code> for
+trusted sources that need raw HTML preserved</li>
 <li>An <code>--open</code> flag that renders to a temp directory and launches the system
 default browser (with auto-injected <code>&lt;base href&gt;</code> so relative refs resolve)</li>
 <li>Light/dark theme toggle button overlaid on the rendered page</li>
@@ -267,6 +282,6 @@ dated footer; no network calls or identifiers are added</li>
 <p>at your option, matching the licensing of the upstream project.</p>
 
 </main>
-<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.3.0 in 0.001s on <time datetime="2026-05-30">2026-05-30</time>.</footer>
+<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.3.0 in 0.001s on <time datetime="2026-06-01">2026-06-01</time>.</footer>
 </body>
 </html>
