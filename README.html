@@ -68,15 +68,33 @@ Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener no
 <hr>
 <h2>📦 Installation</h2>
 <h3>GitHub release binaries</h3>
-<p>Download the native archive for your platform from
-<a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">https://github.com/maphew/mdo/releases</a>, then put the extracted <code>mdo</code>
-binary on your <code>PATH</code>.</p>
-<ul>
-<li>Windows: download <code>mdo-x86_64-pc-windows-msvc.zip</code>. It includes
-<code>mdo.exe</code> and the Explorer-friendly <code>mdo-open.exe</code> wrapper.</li>
-<li>Linux: download <code>mdo-x86_64-unknown-linux-gnu.tar.gz</code>.</li>
-<li>macOS: download <code>mdo-universal-apple-darwin.tar.gz</code>.</li>
-</ul>
+<p>Windows PowerShell:</p>
+<pre><code class="language-powershell">$InstallDir = "$env:LOCALAPPDATA\mdo\bin"
+$Zip = "$env:TEMP\mdo.zip"
+New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+Invoke-WebRequest -Uri "https://github.com/maphew/mdo/releases/latest/download/mdo-x86_64-pc-windows-msvc.zip" -OutFile $Zip
+Expand-Archive -Force -Path $Zip -DestinationPath $InstallDir
+$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+$NewPath = if ([string]::IsNullOrWhiteSpace($UserPath)) { $InstallDir } else { "$($UserPath.TrimEnd(';'));$InstallDir" }
+if (($UserPath -split ';') -notcontains $InstallDir) { [Environment]::SetEnvironmentVariable("Path", $NewPath, "User") }
+&amp; "$InstallDir\mdo.exe" --version
+</code></pre>
+<p>Linux:</p>
+<pre><code class="language-bash">mkdir -p "$HOME/.local/bin"
+curl -fsSL "https://github.com/maphew/mdo/releases/latest/download/mdo-x86_64-unknown-linux-gnu.tar.gz" \
+  | tar -xz -C "$HOME/.local/bin" mdo mdo-open
+chmod +x "$HOME/.local/bin/mdo" "$HOME/.local/bin/mdo-open"
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; "$HOME/.profile"; export PATH="$HOME/.local/bin:$PATH";; esac
+mdo --version
+</code></pre>
+<p>macOS:</p>
+<pre><code class="language-bash">mkdir -p "$HOME/.local/bin"
+curl -fsSL "https://github.com/maphew/mdo/releases/latest/download/mdo-universal-apple-darwin.tar.gz" \
+  | tar -xz -C "$HOME/.local/bin" mdo mdo-open
+chmod +x "$HOME/.local/bin/mdo" "$HOME/.local/bin/mdo-open"
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; "$HOME/.zshrc"; export PATH="$HOME/.local/bin:$PATH";; esac
+mdo --version
+</code></pre>
 <p>The release page also publishes <code>SHA256SUMS</code> for archive verification.</p>
 <h3>Build from source</h3>
 <p>Use the source build path when developing <code>mdo</code> or when you specifically

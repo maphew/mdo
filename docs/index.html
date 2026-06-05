@@ -144,27 +144,41 @@
       <div class="section-inner">
         <div class="section-heading">
           <h2>Install</h2>
-          <p>Start with the native release archive for your platform. The Rust package is named <code>mdo-cli</code> because the bare <code>mdo</code> crate name is already occupied, but Cargo installs compile from source and are mainly for Rust users and contributors.</p>
+          <p>Install the latest native release binary with the command for your platform. The Rust package is named <code>mdo-cli</code>, but Cargo installs compile from source and are mainly for Rust users and contributors.</p>
         </div>
         <div class="grid">
           <div class="step">
-            <h3>GitHub Releases</h3>
-            <p>Download the native archive for Linux, Windows, or macOS from the release page, then verify it with <code>SHA256SUMS</code>.</p>
+            <h3>Windows PowerShell</h3>
+            <pre class="code-block"><code>$InstallDir = "$env:LOCALAPPDATA\mdo\bin"
+$Zip = "$env:TEMP\mdo.zip"
+New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+Invoke-WebRequest -Uri "https://github.com/maphew/mdo/releases/latest/download/mdo-x86_64-pc-windows-msvc.zip" -OutFile $Zip
+Expand-Archive -Force -Path $Zip -DestinationPath $InstallDir
+$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+$NewPath = if ([string]::IsNullOrWhiteSpace($UserPath)) { $InstallDir } else { "$($UserPath.TrimEnd(';'));$InstallDir" }
+if (($UserPath -split ';') -notcontains $InstallDir) { [Environment]::SetEnvironmentVariable("Path", $NewPath, "User") }
+&amp; "$InstallDir\mdo.exe" --version</code></pre>
           </div>
           <div class="step">
-            <h3>Windows</h3>
-            <p>Use <code>mdo-x86_64-pc-windows-msvc.zip</code>. It includes both <code>mdo.exe</code> and the Explorer-friendly <code>mdo-open.exe</code> wrapper.</p>
+            <h3>Linux</h3>
+            <pre class="code-block"><code>mkdir -p "$HOME/.local/bin"
+curl -fsSL "https://github.com/maphew/mdo/releases/latest/download/mdo-x86_64-unknown-linux-gnu.tar.gz" \
+  | tar -xz -C "$HOME/.local/bin" mdo mdo-open
+chmod +x "$HOME/.local/bin/mdo" "$HOME/.local/bin/mdo-open"
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; "$HOME/.profile"; export PATH="$HOME/.local/bin:$PATH";; esac
+mdo --version</code></pre>
           </div>
           <div class="step">
-            <h3>From Source</h3>
-            <pre class="code-block"><code>gh repo clone maphew/mdo
-cd mdo
-cargo build --release
-
-# Rust users can also compile from crates.io:
-cargo install mdo-cli</code></pre>
+            <h3>macOS</h3>
+            <pre class="code-block"><code>mkdir -p "$HOME/.local/bin"
+curl -fsSL "https://github.com/maphew/mdo/releases/latest/download/mdo-universal-apple-darwin.tar.gz" \
+  | tar -xz -C "$HOME/.local/bin" mdo mdo-open
+chmod +x "$HOME/.local/bin/mdo" "$HOME/.local/bin/mdo-open"
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; "$HOME/.zshrc"; export PATH="$HOME/.local/bin:$PATH";; esac
+mdo --version</code></pre>
           </div>
         </div>
+        <p class="fine-print">The release page also publishes <code>SHA256SUMS</code>. Source builds remain available with <code>cargo install mdo-cli</code>.</p>
       </div>
     </section>
 

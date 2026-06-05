@@ -39,14 +39,41 @@ Mdo + file-manager integration creates html pages so quickly they are throw-away
 
 ### GitHub release binaries
 
-Download the native archive for your platform from
-<https://github.com/maphew/mdo/releases>, then put the extracted `mdo`
-binary on your `PATH`.
+Windows PowerShell:
 
-- Windows: download `mdo-x86_64-pc-windows-msvc.zip`. It includes
-  `mdo.exe` and the Explorer-friendly `mdo-open.exe` wrapper.
-- Linux: download `mdo-x86_64-unknown-linux-gnu.tar.gz`.
-- macOS: download `mdo-universal-apple-darwin.tar.gz`.
+```powershell
+$InstallDir = "$env:LOCALAPPDATA\mdo\bin"
+$Zip = "$env:TEMP\mdo.zip"
+New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+Invoke-WebRequest -Uri "https://github.com/maphew/mdo/releases/latest/download/mdo-x86_64-pc-windows-msvc.zip" -OutFile $Zip
+Expand-Archive -Force -Path $Zip -DestinationPath $InstallDir
+$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+$NewPath = if ([string]::IsNullOrWhiteSpace($UserPath)) { $InstallDir } else { "$($UserPath.TrimEnd(';'));$InstallDir" }
+if (($UserPath -split ';') -notcontains $InstallDir) { [Environment]::SetEnvironmentVariable("Path", $NewPath, "User") }
+& "$InstallDir\mdo.exe" --version
+```
+
+Linux:
+
+```bash
+mkdir -p "$HOME/.local/bin"
+curl -fsSL "https://github.com/maphew/mdo/releases/latest/download/mdo-x86_64-unknown-linux-gnu.tar.gz" \
+  | tar -xz -C "$HOME/.local/bin" mdo mdo-open
+chmod +x "$HOME/.local/bin/mdo" "$HOME/.local/bin/mdo-open"
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"; export PATH="$HOME/.local/bin:$PATH";; esac
+mdo --version
+```
+
+macOS:
+
+```bash
+mkdir -p "$HOME/.local/bin"
+curl -fsSL "https://github.com/maphew/mdo/releases/latest/download/mdo-universal-apple-darwin.tar.gz" \
+  | tar -xz -C "$HOME/.local/bin" mdo mdo-open
+chmod +x "$HOME/.local/bin/mdo" "$HOME/.local/bin/mdo-open"
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"; export PATH="$HOME/.local/bin:$PATH";; esac
+mdo --version
+```
 
 The release page also publishes `SHA256SUMS` for archive verification.
 

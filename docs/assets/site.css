@@ -796,8 +796,14 @@ p {
 
 .section-heading p,
 .step p,
-.note p {
+.note p,
+.fine-print {
   color: var(--muted);
+}
+
+.fine-print {
+  margin: 14px 0 0;
+  font-size: 14px;
 }
 
 .grid {
@@ -853,7 +859,8 @@ p {
 .step p code,
 .note p code,
 .check-list code,
-.source-note code {
+.source-note code,
+.fine-print code {
   border-radius: 5px;
   background: #e9efeb;
   padding: 0.12em 0.36em;
