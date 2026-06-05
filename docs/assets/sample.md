@@ -12,7 +12,7 @@
 
 | Task | Command |
 |---|---|
-| Install | `cargo install mdo-cli` |
+| Install | Download the release binary |
 | Convert | `mdo notes.md` |
 | Open | `mdo --open notes.md` |
 

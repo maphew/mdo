@@ -67,14 +67,28 @@ Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener no
 <p>Mdo + file-manager integration creates html pages so quickly they are throw-away friendly. I don't have to create an HTML file for every long Markdown file I want to read, or add a "make this an html report" to an agent workflow, regularly saving thousands of tokens.</p>
 <hr>
 <h2>📦 Installation</h2>
-<h3>From crates.io</h3>
-<pre><code class="language-bash">cargo install mdo-cli
-</code></pre>
+<h3>GitHub release binaries</h3>
+<p>Download the native archive for your platform from
+<a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">https://github.com/maphew/mdo/releases</a>, then put the extracted <code>mdo</code>
+binary on your <code>PATH</code>.</p>
+<ul>
+<li>Windows: download <code>mdo-x86_64-pc-windows-msvc.zip</code>. It includes
+<code>mdo.exe</code> and the Explorer-friendly <code>mdo-open.exe</code> wrapper.</li>
+<li>Linux: download <code>mdo-x86_64-unknown-linux-gnu.tar.gz</code>.</li>
+<li>macOS: download <code>mdo-universal-apple-darwin.tar.gz</code>.</li>
+</ul>
+<p>The release page also publishes <code>SHA256SUMS</code> for archive verification.</p>
 <h3>Build from source</h3>
+<p>Use the source build path when developing <code>mdo</code> or when you specifically
+want Cargo to compile it locally:</p>
 <pre><code class="language-bash">git clone https://github.com/maphew/mdo.git
 cd mdo
 cargo build --release
 ./target/release/mdo input.md
+</code></pre>
+<p>Rust users can also install from crates.io, but this compiles from source
+and requires the platform's native build tools:</p>
+<pre><code class="language-bash">cargo install mdo-cli
 </code></pre>
 <hr>
 <h2>📦 Usage</h2>
@@ -180,7 +194,8 @@ unchanged — <code>mdo.exe</code> from a terminal still prints to stdout normal
 <p>The install script auto-locates <code>mdo-open.exe</code> via <code>PATH</code>, falling
 back to <code>target\release\mdo-open.exe</code> next to the repo. Pass
 <code>-ExePath C:\path\to\mdo-open.exe</code> to override. <code>mdo.exe</code> must
-sit next to <code>mdo-open.exe</code>; both are produced by <code>cargo build --release</code> and <code>cargo install mdo-cli</code>.</p>
+sit next to <code>mdo-open.exe</code>; both are included in the Windows release
+archive and are also produced by local source builds.</p>
 <p>It also generates a small <code>.ico</code> at <code>%LOCALAPPDATA%\mdo\md.ico</code> by
 rendering a single Unicode character — by default Ⓜ (circled M) in a
 mid-tone blue chosen so it stays legible in both light and dark Explorer

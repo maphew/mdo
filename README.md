@@ -37,19 +37,36 @@ Mdo + file-manager integration creates html pages so quickly they are throw-away
 
 ## 📦 Installation
 
-### From crates.io
+### GitHub release binaries
 
-```bash
-cargo install mdo-cli
-```
+Download the native archive for your platform from
+<https://github.com/maphew/mdo/releases>, then put the extracted `mdo`
+binary on your `PATH`.
+
+- Windows: download `mdo-x86_64-pc-windows-msvc.zip`. It includes
+  `mdo.exe` and the Explorer-friendly `mdo-open.exe` wrapper.
+- Linux: download `mdo-x86_64-unknown-linux-gnu.tar.gz`.
+- macOS: download `mdo-universal-apple-darwin.tar.gz`.
+
+The release page also publishes `SHA256SUMS` for archive verification.
 
 ### Build from source
+
+Use the source build path when developing `mdo` or when you specifically
+want Cargo to compile it locally:
 
 ```bash
 git clone https://github.com/maphew/mdo.git
 cd mdo
 cargo build --release
 ./target/release/mdo input.md
+```
+
+Rust users can also install from crates.io, but this compiles from source
+and requires the platform's native build tools:
+
+```bash
+cargo install mdo-cli
 ```
 
 ---
@@ -192,8 +209,8 @@ unchanged — `mdo.exe` from a terminal still prints to stdout normally.
 The install script auto-locates `mdo-open.exe` via `PATH`, falling
 back to `target\release\mdo-open.exe` next to the repo. Pass
 `-ExePath C:\path\to\mdo-open.exe` to override. `mdo.exe` must
-sit next to `mdo-open.exe`; both are produced by `cargo build
---release` and `cargo install mdo-cli`.
+sit next to `mdo-open.exe`; both are included in the Windows release
+archive and are also produced by local source builds.
 
 It also generates a small `.ico` at `%LOCALAPPDATA%\mdo\md.ico` by
 rendering a single Unicode character — by default Ⓜ (circled M) in a

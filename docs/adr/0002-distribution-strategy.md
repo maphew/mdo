@@ -36,7 +36,10 @@ Publish the canonical Rust package as **`mdo-cli`** on crates.io:
 cargo install mdo-cli
 ```
 
-Use GitHub Releases for downloadable binaries and checksums.
+Use GitHub Releases for the default user installation path: downloadable
+native binaries and checksums. `cargo install mdo-cli` remains available
+for Rust users and contributors, but it compiles from source and requires
+the platform's native build tools.
 
 Treat OS package managers as the next packaging layer:
 
@@ -54,8 +57,7 @@ back to the Rust project.
 **Positive**
 
 - The command users type remains the strongest name: `mdo`.
-- The primary package path matches the implementation language and current
-  audience.
+- The primary user install path does not require a Rust toolchain.
 - The project avoids occupying unrelated ecosystems with empty packages.
 - Native binary releases cover users who do not want a Rust toolchain.
 - Homebrew, WinGet, and Scoop provide better CLI distribution paths than

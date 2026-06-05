@@ -35,7 +35,7 @@
           <h1>mdo</h1>
           <p class="lede">A small Rust CLI that turns Markdown into standalone HTML, with embedded simple.css styling and an open-in-browser workflow for local files.</p>
           <div class="command-row">
-            <pre class="command"><code>cargo install mdo-cli</code></pre>
+            <pre class="command"><code>Download a native release binary</code></pre>
             <a class="button" href="https://github.com/maphew/mdo/releases">Releases</a>
             <a class="button secondary" href="https://github.com/maphew/mdo">Source</a>
           </div>
@@ -144,23 +144,25 @@
       <div class="section-inner">
         <div class="section-heading">
           <h2>Install</h2>
-          <p>The Rust package is named <code>mdo-cli</code> because the bare <code>mdo</code> crate name is already occupied. The installed command is still <code>mdo</code>.</p>
+          <p>Start with the native release archive for your platform. The Rust package is named <code>mdo-cli</code> because the bare <code>mdo</code> crate name is already occupied, but Cargo installs compile from source and are mainly for Rust users and contributors.</p>
         </div>
         <div class="grid">
           <div class="step">
-            <h3>Cargo</h3>
-            <pre class="code-block"><code>cargo install mdo-cli
-mdo --version</code></pre>
+            <h3>GitHub Releases</h3>
+            <p>Download the native archive for Linux, Windows, or macOS from the release page, then verify it with <code>SHA256SUMS</code>.</p>
           </div>
           <div class="step">
-            <h3>GitHub Releases</h3>
-            <p>Download native archives for Linux, Windows, and macOS from the release page, then verify them with <code>SHA256SUMS</code>.</p>
+            <h3>Windows</h3>
+            <p>Use <code>mdo-x86_64-pc-windows-msvc.zip</code>. It includes both <code>mdo.exe</code> and the Explorer-friendly <code>mdo-open.exe</code> wrapper.</p>
           </div>
           <div class="step">
             <h3>From Source</h3>
             <pre class="code-block"><code>gh repo clone maphew/mdo
 cd mdo
-cargo build --release</code></pre>
+cargo build --release
+
+# Rust users can also compile from crates.io:
+cargo install mdo-cli</code></pre>
           </div>
         </div>
       </div>
