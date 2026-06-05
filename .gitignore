@@ -8,3 +8,7 @@ docs/adr/*.html
 *.db
 .beads-credential-key
 .beads/proxieddb/
+.beads/.local_version
+.beads/backup/
+.beads/export-state.json
+.beads/last-touched
