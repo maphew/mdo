@@ -559,6 +559,9 @@ fn main() -> notify::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static NEXT_TEMP_FIXTURE_ID: AtomicU64 = AtomicU64::new(0);
 
     #[test]
     fn temp_output_stem_replaces_shell_metacharacters() {
@@ -594,8 +597,11 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .expect("system time should be after epoch")
             .as_nanos();
-        let dir =
-            std::env::temp_dir().join(format!("mdo-unit-test-{}-{nonce}", std::process::id()));
+        let counter = NEXT_TEMP_FIXTURE_ID.fetch_add(1, Ordering::Relaxed);
+        let dir = std::env::temp_dir().join(format!(
+            "mdo-unit-test-{}-{nonce}-{counter}",
+            std::process::id()
+        ));
         fs::create_dir_all(&dir).expect("test temp dir should be created");
         let input = dir.join(file_name);
         fs::write(&input, "# Test\n").expect("test input should be written");
