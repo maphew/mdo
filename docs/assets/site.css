@@ -215,7 +215,7 @@ p {
   border-radius: 8px;
   background:
     linear-gradient(rgba(7, 23, 32, 0.08), rgba(7, 23, 32, 0.28)),
-    url("https://cdn.thenewstack.io/media/2025/01/e437f290-bluefinhero-1024x695.jpg") center top / auto 126% no-repeat;
+    url("mammoth-bluefinhero-1024x695.jpg") center top / auto 126% no-repeat;
   box-shadow: 0 18px 50px rgba(28, 36, 40, 0.12);
   isolation: isolate;
 }
