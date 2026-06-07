@@ -201,7 +201,13 @@ fn ensure_private_dir(path: &Path) -> io::Result<()> {
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             let mut builder = fs::DirBuilder::new();
             builder.mode(0o700);
-            builder.create(path)?;
+            if let Err(create_error) = builder.create(path) {
+                if create_error.kind() == io::ErrorKind::AlreadyExists {
+                    return ensure_private_dir(path);
+                }
+
+                return Err(create_error);
+            }
         }
         Err(e) => return Err(e),
     }
