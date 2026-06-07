@@ -1,296 +1,458 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>mdo - Markdown open</title>
-  <meta name="description" content="mdo is a small Rust CLI that converts Markdown to standalone HTML5 and opens it in your browser.">
-  <link rel="stylesheet" href="assets/site.css">
-</head>
-<body>
-  <header class="site-header">
-    <nav class="nav" aria-label="Primary navigation">
-      <a class="brand" href="#">
-        <span class="brand-mark" aria-hidden="true">&#9410;</span>
-        <span>mdo</span>
-      </a>
-      <div class="nav-links">
-        <a href="#why">Why</a>
-        <a href="#install">Install</a>
-        <a href="#usage">Usage</a>
-        <a href="#file-managers">File Managers</a>
-        <a href="#migration">Migration</a>
-        <a href="metrics/">Metrics</a>
-        <a href="https://github.com/maphew/mdo">GitHub</a>
-        <a href="https://crates.io/crates/mdo-cli">crates.io</a>
-      </div>
-    </nav>
-  </header>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>mdo - Markdown open</title>
+        <meta
+            name="description"
+            content="mdo is a small Rust CLI that converts Markdown to standalone HTML5 and opens it in your browser."
+        />
+        <link rel="stylesheet" href="assets/site.css" />
+    </head>
+    <body>
+        <header class="site-header">
+            <nav class="nav" aria-label="Primary navigation">
+                <a class="brand" href="#">
+                    <span class="brand-mark" aria-hidden="true">&#9410;</span>
+                    <span>mdo</span>
+                </a>
+                <div class="nav-links">
+                    <a href="#why">Why</a>
+                    <a href="#install">Install</a>
+                    <a href="#usage">Usage</a>
+                    <a href="#file-managers">File Managers</a>
+                    <a href="#migration">Migration</a>
+                    <a href="metrics/">Metrics</a>
+                    <a href="https://github.com/maphew/mdo">GitHub</a>
+                    <a href="https://crates.io/crates/mdo-cli">crates.io</a>
+                </div>
+            </nav>
+        </header>
 
-  <main>
-    <section class="hero">
-      <div class="hero-inner">
-        <div>
-          <p class="eyebrow">Markdown to HTML5</p>
-          <h1>mdo</h1>
-          <p class="lede">A small Rust CLI that turns Markdown into standalone HTML, with embedded simple.css styling and an open-in-browser workflow for local files.</p>
-          <div class="command-row">
-            <pre class="command"><code>cargo install mdo-cli</code></pre>
-            <a class="button" href="https://github.com/maphew/mdo/releases">Releases</a>
-            <a class="button secondary" href="https://github.com/maphew/mdo">Source</a>
-          </div>
-          <div class="meta-links">
-            <span>Binary: <code>mdo</code></span>
-            <span>Package: <code>mdo-cli</code></span>
-            <span>License: MIT or Apache-2.0</span>
-          </div>
-        </div>
+        <main>
+            <section class="hero">
+                <div class="hero-inner">
+                    <div>
+                        <p class="eyebrow">Markdown to HTML5</p>
+                        <h1>mdo</h1>
+                        <p class="lede">
+                            A small Rust CLI that turns Markdown into standalone HTML, with embedded
+                            simple.css styling and an open-in-browser workflow for local files.
+                        </p>
+                        <div class="command-row">
+                            <pre class="command"><code>cargo install mdo-cli</code></pre>
+                            <a class="button" href="https://github.com/maphew/mdo/releases"
+                                >Releases</a
+                            >
+                            <a class="button secondary" href="https://github.com/maphew/mdo"
+                                >Source</a
+                            >
+                        </div>
+                        <div class="meta-links">
+                            <span>Binary: <code>mdo</code></span>
+                            <span>Package: <code>mdo-cli</code></span>
+                            <span>License: MIT or Apache-2.0</span>
+                        </div>
+                    </div>
 
-        <div class="preview-shell" data-preview-shell data-preview-state="maximized" aria-label="Rendered Markdown example desktop">
-          <div class="desktop-scene" aria-hidden="true">
-            <div class="desktop-topbar">
-              <span data-preview-clock>Mon Jan 27&nbsp;&nbsp;1:52 PM</span>
-            </div>
-            <div class="snowfall">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            <div class="bird-flight">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            <div class="perched-birds">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            <div class="herd-trail"></div>
-            <div class="mammoth-motion">
-              <span class="OFF-mammoth-trunk"></span>
-              <span class="OFF-NOmammoth-foot"></span>
-            </div>
-          </div>
-          <div class="preview-window">
-            <div class="preview-toolbar">
-              <span class="preview-title">sample.md rendered by mdo</span>
-              <span class="preview-window-actions">
-                <button class="window-control minimize" type="button" data-preview-action="minimize" aria-label="Minimize preview"></button>
-                <button class="window-control maximize" type="button" data-preview-action="maximize" aria-label="Maximize preview"></button>
-                <button class="window-control close" type="button" data-preview-action="close" aria-label="Close preview"></button>
-              </span>
-            </div>
-            <iframe class="preview-frame" src="assets/sample.html" title="Example Markdown rendered as HTML"></iframe>
-          </div>
-          <div class="preview-dock" aria-label="Preview dock">
-            <button class="dock-launcher" type="button" data-preview-action="restore" aria-label="Open rendered Markdown preview" tabindex="-1" disabled>
-              <span class="firefox-mark" aria-hidden="true"></span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
+                    <div
+                        class="preview-shell"
+                        data-preview-shell
+                        data-preview-state="maximized"
+                        aria-label="Rendered Markdown example desktop"
+                    >
+                        <div class="desktop-scene" aria-hidden="true">
+                            <div class="desktop-topbar">
+                                <span data-preview-clock>Mon Jan 27&nbsp;&nbsp;1:52 PM</span>
+                            </div>
+                            <div class="snowfall">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <div class="bird-flight">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <div class="perched-birds">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <div class="herd-trail"></div>
+                            <div class="mammoth-motion">
+                                <span class="OFF-mammoth-trunk"></span>
+                                <span class="OFF-NOmammoth-foot"></span>
+                            </div>
+                        </div>
+                        <div class="preview-window">
+                            <div class="preview-toolbar">
+                                <span class="preview-title">sample.md rendered by mdo</span>
+                                <span class="preview-window-actions">
+                                    <button
+                                        class="window-control minimize"
+                                        type="button"
+                                        data-preview-action="minimize"
+                                        aria-label="Minimize preview"
+                                    ></button>
+                                    <button
+                                        class="window-control maximize"
+                                        type="button"
+                                        data-preview-action="maximize"
+                                        aria-label="Maximize preview"
+                                    ></button>
+                                    <button
+                                        class="window-control close"
+                                        type="button"
+                                        data-preview-action="close"
+                                        aria-label="Close preview"
+                                    ></button>
+                                </span>
+                            </div>
+                            <iframe
+                                class="preview-frame"
+                                src="assets/sample.html"
+                                title="Example Markdown rendered as HTML"
+                            ></iframe>
+                        </div>
+                        <div class="preview-dock" aria-label="Preview dock">
+                            <button
+                                class="dock-launcher"
+                                type="button"
+                                data-preview-action="restore"
+                                aria-label="Open rendered Markdown preview"
+                                tabindex="-1"
+                                disabled
+                            >
+                                <span class="firefox-mark" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <section class="section" id="why">
-      <div class="section-inner">
-        <div class="section-heading">
-          <h2>Why mdo?</h2>
-          <p>Markdown is excellent for authoring and diffs, but long local Markdown files are calmer to read as browser-rendered HTML.</p>
-        </div>
-        <div class="why-layout">
-          <div class="why-copy">
-            <p>There are countless Markdown-to-HTML converters available, so why make another one and risk becoming another <a href="https://xkcd.com/927/">xkcd:927</a> footnote?</p>
-            <p>I could not find a simple, fast, and self-contained solution. Everything I looked at wanted to be a full-featured editor, relied on node or python in <code>PATH</code>, or needed another runtime dependency. <code>md2htmlx</code> was close, but every day I read dozens to hundreds of Markdown files, and reading them as HTML is richer and calmer.</p>
-            <p><code>mdo</code> plus file-manager integration creates disposable HTML pages quickly enough that opening Markdown can feel like opening a text file. That means fewer generated artifacts in source folders and fewer agent-workflow prompts that spend tokens asking for an HTML report.</p>
-          </div>
-          <div class="why-points" aria-label="Project goals">
-            <div>
-              <span>01</span>
-              <strong>Fast local reading</strong>
-              <p>Render and open Markdown from your desktop or shell without waiting on a runtime stack.</p>
-            </div>
-            <div>
-              <span>02</span>
-              <strong>Throw-away friendly</strong>
-              <p><code>--open</code> writes to a stable temp path, so source folders stay clean by default.</p>
-            </div>
-            <div>
-              <span>03</span>
-              <strong>Self-contained output</strong>
-              <p>Generated pages include their own styling and work offline with no network assets.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+            <section class="section" id="why">
+                <div class="section-inner">
+                    <div class="section-heading">
+                        <h2>Why mdo?</h2>
+                        <p>
+                            Markdown is excellent for authoring and diffs, but long local Markdown
+                            files are calmer to read as browser-rendered HTML.
+                        </p>
+                    </div>
+                    <div class="why-layout">
+                        <div class="why-copy">
+                            <p>
+                                There are countless Markdown-to-HTML converters available, so why
+                                make another one and risk becoming another
+                                <a href="https://xkcd.com/927/">xkcd:927</a> footnote?
+                            </p>
+                            <p>
+                                I could not find a simple, fast, and self-contained solution.
+                                Everything I looked at wanted to be a full-featured editor, relied
+                                on node or python in <code>PATH</code>, or needed another runtime
+                                dependency. <code>md2htmlx</code> was close, but every day I read
+                                dozens to hundreds of Markdown files, and reading them as HTML is
+                                richer and calmer.
+                            </p>
+                            <p>
+                                <code>mdo</code> plus file-manager integration creates disposable
+                                HTML pages quickly enough that opening Markdown can feel like
+                                opening a text file. That means fewer generated artifacts in source
+                                folders and fewer agent-workflow prompts that spend tokens asking
+                                for an HTML report.
+                            </p>
+                        </div>
+                        <div class="why-points" aria-label="Project goals">
+                            <div>
+                                <span>01</span>
+                                <strong>Fast local reading</strong>
+                                <p>
+                                    Render and open Markdown from your desktop or shell without
+                                    waiting on a runtime stack.
+                                </p>
+                            </div>
+                            <div>
+                                <span>02</span>
+                                <strong>Throw-away friendly</strong>
+                                <p>
+                                    <code>--open</code> writes to a stable temp path, so source
+                                    folders stay clean by default.
+                                </p>
+                            </div>
+                            <div>
+                                <span>03</span>
+                                <strong>Self-contained output</strong>
+                                <p>
+                                    Generated pages include their own styling and work offline with
+                                    no network assets.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <section class="section" id="install">
-      <div class="section-inner">
-        <div class="section-heading">
-          <h2>Install</h2>
-          <p>The Rust package is named <code>mdo-cli</code> because the bare <code>mdo</code> crate name is already occupied. The installed command is still <code>mdo</code>.</p>
-        </div>
-        <div class="grid">
-          <div class="step">
-            <h3>Cargo</h3>
-            <pre class="code-block"><code>cargo install mdo-cli
+            <section class="section" id="install">
+                <div class="section-inner">
+                    <div class="section-heading">
+                        <h2>Install</h2>
+                        <p>
+                            The Rust package is named <code>mdo-cli</code> because the bare
+                            <code>mdo</code> crate name is already occupied. The installed command
+                            is still <code>mdo</code>.
+                        </p>
+                    </div>
+                    <div class="grid">
+                        <div class="step">
+                            <h3>Cargo</h3>
+                            <pre class="code-block"><code>cargo install mdo-cli
 mdo --version</code></pre>
-          </div>
-          <div class="step">
-            <h3>GitHub Releases</h3>
-            <p>Download native archives for Linux, Windows, and macOS from the release page, then verify them with <code>SHA256SUMS</code>.</p>
-          </div>
-          <div class="step">
-            <h3>From Source</h3>
-            <pre class="code-block"><code>gh repo clone maphew/mdo
+                        </div>
+                        <div class="step">
+                            <h3>GitHub Releases</h3>
+                            <p>
+                                Download native archives for Linux, Windows, and macOS from the
+                                release page, then verify them with <code>SHA256SUMS</code>.
+                            </p>
+                        </div>
+                        <div class="step">
+                            <h3>From Source</h3>
+                            <pre class="code-block"><code>gh repo clone maphew/mdo
 cd mdo
 cargo build --release</code></pre>
-          </div>
-        </div>
-      </div>
-    </section>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <section class="section" id="usage">
-      <div class="section-inner">
-        <div class="section-heading">
-          <h2>Usage</h2>
-          <p>By default, <code>mdo</code> writes a styled HTML file beside the source Markdown file. Use <code>--open</code> to render into a stable temp path and launch the default browser.</p>
-        </div>
-        <div class="two-column">
-          <div class="note">
-            <h3>Common commands</h3>
-            <pre class="code-block"><code>mdo notes.md
+            <section class="section" id="usage">
+                <div class="section-inner">
+                    <div class="section-heading">
+                        <h2>Usage</h2>
+                        <p>
+                            By default, <code>mdo</code> writes a styled HTML file beside the source
+                            Markdown file. Use <code>--open</code> to render into a stable temp path
+                            and launch the default browser.
+                        </p>
+                    </div>
+                    <div class="two-column">
+                        <div class="note">
+                            <h3>Common commands</h3>
+                            <pre class="code-block"><code>mdo notes.md
 mdo notes.md -o public/notes.html
 mdo --bare notes.md
 mdo --watch notes.md
 mdo --open notes.md</code></pre>
-          </div>
-          <div class="note">
-            <h3>What the output includes</h3>
-            <ul class="check-list">
-              <li>HTML5 document shell with responsive viewport metadata</li>
-              <li>Embedded simple.css, so output files work offline</li>
-              <li>Tables, footnotes, task lists, and strikethrough</li>
-              <li>Title derived from the first top-level heading</li>
-              <li>Light/dark theme toggle in styled output</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
+                        </div>
+                        <div class="note">
+                            <h3>What the output includes</h3>
+                            <ul class="check-list">
+                                <li>HTML5 document shell with responsive viewport metadata</li>
+                                <li>Embedded simple.css, so output files work offline</li>
+                                <li>Tables, footnotes, task lists, and strikethrough</li>
+                                <li>Title derived from the first top-level heading</li>
+                                <li>Light/dark theme toggle in styled output</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <section class="section" id="file-managers">
-      <div class="section-inner">
-        <div class="section-heading">
-          <h2>File Manager Integration</h2>
-          <p>Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same <code>mdo --open</code> render-and-open path.</p>
-        </div>
-        <div class="platform-grid">
-          <div class="step platform-card">
-            <h3>Windows Explorer</h3>
-            <pre class="code-block"><code>powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1</code></pre>
-            <ul class="check-list">
-              <li>Right-click a <code>.md</code> file and choose <strong>Open as HTML</strong>; on Windows 11 it may be under <strong>Show more options</strong>.</li>
-              <li><strong>Open with</strong> offers <strong>Open as HTML</strong>.</li>
-              <li>If <strong>Open as HTML</strong> is made the default handler, double-click opens the browser with no console-window flash.</li>
-            </ul>
-          </div>
-          <div class="step platform-card">
-            <h3>Linux File Managers</h3>
-            <pre class="code-block"><code>./scripts/install-linux-file-manager.sh
+            <section class="section" id="file-managers">
+                <div class="section-inner">
+                    <div class="section-heading">
+                        <h2>File Manager Integration</h2>
+                        <p>
+                            Open Markdown files from the desktop without leaving generated HTML
+                            beside the source file. Every integration launches the same
+                            <code>mdo --open</code> render-and-open path.
+                        </p>
+                    </div>
+                    <div class="platform-grid">
+                        <div class="step platform-card">
+                            <h3>Windows Explorer</h3>
+                            <pre
+                                class="code-block"
+                            ><code>powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1</code></pre>
+                            <ul class="check-list">
+                                <li>
+                                    Right-click a <code>.md</code> file and choose
+                                    <strong>Open as HTML</strong>; on Windows 11 it may be under
+                                    <strong>Show more options</strong>.
+                                </li>
+                                <li>
+                                    <strong>Open with</strong> offers <strong>Open as HTML</strong>.
+                                </li>
+                                <li>
+                                    If <strong>Open as HTML</strong> is made the default handler,
+                                    double-click opens the browser with no console-window flash.
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="step platform-card">
+                            <h3>Linux File Managers</h3>
+                            <pre class="code-block"><code>./scripts/install-linux-file-manager.sh
 ./scripts/install-linux-file-manager.sh --set-default</code></pre>
-            <ul class="check-list">
-              <li>Most XDG file managers show <strong>Open With &rarr; Open as HTML</strong> for Markdown files.</li>
-              <li>GNOME Files/Nautilus uses the same Open With entry; no duplicate Scripts item is installed.</li>
-              <li>With <code>--set-default</code>, double-clicking Markdown files launches the browser.</li>
-            </ul>
-          </div>
-          <div class="step platform-card">
-            <h3>macOS Finder</h3>
-            <pre class="code-block"><code>for file in "$@"; do
+                            <ul class="check-list">
+                                <li>
+                                    Most XDG file managers show
+                                    <strong>Open With &rarr; Open as HTML</strong> for Markdown
+                                    files.
+                                </li>
+                                <li>
+                                    GNOME Files/Nautilus uses the same Open With entry; no duplicate
+                                    Scripts item is installed.
+                                </li>
+                                <li>
+                                    With <code>--set-default</code>, double-clicking Markdown files
+                                    launches the browser.
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="step platform-card">
+                            <h3>macOS Finder</h3>
+                            <pre class="code-block"><code>for file in "$@"; do
   /path/to/mdo --open "$file"
 done</code></pre>
-            <ul class="check-list">
-              <li>No bundled installer yet; create an Automator Quick Action that receives files in Finder.</li>
-              <li>Add <strong>Run Shell Script</strong>, pass input as arguments, and use the absolute path to <code>mdo</code>.</li>
-              <li>Save it as <strong>Open as HTML</strong> so Finder exposes it under Quick Actions.</li>
-            </ul>
-            <p class="source-note">Apple reference: <a href="https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0">Quick Action workflows</a> and <a href="https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac">Run Shell Script</a>.</p>
-          </div>
-        </div>
-        <div class="result-strip">
-          <h3>Result Examples</h3>
-          <p>Each path below is stable for the source file, so reopening the same Markdown overwrites the same rendered page instead of accumulating generated files.</p>
-          <pre class="code-block result-code"><code>Windows  %TEMP%\mdo\&lt;hash&gt;\notes.html
+                            <ul class="check-list">
+                                <li>
+                                    No bundled installer yet; create an Automator Quick Action that
+                                    receives files in Finder.
+                                </li>
+                                <li>
+                                    Add <strong>Run Shell Script</strong>, pass input as arguments,
+                                    and use the absolute path to <code>mdo</code>.
+                                </li>
+                                <li>
+                                    Save it as <strong>Open as HTML</strong> so Finder exposes it
+                                    under Quick Actions.
+                                </li>
+                            </ul>
+                            <p class="source-note">
+                                Apple reference:
+                                <a
+                                    href="https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0"
+                                    >Quick Action workflows</a
+                                >
+                                and
+                                <a
+                                    href="https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac"
+                                    >Run Shell Script</a
+                                >.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="result-strip">
+                        <h3>Result Examples</h3>
+                        <p>
+                            Each path below is stable for the source file, so reopening the same
+                            Markdown overwrites the same rendered page instead of accumulating
+                            generated files.
+                        </p>
+                        <pre
+                            class="code-block result-code"
+                        ><code>Windows  %TEMP%\mdo\&lt;hash&gt;\notes.html
 Linux    /tmp/mdo/&lt;hash&gt;/notes.html
 macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
-        </div>
-      </div>
-    </section>
+                    </div>
+                </div>
+            </section>
 
-    <section class="section" id="migration">
-      <div class="section-inner">
-        <div class="section-heading">
-          <h2>Migration From md2htmlx</h2>
-          <p><code>mdo</code> is the independent continuation of the original <code>md2htmlx</code> fork. The rename changes package and binary names, plus temp output and file-association paths.</p>
-        </div>
-        <div class="two-column">
-          <div class="note warn">
-            <h3>Before upgrading Windows integration</h3>
-            <p>Run the old version's <code>scripts/uninstall-explorer.ps1</code> if you previously installed Explorer integration. The new uninstaller also removes legacy registry entries when present.</p>
-          </div>
-          <div class="note">
-            <h3>Name changes</h3>
-            <ul class="check-list">
-              <li><code>md2htmlx</code> command becomes <code>mdo</code></li>
-              <li><code>md2htmlx-open</code> wrapper becomes <code>mdo-open</code></li>
-              <li><code>%TEMP%\md2htmlx\</code> becomes <code>%TEMP%\mdo\</code></li>
-              <li>Crate install path becomes <code>cargo install mdo-cli</code></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
+            <section class="section" id="migration">
+                <div class="section-inner">
+                    <div class="section-heading">
+                        <h2>Migration From md2htmlx</h2>
+                        <p>
+                            <code>mdo</code> is the independent continuation of the original
+                            <code>md2htmlx</code> fork. The rename changes package and binary names,
+                            plus temp output and file-association paths.
+                        </p>
+                    </div>
+                    <div class="two-column">
+                        <div class="note warn">
+                            <h3>Before upgrading Windows integration</h3>
+                            <p>
+                                Run the old version's <code>scripts/uninstall-explorer.ps1</code> if
+                                you previously installed Explorer integration. The new uninstaller
+                                also removes legacy registry entries when present.
+                            </p>
+                        </div>
+                        <div class="note">
+                            <h3>Name changes</h3>
+                            <ul class="check-list">
+                                <li><code>md2htmlx</code> command becomes <code>mdo</code></li>
+                                <li>
+                                    <code>md2htmlx-open</code> wrapper becomes <code>mdo-open</code>
+                                </li>
+                                <li>
+                                    <code>%TEMP%\md2htmlx\</code> becomes <code>%TEMP%\mdo\</code>
+                                </li>
+                                <li>
+                                    Crate install path becomes <code>cargo install mdo-cli</code>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <section class="section">
-      <div class="section-inner">
-        <div class="section-heading">
-          <h2>Project Links</h2>
-          <p>Release notes, architecture decisions, source code, and package metadata are all kept in the public repository.</p>
-        </div>
-        <div class="grid">
-          <a class="link-panel" href="https://github.com/maphew/mdo/releases">GitHub Releases</a>
-          <a class="link-panel" href="metrics/">Public Metrics</a>
-          <a class="link-panel" href="https://github.com/maphew/mdo/blob/main/CHANGELOG.md">Changelog</a>
-          <a class="link-panel" href="adr/0001-rename-to-mdo.html">Rename ADR</a>
-          <a class="link-panel" href="adr/0002-distribution-strategy.html">Distribution ADR</a>
-          <a class="link-panel" href="adr/0003-keep-python-metrics-tooling.html">Tooling ADR</a>
-          <a class="link-panel" href="https://docs.rs/mdo-cli">docs.rs</a>
-          <a class="link-panel" href="https://github.com/maphew/mdo/issues">Issues</a>
-        </div>
-      </div>
-    </section>
-  </main>
+            <section class="section">
+                <div class="section-inner">
+                    <div class="section-heading">
+                        <h2>Project Links</h2>
+                        <p>
+                            Release notes, architecture decisions, source code, and package metadata
+                            are all kept in the public repository.
+                        </p>
+                    </div>
+                    <div class="grid">
+                        <a class="link-panel" href="https://github.com/maphew/mdo/releases"
+                            >GitHub Releases</a
+                        >
+                        <a class="link-panel" href="metrics/">Public Metrics</a>
+                        <a
+                            class="link-panel"
+                            href="https://github.com/maphew/mdo/blob/main/CHANGELOG.md"
+                            >Changelog</a
+                        >
+                        <a class="link-panel" href="adr/0001-rename-to-mdo.html">Rename ADR</a>
+                        <a class="link-panel" href="adr/0002-distribution-strategy.html"
+                            >Distribution ADR</a
+                        >
+                        <a class="link-panel" href="adr/0003-keep-python-metrics-tooling.html"
+                            >Tooling ADR</a
+                        >
+                        <a class="link-panel" href="https://docs.rs/mdo-cli">docs.rs</a>
+                        <a class="link-panel" href="https://github.com/maphew/mdo/issues">Issues</a>
+                    </div>
+                </div>
+            </section>
+        </main>
 
-  <footer class="site-footer">
-    <p>mdo is dual-licensed under MIT or Apache-2.0 and forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.</p>
-  </footer>
-  <script src="assets/site.js"></script>
-</body>
+        <footer class="site-footer">
+            <p>
+                mdo is dual-licensed under MIT or Apache-2.0 and forked with gratitude from Hafiz
+                Ali Raza's original Markdown-to-HTML CLI.
+            </p>
+        </footer>
+        <script src="assets/site.js"></script>
+    </body>
 </html>
