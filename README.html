@@ -66,6 +66,14 @@ cd mdo
 cargo build --release
 ./target/release/mdo input.md
 </code></pre>
+<h3>Maintainer releases</h3>
+<p>GitHub releases are published from this fork by <code>.github/workflows/release.yml</code>.
+Push a version tag such as <code>v0.2.0</code> to build Linux, macOS, and Windows archives
+and publish them to a GitHub Release. The workflow can also be run manually with
+an existing tag via <strong>Actions -&gt; Release -&gt; Run workflow</strong>.</p>
+<p>The release workflow keeps repository access read-only for build jobs and grants
+<code>contents: write</code> only to the final release-publishing job. GitHub Actions are
+pinned to commit SHAs, with Dependabot configured to propose updates.</p>
 <hr />
 <h2>📦 Usage</h2>
 <pre><code class="language-text">Usage: mdo [OPTIONS] &lt;INPUT&gt;
@@ -158,7 +166,7 @@ unchanged — <code>mdo.exe</code> from a terminal still prints to stdout normal
 <p>The install script auto-locates <code>mdo-open.exe</code> via <code>PATH</code>, falling
 back to <code>target\release\mdo-open.exe</code> next to the repo. Pass
 <code>-ExePath C:\path\to\mdo-open.exe</code> to override. <code>mdo.exe</code> must
-sit next to <code>mdo-open.exe</code>; both are produced by <code>cargo build  --release</code> and <code>cargo install mdo-cli</code>.</p>
+sit next to <code>mdo-open.exe</code>; both are produced by <code>cargo build --release</code> and <code>cargo install mdo-cli</code>.</p>
 <p>It also generates a small <code>.ico</code> at <code>%LOCALAPPDATA%\mdo\md.ico</code> by
 rendering a single Unicode character — by default Ⓜ (circled M) in a
 mid-tone blue chosen so it stays legible in both light and dark Explorer

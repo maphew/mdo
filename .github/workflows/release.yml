@@ -1,0 +1,166 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing version tag to release, for example v0.2.0"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark the GitHub release as a prerelease"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
+
+jobs:
+  build:
+    name: Build release artifact (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - name: Checkout release tag
+        # actions/checkout v4.3.1, pinned 2026-05-25.
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
+
+      - name: Install stable Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Package release artifact
+        id: package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          if (-not $env:RELEASE_TAG) {
+            throw "RELEASE_TAG is empty"
+          }
+
+          $hostLine = rustc -vV | Where-Object { $_ -like "host: *" } | Select-Object -First 1
+          if (-not $hostLine) {
+            throw "Could not determine Rust host triple"
+          }
+          $hostTriple = $hostLine.Substring(6).Trim()
+          $packageName = "mdo-$env:RELEASE_TAG-$hostTriple"
+          $distDir = Join-Path $PWD "dist"
+          $stagingDir = Join-Path $distDir $packageName
+
+          New-Item -ItemType Directory -Force -Path $stagingDir | Out-Null
+
+          $exeSuffix = if ($IsWindows) { ".exe" } else { "" }
+          Copy-Item -LiteralPath "target/release/mdo$exeSuffix" -Destination $stagingDir
+          Copy-Item -LiteralPath "target/release/mdo-open$exeSuffix" -Destination $stagingDir
+          Copy-Item -LiteralPath "README.md" -Destination $stagingDir
+          Copy-Item -LiteralPath "CHANGELOG.md" -Destination $stagingDir
+          Copy-Item -LiteralPath "Cargo.lock" -Destination $stagingDir
+
+          if (Test-Path -LiteralPath "scripts") {
+            Copy-Item -Recurse -LiteralPath "scripts" -Destination $stagingDir
+          }
+
+          Push-Location $distDir
+          try {
+            if ($IsWindows) {
+              $archiveName = "$packageName.zip"
+              Compress-Archive -Path $packageName -DestinationPath $archiveName -Force
+            } else {
+              $archiveName = "$packageName.tar.gz"
+              tar -czf $archiveName $packageName
+            }
+          } finally {
+            Pop-Location
+          }
+
+          $archivePath = Join-Path $distDir $archiveName
+          "archive=$archivePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "archive_name=$archiveName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Upload release artifact
+        # actions/upload-artifact v4.6.2, pinned 2026-05-25.
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-${{ matrix.os }}
+          path: ${{ steps.package.outputs.archive }}
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release artifacts
+        # actions/download-artifact v4.3.0, pinned 2026-05-25.
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease || false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${RELEASE_TAG}" ]]; then
+            echo "RELEASE_TAG is empty" >&2
+            exit 1
+          fi
+
+          shopt -s nullglob
+          artifacts=(dist/*)
+          if (( ${#artifacts[@]} == 0 )); then
+            echo "No release artifacts found" >&2
+            exit 1
+          fi
+
+          release_flags=(--title "${RELEASE_TAG}" --generate-notes)
+          if [[ "${PRERELEASE}" == "true" ]]; then
+            release_flags+=(--prerelease)
+          fi
+
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" "${artifacts[@]}" --clobber
+          else
+            gh release create "${RELEASE_TAG}" "${artifacts[@]}" "${release_flags[@]}"
+          fi
