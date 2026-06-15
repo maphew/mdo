@@ -8,3 +8,7 @@ docs/adr/*.html
 *.db
 .beads-credential-key
 .beads/proxieddb/
+# Local Dolt database + backup stores (sync via refs/dolt/data, not git files)
+.beads/embeddeddolt/
+.beads/backup/
+.beads/.local_version
