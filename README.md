@@ -38,11 +38,26 @@ Mdo + file-manager integration creates html pages so quickly they are throw-away
 
 ## 📦 Installation
 
+### Native downloads
+
+Download native archives for Linux, macOS, and Windows from
+[GitHub Releases](https://github.com/maphew/mdo/releases), then verify them
+with the accompanying `SHA256SUMS` file. On Windows, the release ZIP includes
+`mdo.exe` and `mdo-open.exe`, so you can use `mdo` without installing Rust,
+Visual Studio, or the MSVC build tools.
+
 ### From crates.io
 
 ```bash
 cargo install mdo-cli
 ```
+
+`cargo install` builds from source and therefore needs a working Rust build
+toolchain. On Windows with the default `*-pc-windows-msvc` Rust target, install
+**Visual Studio Build Tools** with **Desktop development with C++** (or the
+equivalent Visual Studio workload) so `link.exe` is available. If Cargo reports
+`linker link.exe not found`, use the GitHub Release ZIP above or install the
+MSVC linker before retrying.
 
 ### Build from source
 

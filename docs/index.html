@@ -225,12 +225,21 @@
                             <h3>Cargo</h3>
                             <pre class="code-block"><code>cargo install mdo-cli
 mdo --version</code></pre>
+                            <p>
+                                Cargo builds from source. On Windows with the
+                                <code>*-pc-windows-msvc</code> target, install
+                                Visual Studio Build Tools with Desktop development
+                                with C++ first; <code>link.exe not found</code>
+                                means the MSVC linker is missing.
+                            </p>
                         </div>
                         <div class="step">
                             <h3>GitHub Releases</h3>
                             <p>
                                 Download native archives for Linux, Windows, and macOS from the
                                 release page, then verify them with <code>SHA256SUMS</code>.
+                                Windows users can use the release ZIP without installing Rust or
+                                Visual Studio.
                             </p>
                         </div>
                         <div class="step">
