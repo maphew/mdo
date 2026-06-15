@@ -52,6 +52,17 @@ cargo build --release
 ./target/release/mdo input.md
 ```
 
+### Maintainer releases
+
+GitHub releases are published from this fork by `.github/workflows/release.yml`.
+Push a version tag such as `v0.2.0` to build Linux, macOS, and Windows archives
+and publish them to a GitHub Release. The workflow can also be run manually with
+an existing tag via **Actions -> Release -> Run workflow**.
+
+The release workflow keeps repository access read-only for build jobs and grants
+`contents: write` only to the final release-publishing job. GitHub Actions are
+pinned to commit SHAs, with Dependabot configured to propose updates.
+
 ---
 
 ## 📦 Usage

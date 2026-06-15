@@ -76,8 +76,15 @@ cd mdo
 cargo build --release
 ./target/release/mdo input.md
 </code></pre>
-<hr>
-<h2>📦 Usage</h2>
+<h3>Maintainer releases</h3>
+<p>GitHub releases are published from this fork by <code>.github/workflows/release.yml</code>.
+Push a version tag such as <code>v0.2.0</code> to build Linux, macOS, and Windows archives
+and publish them to a GitHub Release. The workflow can also be run manually with
+an existing tag via <strong>Actions -&gt; Release -&gt; Run workflow</strong>.</p>
+<p>The release workflow keeps repository access read-only for build jobs and grants
+<code>contents: write</code> only to the final release-publishing job. GitHub Actions are
+pinned to commit SHAs, with Dependabot configured to propose updates.</p>
+<hr><h2>📦 Usage</h2>
 <pre><code class="language-text">Usage: mdo [OPTIONS] &lt;INPUT&gt;
 
 Arguments:
