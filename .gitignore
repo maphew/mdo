@@ -12,3 +12,7 @@ docs/adr/*.html
 .beads/embeddeddolt/
 .beads/backup/
 .beads/.local_version
+
+# Local Beads runtime artifacts
+.beads/interactions.jsonl
+.beads/last-touched
