@@ -22,6 +22,7 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 - 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
 - 👀 `--watch` flag enables auto-rerender on file change (with debouncing)
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
+- 🧭 Built-in `--install-file-manager` / `--uninstall-file-manager` integration (no separate install scripts needed)
 - ⚡ Fast and self-contained — single binary, no runtime assets
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
 
@@ -68,21 +69,27 @@ pinned to commit SHAs, with Dependabot configured to propose updates.
 ## 📦 Usage
 
 ```text
-Usage: mdo [OPTIONS] <INPUT>
+Usage: mdo [OPTIONS] [INPUT]
 
 Arguments:
-  <INPUT>  Input Markdown file
+  [INPUT]  Input Markdown file
 
 Options:
-  -o, --output <OUTPUT>  Output HTML file (defaults to <input>.html alongside the input,
-                         or to a temp directory when --open is used). Existing files are overwritten
-  -w, --watch            Watch the input file and re-render on every change
-  -b, --bare             Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
-      --unsafe-html      Preserve raw HTML from the Markdown source instead of sanitizing it
-      --open             Render to a temp directory and launch the system default browser.
-                         The source folder is left untouched unless --output is given
-  -h, --help             Print help
-  -V, --version          Print version
+  -o, --output <OUTPUT>     Output HTML file (defaults to <input>.html alongside the input,
+                            or to a temp directory when --open is used). Existing files are overwritten
+  -w, --watch               Watch the input file and re-render on every change
+  -b, --bare                Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
+      --unsafe-html         Preserve raw HTML from the Markdown source instead of sanitizing it
+      --open                Render to a temp directory and launch the system default browser.
+                            The source folder is left untouched unless --output is given
+      --install-file-manager
+                            Install per-user file-manager integration for Markdown files
+      --uninstall-file-manager
+                            Remove per-user file-manager integration installed by mdo
+      --set-default         With --install-file-manager on Linux, make Open as HTML the default
+                            Markdown handler. Windows default selection remains interactive
+  -h, --help                Print help
+  -V, --version             Print version
 ```
 
 If `--output` is omitted, the output is written next to the input with the
@@ -133,40 +140,35 @@ write next to the source):
 mdo --open input.md
 ```
 
-This is the recommended setup for a Windows **Open as HTML** file
-association — use the bundled `mdo-open.exe` wrapper and double-clicking
-a `.md` file in Explorer will render to the platform temp directory and
-open it without leaving any artifacts in the source folder.
+This same render-to-temp path is what the built-in file-manager integration
+registers, so double-click/right-click opens never leave `.html` artifacts
+beside the source file.
 
 ---
 
 ## Linux file manager integration
 
-The repo also ships Linux helpers under [`scripts/`](scripts) for per-user
-file-manager integration:
+`mdo` can install or remove its own per-user XDG file-manager integration;
+no companion install script is required:
 
 ```bash
 # Add "Open as HTML" as an "Open With" handler for Markdown files
-./scripts/install-linux-file-manager.sh
+mdo --install-file-manager
 
 # Same, but also make it the default Markdown handler
-./scripts/install-linux-file-manager.sh --set-default
+mdo --install-file-manager --set-default
 
-# Undo everything the install script did
-./scripts/uninstall-linux-file-manager.sh
+# Undo everything the installer did
+mdo --uninstall-file-manager
 ```
 
 The installer writes `~/.local/share/applications/mdo.desktop`, whose
-command is `mdo --open %f`, plus a small `Ⓜ` SVG icon under
+command is the current binary plus `--open %f`, and a small `Ⓜ` SVG icon under
 `~/.local/share/icons/hicolor/scalable/apps/mdo.svg`. The desktop entry is
 named **Open as HTML**, so GNOME Files/Nautilus and other XDG file managers
 show an action-oriented entry instead of a tool-name-only entry. Rerunning the
 installer also removes older Nautilus Scripts entries named **Preview with
 mdo** or **Render with mdo**.
-
-Pass `--exe /path/to/mdo` if the binary is not on `PATH`. The script looks
-for `mdo` on `PATH` first, then falls back to `target/release/mdo`
-next to this repo after `cargo build --release`.
 
 Result examples after install:
 
@@ -174,53 +176,32 @@ Result examples after install:
   **Open as HTML**.
 - With `--set-default`: double-clicking a Markdown file launches `mdo --open`.
 - The rendered page opens in your default browser from a temp path such as
-  `/tmp/mdo/<hash>/<name>.html`, and no `.html` file is left beside the source.
+  `/tmp/mdo-<uid>/<hash>/<name>.html`, and no `.html` file is left beside the source.
 
 ---
 
 ## 🪟 Windows Explorer integration
 
-The repo ships two PowerShell helpers under [`scripts/`](scripts) that wire
-mdo into Explorer for the current user only (no admin, no HKLM changes):
+`mdo.exe` can install or remove its own per-user Explorer integration (no
+admin rights and no HKLM changes):
 
 ```powershell
 # Add: an "Open as HTML" right-click verb and Open With app entry
-powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
+.\mdo.exe --install-file-manager
 
-# Undo everything the install script did
-powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-explorer.ps1
+# Undo everything the installer did
+.\mdo.exe --uninstall-file-manager
 ```
 
-The install script registers `mdo-open.exe`, a tiny windows-subsystem
-wrapper built alongside `mdo.exe`. The wrapper exists for one reason:
-when Explorer launches a normal console binary it briefly flashes a black
-console window. `mdo-open.exe` runs as a GUI subsystem app and spawns
-`mdo.exe --open` with `CREATE_NO_WINDOW`, so double-clicking a `.md`
-file renders from the platform temp directory and opens straight in the
-browser with no flash. The regular CLI is
-unchanged — `mdo.exe` from a terminal still prints to stdout normally.
-
-The install script auto-locates `mdo-open.exe` via `PATH`, falling
-back to `target\release\mdo-open.exe` next to the repo. Pass
-`-ExePath C:\path\to\mdo-open.exe` to override. `mdo.exe` must
-sit next to `mdo-open.exe`; both are produced by `cargo build
---release` and `cargo install mdo-cli`.
-
-It also generates a small `.ico` at `%LOCALAPPDATA%\mdo\md.ico` by
-rendering a single Unicode character — by default Ⓜ (circled M) in a
-mid-tone blue chosen so it stays legible in both light and dark Explorer
-themes. Override either via parameters:
-
-```powershell
-.\scripts\install-explorer.ps1 -IconChar "📄" -IconColor "#E64A19"
-```
-
-`uninstall-explorer.ps1` removes the .ico (and its folder if empty)
-along with all the registry keys. It also removes the old **Preview with mdo**
-and **Render with mdo** verbs from earlier installs.
+The installer registers **Open as HTML** for `.md` files. If `mdo-open.exe`
+is present next to `mdo.exe`, it is used as the Explorer handler to avoid the
+brief black console-window flash that Windows shows for normal console
+binaries. If only `mdo.exe` is present, the installer still works and registers
+`mdo.exe --open "%1"` directly, so a single downloaded executable is enough
+for file-manager integration.
 
 To make **Open as HTML** the *default* `.md` handler after running the install
-script, right-click a `.md` file → **Open with → Choose another app** →
+command, right-click a `.md` file → **Open with → Choose another app** →
 pick **Open as HTML** → tick **Always use this app**. Windows requires that
 last step to be done interactively.
 
@@ -230,7 +211,7 @@ Result examples after install:
   appear under **Show more options**.
 - **Open with → Open as HTML** appears as an available app for Markdown files.
 - If you make **Open as HTML** the default handler, double-clicking a `.md`
-  file opens the rendered page in your browser with no console-window flash.
+  file opens the rendered page in your browser.
 - The rendered page opens from `%TEMP%\mdo\<hash>\<name>.html`, and the source
   folder stays unchanged.
 

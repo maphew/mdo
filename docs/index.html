@@ -291,7 +291,8 @@ mdo --open notes.md</code></pre>
                             <h3>Windows Explorer</h3>
                             <pre
                                 class="code-block"
-                            ><code>powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1</code></pre>
+                            ><code>mdo.exe --install-file-manager
+mdo.exe --uninstall-file-manager</code></pre>
                             <ul class="check-list">
                                 <li>
                                     Right-click a <code>.md</code> file and choose
@@ -303,14 +304,20 @@ mdo --open notes.md</code></pre>
                                 </li>
                                 <li>
                                     If <strong>Open as HTML</strong> is made the default handler,
-                                    double-click opens the browser with no console-window flash.
+                                    double-click opens the browser.
+                                </li>
+                                <li>
+                                    If <code>mdo-open.exe</code> is next to <code>mdo.exe</code>, it
+                                    is used for flash-free Explorer launches; otherwise the single
+                                    <code>mdo.exe</code> binary still works.
                                 </li>
                             </ul>
                         </div>
                         <div class="step platform-card">
                             <h3>Linux File Managers</h3>
-                            <pre class="code-block"><code>./scripts/install-linux-file-manager.sh
-./scripts/install-linux-file-manager.sh --set-default</code></pre>
+                            <pre class="code-block"><code>mdo --install-file-manager
+mdo --install-file-manager --set-default
+mdo --uninstall-file-manager</code></pre>
                             <ul class="check-list">
                                 <li>
                                     Most XDG file managers show
@@ -390,9 +397,9 @@ macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
                         <div class="note warn">
                             <h3>Before upgrading Windows integration</h3>
                             <p>
-                                Run the old version's <code>scripts/uninstall-explorer.ps1</code> if
-                                you previously installed Explorer integration. The new uninstaller
-                                also removes legacy registry entries when present.
+                                Run <code>mdo.exe --uninstall-file-manager</code> if you previously
+                                installed Explorer integration and want to reset it. The built-in
+                                uninstaller also removes legacy registry entries when present.
                             </p>
                         </div>
                         <div class="note">

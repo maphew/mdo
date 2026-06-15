@@ -1,11 +1,10 @@
 use std::fs;
-use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use std::collections::hash_map::DefaultHasher;
-
+#[cfg(target_os = "linux")]
+use std::hash::{Hash, Hasher};
 #[cfg(target_os = "linux")]
 use std::os::unix::fs::{symlink, PermissionsExt};
 
@@ -273,7 +272,7 @@ fn open_output_refuses_precreated_symlink() {
 #[cfg(target_os = "linux")]
 fn temp_output_for_test(input: &std::path::Path) -> PathBuf {
     let canonical = fs::canonicalize(input).unwrap_or_else(|_| input.to_path_buf());
-    let mut hasher = DefaultHasher::new();
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
     canonical.hash(&mut hasher);
     let hash = hasher.finish();
 

@@ -29,9 +29,9 @@
 //! Bundles [simple.css](https://simplecss.org/) (© 2020 Kev Quirk, MIT).
 
 use std::collections::hash_map::DefaultHasher;
-use std::fs::{self, OpenOptions};
+use std::fs;
 use std::hash::{Hash, Hasher};
-use std::io::{self, Write};
+use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::channel;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -41,7 +41,13 @@ use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
 use pulldown_cmark::{html, Options, Parser as MdParser};
 
 #[cfg(unix)]
+use std::fs::OpenOptions;
+#[cfg(unix)]
+use std::io::Write;
+#[cfg(unix)]
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
+
+mod file_manager;
 
 /// Embedded simple.css (https://simplecss.org/), vendored from
 /// https://unpkg.com/simpledotcss/simple.min.css
@@ -93,7 +99,7 @@ const THEME_TOGGLE: &str = r#"<style>
 #[command(name = "mdo", author, version, about)]
 struct Cli {
     /// Input Markdown file
-    input: PathBuf,
+    input: Option<PathBuf>,
 
     /// Output HTML file (defaults to <input>.html alongside the input,
     /// or to a temp directory when --open is used). Existing files are overwritten.
@@ -116,6 +122,22 @@ struct Cli {
     /// The source folder is left untouched unless --output is given.
     #[arg(long)]
     open: bool,
+
+    /// Install per-user file-manager integration for Markdown files.
+    ///
+    /// On Windows this registers Open as HTML with Explorer. On Linux this
+    /// writes an XDG desktop entry and icon.
+    #[arg(long)]
+    install_file_manager: bool,
+
+    /// Remove per-user file-manager integration installed by mdo.
+    #[arg(long)]
+    uninstall_file_manager: bool,
+
+    /// When installing on Linux, make Open as HTML the default Markdown
+    /// handler. Windows still requires choosing the default app interactively.
+    #[arg(long)]
+    set_default: bool,
 }
 
 fn derive_output(input: &Path) -> PathBuf {
@@ -490,29 +512,70 @@ fn write_output_file(output: &Path, contents: &str, _private_output: bool) -> io
 fn main() -> notify::Result<()> {
     let args = Cli::parse();
 
+    if args.install_file_manager && args.uninstall_file_manager {
+        eprintln!("❌ Choose only one of --install-file-manager or --uninstall-file-manager");
+        std::process::exit(2);
+    }
+
+    if args.set_default && !args.install_file_manager {
+        eprintln!("❌ --set-default can only be used with --install-file-manager");
+        std::process::exit(2);
+    }
+
+    if args.install_file_manager || args.uninstall_file_manager {
+        if args.input.is_some()
+            || args.output.is_some()
+            || args.watch
+            || args.bare
+            || args.unsafe_html
+            || args.open
+        {
+            eprintln!(
+                "❌ File-manager integration commands cannot be combined with render options"
+            );
+            std::process::exit(2);
+        }
+
+        let result = if args.install_file_manager {
+            file_manager::install(args.set_default)
+        } else {
+            file_manager::uninstall()
+        };
+
+        if let Err(e) = result {
+            eprintln!("❌ File-manager integration failed: {e}");
+            std::process::exit(1);
+        }
+
+        return Ok(());
+    }
+
+    let input = match args.input {
+        Some(input) => input,
+        None => {
+            eprintln!("❌ Missing input Markdown file");
+            eprintln!("Run `mdo --help` for usage.");
+            std::process::exit(2);
+        }
+    };
+
     // Output precedence:
     //   1. explicit --output           (always wins)
     //   2. --open without --output     → temp dir (don't pollute the source folder)
     //   3. neither                     → next to the input
     let (output, private_output) = match (args.output.clone(), args.open) {
         (Some(p), _) => (p, false),
-        (None, true) => match temp_output_for(&args.input) {
+        (None, true) => match temp_output_for(&input) {
             Ok(path) => (path, true),
             Err(e) => {
                 eprintln!("❌ Failed to prepare temp output directory: {}", e);
                 return Ok(());
             }
         },
-        (None, false) => (derive_output(&args.input), false),
+        (None, false) => (derive_output(&input), false),
     };
 
-    let converted = convert(
-        &args.input,
-        &output,
-        args.bare,
-        args.unsafe_html,
-        private_output,
-    );
+    let converted = convert(&input, &output, args.bare, args.unsafe_html, private_output);
 
     if args.open && converted {
         match launch_browser(&output) {
@@ -527,12 +590,9 @@ fn main() -> notify::Result<()> {
 
     let (tx, rx) = channel();
     let mut watcher = recommended_watcher(tx)?;
-    watcher.watch(&args.input, RecursiveMode::NonRecursive)?;
+    watcher.watch(&input, RecursiveMode::NonRecursive)?;
 
-    println!(
-        "👀 Watching {:?} for changes... (Ctrl+C to stop)",
-        args.input
-    );
+    println!("👀 Watching {:?} for changes... (Ctrl+C to stop)", input);
 
     // Simple debounce: ignore events that fire within DEBOUNCE_MS of the last render.
     const DEBOUNCE: Duration = Duration::from_millis(200);
@@ -546,13 +606,7 @@ fn main() -> notify::Result<()> {
                         continue;
                     }
                     println!("🔁 File changed, re-rendering...");
-                    convert(
-                        &args.input,
-                        &output,
-                        args.bare,
-                        args.unsafe_html,
-                        private_output,
-                    );
+                    convert(&input, &output, args.bare, args.unsafe_html, private_output);
                     last_render = Instant::now();
                 }
             }
