@@ -20,6 +20,7 @@
                 <div class="nav-links">
                     <a href="#why">Why</a>
                     <a href="#install">Install</a>
+                    <a href="#tour">Tour</a>
                     <a href="#usage">Usage</a>
                     <a href="#file-managers">File Managers</a>
                     <a href="#migration">Migration</a>
@@ -239,7 +240,9 @@ mdo --version</code></pre>
                                 Download native archives for Linux, Windows, and macOS from the
                                 release page, then verify them with <code>SHA256SUMS</code>.
                                 Windows users can use the release ZIP without installing Rust or
-                                Visual Studio.
+                                Visual Studio. Double-clicking <code>mdo.exe</code> before learning
+                                the command line opens a short first-run tour instead of only
+                                flashing an error window.
                             </p>
                         </div>
                         <div class="step">
@@ -247,6 +250,41 @@ mdo --version</code></pre>
                             <pre class="code-block"><code>gh repo clone maphew/mdo
 cd mdo
 cargo build --release</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="tour">
+                <div class="section-inner">
+                    <div class="section-heading">
+                        <h2>New User Tour</h2>
+                        <p>
+                            The cautious path is built in: learn what mdo will do before changing
+                            any file-manager setting.
+                        </p>
+                    </div>
+                    <div class="two-column">
+                        <div class="note">
+                            <h3>Explore first</h3>
+                            <pre class="code-block"><code>mdo --tour
+mdo --help
+mdo --open notes.md</code></pre>
+                            <p>
+                                The tour explains the render-and-open workflow, the normal
+                                convert-once command, and the reversible integration commands.
+                            </p>
+                        </div>
+                        <div class="note">
+                            <h3>Opt in when ready</h3>
+                            <p>
+                                Running <code>mdo</code> with no arguments in an interactive
+                                terminal shows the same tour. On Windows and Linux it can offer to
+                                install <strong>Open as HTML</strong> for the current user only.
+                                The default answer is <strong>No</strong>, and mdo does not change
+                                the default Markdown app unless you choose the platform-specific
+                                default-handler flow later.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -265,7 +303,8 @@ cargo build --release</code></pre>
                     <div class="two-column">
                         <div class="note">
                             <h3>Common commands</h3>
-                            <pre class="code-block"><code>mdo notes.md
+                            <pre class="code-block"><code>mdo --tour
+mdo notes.md
 mdo notes.md -o public/notes.html
 mdo --bare notes.md
 mdo --watch notes.md
@@ -386,7 +425,7 @@ done</code></pre>
                         <pre
                             class="code-block result-code"
                         ><code>Windows  %TEMP%\mdo\&lt;hash&gt;\notes.html
-Linux    /tmp/mdo/&lt;hash&gt;/notes.html
+Linux    /tmp/mdo-&lt;uid&gt;/&lt;hash&gt;/notes.html
 macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
                     </div>
                 </div>

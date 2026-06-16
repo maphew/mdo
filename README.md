@@ -22,6 +22,7 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 - 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
 - 👀 `--watch` flag enables auto-rerender on file change (with debouncing)
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
+- 🧑‍🚀 `--tour` / no-arg interactive first-run guide for cautious new users
 - 🧭 Built-in `--install-file-manager` / `--uninstall-file-manager` integration (no separate install scripts needed)
 - ⚡ Fast and self-contained — single binary, no runtime assets
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
@@ -44,7 +45,9 @@ Download native archives for Linux, macOS, and Windows from
 [GitHub Releases](https://github.com/maphew/mdo/releases), then verify them
 with the accompanying `SHA256SUMS` file. On Windows, the release ZIP includes
 `mdo.exe` and `mdo-open.exe`, so you can use `mdo` without installing Rust,
-Visual Studio, or the MSVC build tools.
+Visual Studio, or the MSVC build tools. If you double-click `mdo.exe` before
+learning the command line, it opens a short first-run tour instead of only
+flashing an error window.
 
 ### From crates.io
 
@@ -97,6 +100,7 @@ Options:
       --unsafe-html         Preserve raw HTML from the Markdown source instead of sanitizing it
       --open                Render to a temp directory and launch the system default browser.
                             The source folder is left untouched unless --output is given
+      --tour                Show a first-run tour with safe next steps for new users
       --install-file-manager
                             Install per-user file-manager integration for Markdown files
       --uninstall-file-manager
@@ -158,6 +162,21 @@ mdo --open input.md
 This same render-to-temp path is what the built-in file-manager integration
 registers, so double-click/right-click opens never leave `.html` artifacts
 beside the source file.
+
+### First-run tour
+
+Running `mdo --tour` prints a short new-user path:
+
+```bash
+mdo --tour
+```
+
+When run interactively with no arguments, `mdo` shows the same tour and, on
+Windows and Linux, offers to install the reversible per-user **Open as HTML**
+file-manager integration. The prompt defaults to **No** and does not change
+your default Markdown app; it only adds the optional integration when you opt
+in. In scripts or other non-interactive contexts, no-argument `mdo` still exits
+with a usage error and suggests `mdo --tour`.
 
 ---
 

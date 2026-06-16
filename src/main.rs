@@ -20,6 +20,7 @@
 //! - `-w, --watch`          Keep running and re-render on file changes
 //! - `-b, --bare`           Emit only the HTML fragment (no `<html>`, `<head>`, `<body>`, no CSS)
 //! - `--unsafe-html`        Preserve raw HTML from the Markdown source
+//! - `--tour`               Show a cautious first-run tour
 //!
 //! Without `--watch`, the tool converts once and exits.
 //!
@@ -31,7 +32,7 @@
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};
-use std::io;
+use std::io::{self, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::channel;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -42,8 +43,6 @@ use pulldown_cmark::{html, Options, Parser as MdParser};
 
 #[cfg(unix)]
 use std::fs::OpenOptions;
-#[cfg(unix)]
-use std::io::Write;
 #[cfg(unix)]
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 
@@ -122,6 +121,10 @@ struct Cli {
     /// The source folder is left untouched unless --output is given.
     #[arg(long)]
     open: bool,
+
+    /// Show a first-run tour with safe next steps for new users.
+    #[arg(long)]
+    tour: bool,
 
     /// Install per-user file-manager integration for Markdown files.
     ///
@@ -509,12 +512,145 @@ fn write_output_file(output: &Path, contents: &str, _private_output: bool) -> io
     fs::write(output, contents)
 }
 
+fn tour_is_interactive() -> bool {
+    io::stdin().is_terminal() && io::stdout().is_terminal()
+}
+
+fn print_first_run_tour(can_install_file_manager: bool) {
+    println!(
+        "\
+Welcome to mdo.
+
+mdo turns Markdown files into standalone HTML and can open the result in your
+default browser without leaving generated files beside your notes.
+
+Try these when you are ready:
+
+  mdo notes.md                 render notes.html beside notes.md
+  mdo --open notes.md          render to a temp path and open the browser
+  mdo --watch notes.md         keep notes.html updated while you edit
+  mdo --help                   show every command-line option
+"
+    );
+
+    if can_install_file_manager {
+        println!(
+            "\
+Optional desktop integration:
+
+  mdo --install-file-manager   add an \"Open as HTML\" file-manager action
+  mdo --uninstall-file-manager remove that integration later
+
+The installer is per-user. It does not need admin rights and does not change
+your default Markdown app unless you opt into the platform-specific default
+handler flow.
+"
+        );
+    } else {
+        println!(
+            "\
+Optional desktop integration:
+
+This platform does not have a built-in mdo installer yet. You can still wire
+your file manager to run `mdo --open <file>`; see the README for platform
+recipes.
+"
+        );
+    }
+}
+
+fn run_first_run_tour() -> io::Result<()> {
+    let interactive = tour_is_interactive();
+    let can_install_file_manager = cfg!(any(target_os = "linux", target_os = "windows"));
+
+    print_first_run_tour(can_install_file_manager);
+
+    if !interactive {
+        return Ok(());
+    }
+
+    if can_install_file_manager {
+        loop {
+            print!("Install Open as HTML file-manager integration now? [y/N] ");
+            io::stdout().flush()?;
+
+            let mut answer = String::new();
+            if io::stdin().read_line(&mut answer)? == 0 {
+                return Ok(());
+            }
+
+            match answer.trim().to_ascii_lowercase().as_str() {
+                "y" | "yes" => {
+                    match file_manager::install(false) {
+                        Ok(()) => {
+                            println!("Integration installed. No default app was changed by mdo.");
+                        }
+                        Err(e) => {
+                            eprintln!("Could not install file-manager integration: {e}");
+                            println!("No default app was changed by mdo.");
+                            wait_for_tour_close()?;
+                            return Err(e);
+                        }
+                    }
+                    break;
+                }
+                "" | "n" | "no" => {
+                    println!(
+                        "No changes made. Run `mdo --install-file-manager` whenever you are ready."
+                    );
+                    break;
+                }
+                "?" | "h" | "help" => {
+                    println!(
+                        "This adds an \"Open as HTML\" action for Markdown files in your file manager. \
+                         It is reversible with `mdo --uninstall-file-manager`."
+                    );
+                }
+                _ => println!("Please answer y or n."),
+            }
+        }
+    }
+
+    wait_for_tour_close()?;
+    Ok(())
+}
+
+fn wait_for_tour_close() -> io::Result<()> {
+    println!("Press Enter to close this tour.");
+    let mut ignored = String::new();
+    io::stdin().read_line(&mut ignored)?;
+    Ok(())
+}
+
 fn main() -> notify::Result<()> {
     let args = Cli::parse();
 
     if args.install_file_manager && args.uninstall_file_manager {
         eprintln!("❌ Choose only one of --install-file-manager or --uninstall-file-manager");
         std::process::exit(2);
+    }
+
+    if args.tour {
+        if args.input.is_some()
+            || args.output.is_some()
+            || args.watch
+            || args.bare
+            || args.unsafe_html
+            || args.open
+            || args.install_file_manager
+            || args.uninstall_file_manager
+            || args.set_default
+        {
+            eprintln!("❌ --tour cannot be combined with render or integration options");
+            std::process::exit(2);
+        }
+
+        if let Err(e) = run_first_run_tour() {
+            eprintln!("❌ Tour failed: {e}");
+            std::process::exit(1);
+        }
+
+        return Ok(());
     }
 
     if args.set_default && !args.install_file_manager {
@@ -529,6 +665,7 @@ fn main() -> notify::Result<()> {
             || args.bare
             || args.unsafe_html
             || args.open
+            || args.tour
         {
             eprintln!(
                 "❌ File-manager integration commands cannot be combined with render options"
@@ -553,8 +690,16 @@ fn main() -> notify::Result<()> {
     let input = match args.input {
         Some(input) => input,
         None => {
+            if tour_is_interactive() {
+                if let Err(e) = run_first_run_tour() {
+                    eprintln!("❌ Tour failed: {e}");
+                    std::process::exit(1);
+                }
+                return Ok(());
+            }
+
             eprintln!("❌ Missing input Markdown file");
-            eprintln!("Run `mdo --help` for usage.");
+            eprintln!("Run `mdo --help` for usage or `mdo --tour` for a first-run guide.");
             std::process::exit(2);
         }
     };

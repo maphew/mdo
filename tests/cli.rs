@@ -19,6 +19,40 @@ fn fixture_dir(name: &str) -> PathBuf {
 }
 
 #[test]
+fn tour_prints_new_user_path_without_prompt_when_piped() {
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--tour")
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Welcome to mdo."));
+    assert!(stdout.contains("mdo --open notes.md"));
+    if cfg!(any(target_os = "linux", target_os = "windows")) {
+        assert!(stdout.contains("mdo --install-file-manager"));
+    } else {
+        assert!(stdout.contains("does not have a built-in mdo installer yet"));
+    }
+    assert!(!stdout.contains("Install Open as HTML file-manager integration now?"));
+}
+
+#[test]
+fn no_args_noninteractive_reports_tour_hint() {
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(!output.status.success(), "mdo unexpectedly succeeded");
+    assert_eq!(output.status.code(), Some(2));
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("Missing input Markdown file"));
+    assert!(stderr.contains("mdo --tour"));
+}
+
+#[test]
 fn converts_markdown_to_styled_html5_document() {
     let dir = fixture_dir("html5");
     let input = dir.join("sample.md");
