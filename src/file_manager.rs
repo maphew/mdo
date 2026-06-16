@@ -36,6 +36,11 @@ pub fn uninstall() -> io::Result<()> {
 #[cfg(target_os = "linux")]
 fn install_impl(set_default: bool) -> io::Result<()> {
     let exe = std::env::current_exe()?;
+    install_linux_for_exe(&exe, set_default)
+}
+
+#[cfg(target_os = "linux")]
+pub fn install_linux_for_exe(current_exe: &Path, set_default: bool) -> io::Result<()> {
     let data_home = xdg_data_home()?;
     let desktop_dir = data_home.join("applications");
     let desktop_file = desktop_dir.join(DESKTOP_FILE_NAME);
@@ -47,7 +52,7 @@ fn install_impl(set_default: bool) -> io::Result<()> {
     fs::create_dir_all(&icon_dir)?;
     fs::write(&icon_file, SVG_ICON)?;
 
-    let desktop_entry = linux_desktop_entry(&exe);
+    let desktop_entry = linux_desktop_entry(current_exe);
     fs::write(&desktop_file, desktop_entry)?;
 
     #[cfg(unix)]

@@ -91,6 +91,7 @@ jobs:
           mkdir -p "${staging}"
           cp "target/${{ matrix.target }}/release/mdo" "${staging}/"
           cp "target/${{ matrix.target }}/release/mdo-open" "${staging}/"
+          cp "target/${{ matrix.target }}/release/mdo-setup" "${staging}/"
           cp README.md CHANGELOG.md LICENSE-MIT LICENSE-APACHE "${staging}/"
           tar -C target/dist -czf "target/dist/${asset}.tar.gz" "${asset}"
 

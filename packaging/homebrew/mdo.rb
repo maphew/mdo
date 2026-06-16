@@ -19,6 +19,7 @@ class Mdo < Formula
   def install
     bin.install "mdo"
     bin.install "mdo-open"
+    bin.install "mdo-setup" if OS.linux?
     doc.install "CHANGELOG.md", "README.md"
     license.install "LICENSE-APACHE", "LICENSE-MIT"
   end

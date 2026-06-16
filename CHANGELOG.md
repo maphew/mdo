@@ -5,6 +5,8 @@
 - Move shared rendering, temp-output, browser-launch, tour-sample, and file-manager helpers into `src/lib.rs`.
 - Add `mdo-setup.exe`, a Windows GUI-subsystem onboarding/setup entrypoint that can install Explorer integration without opening a terminal.
 - Teach `mdo-open.exe` to launch `mdo-setup.exe` when opened directly with no file arguments.
+- Add Linux `mdo-setup` onboarding via desktop dialog helpers (`zenity`, `kdialog`, or `yad`) and include it in Linux release archives.
+- Teach Linux `mdo-open` to launch `mdo-setup` when opened directly with no file arguments.
 
 ## 0.2.0 - 2026-05-29
 

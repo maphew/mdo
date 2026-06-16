@@ -58,7 +58,7 @@ Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener no
 <li>🔒 Raw Markdown HTML is sanitized by default; use <code>--unsafe-html</code> to preserve it for trusted input</li>
 <li>👀 <code>--watch</code> flag enables auto-rerender on file change (with debouncing)</li>
 <li>🌐 <code>--open</code> flag renders to a temp dir and launches the system default browser</li>
-<li>🧑‍🚀 <code>--tour</code> / no-arg interactive first-run guide, plus native Windows <code>mdo-setup.exe</code> onboarding</li>
+<li>🧑‍🚀 <code>--tour</code> / no-arg interactive first-run guide, plus native Windows/Linux <code>mdo-setup</code> onboarding</li>
 <li>🧭 Built-in <code>--install-file-manager</code> / <code>--uninstall-file-manager</code> integration (no separate install scripts needed)</li>
 <li>⚡ Fast and self-contained — no runtime assets; <code>mdo.exe</code> remains the core CLI</li>
 <li>🧩 Built on <code>pulldown-cmark</code>, <code>clap</code>, and <code>notify</code></li>
@@ -72,11 +72,14 @@ Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener no
 <h3>Native downloads</h3>
 <p>Download native archives for Linux, macOS, and Windows from
 <a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">GitHub Releases</a>, then verify them
-with the accompanying <code>SHA256SUMS</code> file. On Windows, the release ZIP includes
-<code>mdo.exe</code>, <code>mdo-open.exe</code>, and <code>mdo-setup.exe</code>, so you can use <code>mdo</code> without
-installing Rust, Visual Studio, or the MSVC build tools. <code>mdo.exe</code> stays the
-normal command-line tool; double-click <code>mdo-setup.exe</code> for a native first-run
-window that can install the Explorer integration without opening a terminal.</p>
+with the accompanying <code>SHA256SUMS</code> file. The Linux archive includes <code>mdo</code>,
+<code>mdo-open</code>, and <code>mdo-setup</code>; the Windows ZIP includes <code>mdo.exe</code>,
+<code>mdo-open.exe</code>, and <code>mdo-setup.exe</code>, so you can use <code>mdo</code> without installing
+Rust, Visual Studio, or the MSVC build tools. <code>mdo</code> stays the normal
+command-line tool; double-click <code>mdo-setup</code> / <code>mdo-setup.exe</code> for a native
+first-run window that can install file-manager integration without opening a
+terminal. On Linux, <code>mdo-setup</code> uses <code>zenity</code>, <code>kdialog</code>, or <code>yad</code> if one is
+available.</p>
 <h3>From crates.io</h3>
 <pre><code class="language-bash">cargo install mdo-cli
 </code></pre>
@@ -170,14 +173,18 @@ installer again later. After you press Enter to close the tour, mdo renders and
 opens a short welcome sample so you can immediately verify the browser-opening
 flow. In scripts or other non-interactive contexts, no-argument <code>mdo</code> still
 exits with a usage error and suggests <code>mdo --tour</code>.</p>
-<p>On Windows release builds, double-click <code>mdo-setup.exe</code> for the same onboarding
-path in native Windows dialogs. This preserves <code>mdo.exe</code> as a console CLI while
-giving file-manager users a no-terminal setup flow.</p>
+<p>On Windows and Linux release builds, double-click <code>mdo-setup</code> /
+<code>mdo-setup.exe</code> for the same onboarding path in native desktop dialogs. This
+preserves <code>mdo</code> as the normal CLI while giving file-manager users a no-terminal
+setup flow.</p>
 <hr>
 <h2>Linux file manager integration</h2>
 <p><code>mdo</code> can install or remove its own per-user XDG file-manager integration;
 no companion install script is required:</p>
-<pre><code class="language-bash"># Add "Open as HTML" as an "Open With" handler for Markdown files
+<pre><code class="language-bash"># Native first-run window, including optional file-manager integration install
+mdo-setup
+
+# Add "Open as HTML" as an "Open With" handler for Markdown files
 mdo --install-file-manager
 
 # Same, but also make it the default Markdown handler
@@ -193,6 +200,10 @@ named <strong>Open as HTML</strong>, so GNOME Files/Nautilus and other XDG file 
 show an action-oriented entry instead of a tool-name-only entry. Rerunning the
 installer also removes older Nautilus Scripts entries named <strong>Preview with
 mdo</strong> or <strong>Render with mdo</strong>.</p>
+<p>Linux release archives also include <code>mdo-setup</code>, which shows the same onboarding
+path in desktop dialogs when <code>zenity</code>, <code>kdialog</code>, or <code>yad</code> is available. If you
+launch <code>mdo-open</code> directly with no file, it opens <code>mdo-setup</code> when the setup
+helper is present.</p>
 <p>Result examples after install:</p>
 <ul>
 <li>Most XDG file managers: right-click a <code>.md</code> file → <strong>Open With</strong> →
@@ -318,6 +329,6 @@ dated footer; no network calls or identifiers are added</li>
 <p>at your option, matching the licensing of the upstream project.</p>
 
 </main>
-<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.3.0 in 0.006s on <time datetime="2026-06-16">2026-06-16</time>.</footer>
+<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.3.0 in 0.008s on <time datetime="2026-06-16">2026-06-16</time>.</footer>
 </body>
 </html>

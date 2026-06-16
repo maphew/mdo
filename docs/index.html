@@ -239,10 +239,13 @@ mdo --version</code></pre>
                             <p>
                                 Download native archives for Linux, Windows, and macOS from the
                                 release page, then verify them with <code>SHA256SUMS</code>.
-                                Windows users can use the release ZIP without installing Rust or
-                                Visual Studio. The ZIP includes <code>mdo-setup.exe</code> for a
-                                native first-run setup window, while <code>mdo.exe</code> remains the
-                                command-line tool.
+                                Linux and Windows users can use the native archives without
+                                installing Rust. The Linux archive includes <code>mdo-setup</code>
+                                and the Windows ZIP includes <code>mdo-setup.exe</code> for a native
+                                first-run setup window, while <code>mdo</code> remains the
+                                command-line tool. On Linux, the setup window uses
+                                <code>zenity</code>, <code>kdialog</code>, or <code>yad</code> when
+                                available.
                             </p>
                         </div>
                         <div class="step">
@@ -285,9 +288,10 @@ mdo --open notes.md</code></pre>
                                 change the default Markdown app. Choose <strong>No</strong> to skip
                                 or run the installer again later. After you press Enter to close the
                                 tour, mdo opens a short welcome sample so you can immediately verify
-                                the browser-opening flow. On Windows release builds,
-                                <code>mdo-setup.exe</code> provides the same onboarding path in native
-                                dialogs instead of a terminal window.
+                                the browser-opening flow. On Windows and Linux release builds,
+                                <code>mdo-setup</code> / <code>mdo-setup.exe</code> provides the same
+                                onboarding path in native desktop dialogs instead of a terminal
+                                window.
                             </p>
                         </div>
                     </div>
@@ -372,10 +376,16 @@ mdo.exe --uninstall-file-manager</code></pre>
                         </div>
                         <div class="step platform-card">
                             <h3>Linux File Managers</h3>
-                            <pre class="code-block"><code>mdo --install-file-manager
+                            <pre class="code-block"><code>mdo-setup
+mdo --install-file-manager
 mdo --install-file-manager --set-default
 mdo --uninstall-file-manager</code></pre>
                             <ul class="check-list">
+                                <li>
+                                    <code>mdo-setup</code> shows the same no-terminal onboarding
+                                    flow in desktop dialogs when <code>zenity</code>,
+                                    <code>kdialog</code>, or <code>yad</code> is available.
+                                </li>
                                 <li>
                                     Most XDG file managers show
                                     <strong>Open With &rarr; Open as HTML</strong> for Markdown
@@ -388,6 +398,10 @@ mdo --uninstall-file-manager</code></pre>
                                 <li>
                                     With <code>--set-default</code>, double-clicking Markdown files
                                     launches the browser.
+                                </li>
+                                <li>
+                                    Launching <code>mdo-open</code> with no file opens
+                                    <code>mdo-setup</code> when present.
                                 </li>
                             </ul>
                         </div>

@@ -22,7 +22,7 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 - 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
 - 👀 `--watch` flag enables auto-rerender on file change (with debouncing)
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
-- 🧑‍🚀 `--tour` / no-arg interactive first-run guide, plus native Windows `mdo-setup.exe` onboarding
+- 🧑‍🚀 `--tour` / no-arg interactive first-run guide, plus native Windows/Linux `mdo-setup` onboarding
 - 🧭 Built-in `--install-file-manager` / `--uninstall-file-manager` integration (no separate install scripts needed)
 - ⚡ Fast and self-contained — no runtime assets; `mdo.exe` remains the core CLI
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
@@ -43,11 +43,14 @@ Mdo + file-manager integration creates html pages so quickly they are throw-away
 
 Download native archives for Linux, macOS, and Windows from
 [GitHub Releases](https://github.com/maphew/mdo/releases), then verify them
-with the accompanying `SHA256SUMS` file. On Windows, the release ZIP includes
-`mdo.exe`, `mdo-open.exe`, and `mdo-setup.exe`, so you can use `mdo` without
-installing Rust, Visual Studio, or the MSVC build tools. `mdo.exe` stays the
-normal command-line tool; double-click `mdo-setup.exe` for a native first-run
-window that can install the Explorer integration without opening a terminal.
+with the accompanying `SHA256SUMS` file. The Linux archive includes `mdo`,
+`mdo-open`, and `mdo-setup`; the Windows ZIP includes `mdo.exe`,
+`mdo-open.exe`, and `mdo-setup.exe`, so you can use `mdo` without installing
+Rust, Visual Studio, or the MSVC build tools. `mdo` stays the normal
+command-line tool; double-click `mdo-setup` / `mdo-setup.exe` for a native
+first-run window that can install file-manager integration without opening a
+terminal. On Linux, `mdo-setup` uses `zenity`, `kdialog`, or `yad` if one is
+available.
 
 ### From crates.io
 
@@ -180,9 +183,10 @@ opens a short welcome sample so you can immediately verify the browser-opening
 flow. In scripts or other non-interactive contexts, no-argument `mdo` still
 exits with a usage error and suggests `mdo --tour`.
 
-On Windows release builds, double-click `mdo-setup.exe` for the same onboarding
-path in native Windows dialogs. This preserves `mdo.exe` as a console CLI while
-giving file-manager users a no-terminal setup flow.
+On Windows and Linux release builds, double-click `mdo-setup` /
+`mdo-setup.exe` for the same onboarding path in native desktop dialogs. This
+preserves `mdo` as the normal CLI while giving file-manager users a no-terminal
+setup flow.
 
 ---
 
@@ -192,6 +196,9 @@ giving file-manager users a no-terminal setup flow.
 no companion install script is required:
 
 ```bash
+# Native first-run window, including optional file-manager integration install
+mdo-setup
+
 # Add "Open as HTML" as an "Open With" handler for Markdown files
 mdo --install-file-manager
 
@@ -209,6 +216,11 @@ named **Open as HTML**, so GNOME Files/Nautilus and other XDG file managers
 show an action-oriented entry instead of a tool-name-only entry. Rerunning the
 installer also removes older Nautilus Scripts entries named **Preview with
 mdo** or **Render with mdo**.
+
+Linux release archives also include `mdo-setup`, which shows the same onboarding
+path in desktop dialogs when `zenity`, `kdialog`, or `yad` is available. If you
+launch `mdo-open` directly with no file, it opens `mdo-setup` when the setup
+helper is present.
 
 Result examples after install:
 
