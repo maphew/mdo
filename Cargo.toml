@@ -3,6 +3,7 @@ name = "mdo-cli"
 version = "0.3.0"
 edition = "2021"
 default-run = "mdo"
+build = "build.rs"
 authors = [
     "Matt Wilkie <maphew@gmail.com>",
     "Hafiz Ali Raza <haffizaliraza@gmail.com>",  # original upstream author
@@ -26,6 +27,7 @@ include = [
     "/assets/mdo.ico",
     "/scripts/*.ps1",
     "/scripts/*.sh",
+    "/build.rs",
     "/Cargo.toml",
     "/Cargo.lock",
     "/CHANGELOG.md",
@@ -47,6 +49,9 @@ libc = "0.2"
 pulldown-cmark = "0.10"
 clap = { version = "4", features = ["derive"] }
 notify = "6"
+
+[build-dependencies]
+winresource = "0.1.31"
 
 # Windows-only. Opens the rendered file via the Win32 ShellExecuteW API
 # instead of `cmd /C start`, so cmd metacharacters in the path can never be
