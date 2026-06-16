@@ -29,7 +29,7 @@ pub const TOUR_SAMPLE_MARKDOWN: &str = "\
 If you are reading this in your browser, mdo rendered Markdown as HTML and
 opened it successfully.
 
-Next, try **Open as HTML** on any `.md` file you want to read.
+Next, try **Open as HTML** (double-click) on any `.md` file you want to read.
 ";
 const UNSAFE_TEMP_OUTPUT_STEM_CHARS: &[char] = &[
     '&', '^', '%', '(', ')', '!', '"', '\'', '<', '>', '|', ';', '`', '$', '\\', '/', ':',
