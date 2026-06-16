@@ -54,6 +54,15 @@ const SIMPLE_CSS: &str = include_str!("../assets/simple.min.css");
 const APP_DISPLAY_NAME: &str = "mdo";
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 const APP_HOMEPAGE: &str = env!("CARGO_PKG_HOMEPAGE");
+const TOUR_SAMPLE_FILE_NAME: &str = "welcome-to-open-as-html-with-mdo.md";
+const TOUR_SAMPLE_MARKDOWN: &str = "\
+# Welcome to the world of Open as HTML with mdo
+
+If you are reading this in your browser, mdo rendered Markdown as HTML and
+opened it successfully.
+
+Next, try **Open as HTML** on any `.md` file you want to read.
+";
 const UNSAFE_TEMP_OUTPUT_STEM_CHARS: &[char] = &[
     '&', '^', '%', '(', ')', '!', '"', '\'', '<', '>', '|', ';', '`', '$', '\\', '/', ':',
 ];
@@ -612,6 +621,9 @@ fn run_first_run_tour() -> io::Result<()> {
     }
 
     wait_for_tour_close()?;
+    if let Err(e) = open_tour_sample() {
+        eprintln!("⚠️  Failed to open welcome sample: {e}");
+    }
     Ok(())
 }
 
@@ -620,6 +632,31 @@ fn wait_for_tour_close() -> io::Result<()> {
     let mut ignored = String::new();
     io::stdin().read_line(&mut ignored)?;
     Ok(())
+}
+
+fn open_tour_sample() -> io::Result<()> {
+    let source = tour_sample_input_path()?;
+    fs::write(&source, TOUR_SAMPLE_MARKDOWN)?;
+
+    let output = temp_output_for(&source)?;
+    println!("Opening a welcome sample in your browser...");
+
+    if !convert(&source, &output, false, false, true) {
+        return Err(io::Error::other("sample render failed"));
+    }
+
+    launch_browser(&output)?;
+    println!("🌐 Opened welcome sample in default browser");
+    Ok(())
+}
+
+fn tour_sample_input_path() -> io::Result<PathBuf> {
+    let root = private_temp_root();
+    ensure_private_dir(&root)?;
+
+    let dir = root.join("tour");
+    ensure_private_dir(&dir)?;
+    Ok(dir.join(TOUR_SAMPLE_FILE_NAME))
 }
 
 fn main() -> notify::Result<()> {
@@ -833,5 +870,12 @@ mod tests {
         assert_eq!(format_duration(Duration::ZERO), "0.000s");
         assert_eq!(format_duration(Duration::from_nanos(1)), "0.001s");
         assert_eq!(format_duration(Duration::from_millis(340)), "0.340s");
+    }
+
+    #[test]
+    fn tour_sample_contains_welcome_copy() {
+        assert!(TOUR_SAMPLE_MARKDOWN.contains("# Welcome to the world of Open as HTML with mdo"));
+        assert!(TOUR_SAMPLE_MARKDOWN.contains("opened it successfully"));
+        assert_eq!(TOUR_SAMPLE_FILE_NAME, "welcome-to-open-as-html-with-mdo.md");
     }
 }

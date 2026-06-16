@@ -175,8 +175,10 @@ When run interactively with no arguments, `mdo` shows the same tour and, on
 Windows and Linux, offers to install the reversible per-user **Open as HTML**
 file-manager integration. The prompt defaults to **Yes**, but it still does not
 change your default Markdown app; choose **No** to skip or run the installer
-again later. In scripts or other non-interactive contexts, no-argument `mdo`
-still exits with a usage error and suggests `mdo --tour`.
+again later. After you press Enter to close the tour, mdo renders and opens a
+short welcome sample so you can immediately verify the browser-opening flow. In
+scripts or other non-interactive contexts, no-argument `mdo` still exits with a
+usage error and suggests `mdo --tour`.
 
 ---
 
