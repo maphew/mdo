@@ -571,7 +571,7 @@ fn run_first_run_tour() -> io::Result<()> {
 
     if can_install_file_manager {
         loop {
-            print!("Install Open as HTML file-manager integration now? [y/N] ");
+            print!("Install Open as HTML file-manager integration now? [Y/n] ");
             io::stdout().flush()?;
 
             let mut answer = String::new();
@@ -580,7 +580,7 @@ fn run_first_run_tour() -> io::Result<()> {
             }
 
             match answer.trim().to_ascii_lowercase().as_str() {
-                "y" | "yes" => {
+                "" | "y" | "yes" => {
                     match file_manager::install(false) {
                         Ok(()) => {
                             println!("Integration installed. No default app was changed by mdo.");
@@ -594,7 +594,7 @@ fn run_first_run_tour() -> io::Result<()> {
                     }
                     break;
                 }
-                "" | "n" | "no" => {
+                "n" | "no" => {
                     println!(
                         "No changes made. Run `mdo --install-file-manager` whenever you are ready."
                     );

@@ -1,10 +1,14 @@
 use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+#[cfg(target_os = "windows")]
+use std::process::Stdio;
 
 const APP_DISPLAY_NAME: &str = "Open as HTML";
 #[cfg(target_os = "linux")]
 const DESKTOP_FILE_NAME: &str = "mdo.desktop";
+#[cfg(target_os = "windows")]
+const WINDOWS_ICON_BYTES: &[u8] = include_bytes!("../assets/mdo.ico");
 #[cfg(target_os = "linux")]
 const SVG_ICON: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
   <rect width="256" height="256" rx="48" fill="#f7f7f7"/>
@@ -18,7 +22,7 @@ const SVG_ICON: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" width="256" h
 </svg>
 "##;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "windows"))]
 use std::fs;
 
 pub fn install(set_default: bool) -> io::Result<()> {
@@ -123,21 +127,14 @@ fn install_impl(_set_default: bool) -> io::Result<()> {
     let current_exe = std::env::current_exe()?;
     let handler = windows_handler_for(&current_exe);
     let command = windows_registry_command(&handler.path, handler.is_wrapper);
-    let icon_ref = format!("\"{}\",0", handler.path.display());
+    let icon_file = install_windows_icon()?;
+    let icon_ref = format!("\"{}\"", icon_file.display());
+    let current_exe_command = windows_registry_command(&current_exe, false);
 
-    reg_add_default(
-        r"HKCU\Software\Classes\Applications\mdo.exe\shell\open\command",
-        &command,
-    )?;
-    reg_add_value(
-        r"HKCU\Software\Classes\Applications\mdo.exe",
-        "FriendlyAppName",
-        APP_DISPLAY_NAME,
-    )?;
-    reg_add_default(
-        r"HKCU\Software\Classes\Applications\mdo.exe\DefaultIcon",
-        &icon_ref,
-    )?;
+    register_windows_application("mdo.exe", &current_exe_command, &icon_ref)?;
+    if handler.is_wrapper {
+        register_windows_application("mdo-open.exe", &command, &icon_ref)?;
+    }
 
     reg_add_value(r"HKCU\Software\Classes\.md\OpenWithProgids", "mdo.md", "")?;
 
@@ -161,6 +158,7 @@ fn install_impl(_set_default: bool) -> io::Result<()> {
     reg_add_value(verb, "Icon", &icon_ref)?;
 
     println!("Using handler: {}", handler.path.display());
+    println!("Using icon: {}", icon_file.display());
     if !handler.is_wrapper {
         println!(
             "Note: mdo-open.exe was not found next to mdo.exe, so Explorer will launch mdo.exe directly."
@@ -176,6 +174,7 @@ fn install_impl(_set_default: bool) -> io::Result<()> {
 fn uninstall_impl() -> io::Result<()> {
     for key in [
         r"HKCU\Software\Classes\Applications\mdo.exe",
+        r"HKCU\Software\Classes\Applications\mdo-open.exe",
         r"HKCU\Software\Classes\mdo.md",
         r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Open as HTML",
         r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo",
@@ -189,6 +188,7 @@ fn uninstall_impl() -> io::Result<()> {
 
     let _ = reg_delete_value(r"HKCU\Software\Classes\.md\OpenWithProgids", "mdo.md");
     let _ = reg_delete_value(r"HKCU\Software\Classes\.md\OpenWithProgids", "md2htmlx.md");
+    let _ = remove_windows_icon();
 
     println!("Done.");
     println!(
@@ -411,6 +411,71 @@ fn windows_registry_command(handler: &Path, is_wrapper: bool) -> String {
 }
 
 #[cfg(target_os = "windows")]
+fn register_windows_application(exe_name: &str, command: &str, icon_ref: &str) -> io::Result<()> {
+    let key = format!(r"HKCU\Software\Classes\Applications\{exe_name}");
+
+    reg_add_value(&key, "FriendlyAppName", APP_DISPLAY_NAME)?;
+    reg_add_value(&key, "ApplicationName", APP_DISPLAY_NAME)?;
+    reg_add_default(&format!(r"{key}\DefaultIcon"), icon_ref)?;
+    reg_add_default(&format!(r"{key}\shell\open\command"), command)?;
+    reg_add_value(&format!(r"{key}\SupportedTypes"), ".md", "")?;
+
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn install_windows_icon() -> io::Result<PathBuf> {
+    let icon_file = windows_icon_file()?;
+    if let Some(parent) = icon_file.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(&icon_file, WINDOWS_ICON_BYTES)?;
+    Ok(icon_file)
+}
+
+#[cfg(target_os = "windows")]
+fn remove_windows_icon() -> io::Result<()> {
+    let icon_file = match windows_icon_file() {
+        Ok(path) => path,
+        Err(_) => return Ok(()),
+    };
+
+    match fs::remove_file(&icon_file) {
+        Ok(()) => {}
+        Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+        Err(e) => return Err(e),
+    }
+
+    if let Some(parent) = icon_file.parent() {
+        match fs::remove_dir(parent) {
+            Ok(()) => {}
+            Err(e)
+                if matches!(
+                    e.kind(),
+                    io::ErrorKind::NotFound | io::ErrorKind::DirectoryNotEmpty
+                ) => {}
+            Err(e) => return Err(e),
+        }
+    }
+
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn windows_icon_file() -> io::Result<PathBuf> {
+    let base = std::env::var_os("LOCALAPPDATA")
+        .or_else(|| std::env::var_os("APPDATA"))
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::NotFound,
+                "LOCALAPPDATA and APPDATA are not set; cannot install icon",
+            )
+        })?;
+
+    Ok(PathBuf::from(base).join("mdo").join("mdo.ico"))
+}
+
+#[cfg(target_os = "windows")]
 fn reg_add_default(key: &str, value: &str) -> io::Result<()> {
     reg_status(
         Command::new("reg").args(["add", key, "/ve", "/d", value, "/f"]),
@@ -444,12 +509,31 @@ fn reg_delete_value(key: &str, name: &str) -> io::Result<()> {
 
 #[cfg(target_os = "windows")]
 fn reg_status(command: &mut Command, action: &str) -> io::Result<()> {
-    let status = command.status()?;
-    if status.success() {
+    let output = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()?;
+    if output.status.success() {
         Ok(())
     } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let details = stderr.trim();
+        let details = if details.is_empty() {
+            stdout.trim()
+        } else {
+            details
+        };
+
+        let suffix = if details.is_empty() {
+            String::new()
+        } else {
+            format!(": {details}")
+        };
+
         Err(io::Error::other(format!(
-            "{action} failed with status {status}"
+            "{action} failed with status {}{suffix}",
+            output.status
         )))
     }
 }

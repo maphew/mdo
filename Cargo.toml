@@ -23,6 +23,7 @@ include = [
     "/tests/**/*.rs",
     "/assets/simple.min.css",
     "/assets/simple.css.LICENSE",
+    "/assets/mdo.ico",
     "/scripts/*.ps1",
     "/scripts/*.sh",
     "/Cargo.toml",

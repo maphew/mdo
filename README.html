@@ -164,10 +164,10 @@ beside the source file.</p>
 </code></pre>
 <p>When run interactively with no arguments, <code>mdo</code> shows the same tour and, on
 Windows and Linux, offers to install the reversible per-user <strong>Open as HTML</strong>
-file-manager integration. The prompt defaults to <strong>No</strong> and does not change
-your default Markdown app; it only adds the optional integration when you opt
-in. In scripts or other non-interactive contexts, no-argument <code>mdo</code> still exits
-with a usage error and suggests <code>mdo --tour</code>.</p>
+file-manager integration. The prompt defaults to <strong>Yes</strong>, but it still does not
+change your default Markdown app; choose <strong>No</strong> to skip or run the installer
+again later. In scripts or other non-interactive contexts, no-argument <code>mdo</code>
+still exits with a usage error and suggests <code>mdo --tour</code>.</p>
 <hr>
 <h2>Linux file manager integration</h2>
 <p><code>mdo</code> can install or remove its own per-user XDG file-manager integration;
@@ -211,7 +211,10 @@ is present next to <code>mdo.exe</code>, it is used as the Explorer handler to a
 brief black console-window flash that Windows shows for normal console
 binaries. If only <code>mdo.exe</code> is present, the installer still works and registers
 <code>mdo.exe --open "%1"</code> directly, so a single downloaded executable is enough
-for file-manager integration.</p>
+for file-manager integration. The installer also writes a small per-user mdo
+icon and registers both <code>mdo.exe</code> and <code>mdo-open.exe</code> with the friendly app name
+<strong>Open as HTML</strong>, so Windows "Open with" surfaces do not need to expose the
+wrapper binary name.</p>
 <p>To make <strong>Open as HTML</strong> the <em>default</em> <code>.md</code> handler after running the install
 command, right-click a <code>.md</code> file → <strong>Open with → Choose another app</strong> →
 pick <strong>Open as HTML</strong> → tick <strong>Always use this app</strong>. Windows requires that

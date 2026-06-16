@@ -173,10 +173,10 @@ mdo --tour
 
 When run interactively with no arguments, `mdo` shows the same tour and, on
 Windows and Linux, offers to install the reversible per-user **Open as HTML**
-file-manager integration. The prompt defaults to **No** and does not change
-your default Markdown app; it only adds the optional integration when you opt
-in. In scripts or other non-interactive contexts, no-argument `mdo` still exits
-with a usage error and suggests `mdo --tour`.
+file-manager integration. The prompt defaults to **Yes**, but it still does not
+change your default Markdown app; choose **No** to skip or run the installer
+again later. In scripts or other non-interactive contexts, no-argument `mdo`
+still exits with a usage error and suggests `mdo --tour`.
 
 ---
 
@@ -232,7 +232,10 @@ is present next to `mdo.exe`, it is used as the Explorer handler to avoid the
 brief black console-window flash that Windows shows for normal console
 binaries. If only `mdo.exe` is present, the installer still works and registers
 `mdo.exe --open "%1"` directly, so a single downloaded executable is enough
-for file-manager integration.
+for file-manager integration. The installer also writes a small per-user mdo
+icon and registers both `mdo.exe` and `mdo-open.exe` with the friendly app name
+**Open as HTML**, so Windows "Open with" surfaces do not need to expose the
+wrapper binary name.
 
 To make **Open as HTML** the *default* `.md` handler after running the install
 command, right-click a `.md` file → **Open with → Choose another app** →
