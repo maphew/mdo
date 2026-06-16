@@ -123,13 +123,18 @@ fn uninstall_impl() -> io::Result<()> {
 }
 
 #[cfg(target_os = "windows")]
-fn install_impl(_set_default: bool) -> io::Result<()> {
+fn install_impl(set_default: bool) -> io::Result<()> {
     let current_exe = std::env::current_exe()?;
-    let handler = windows_handler_for(&current_exe);
+    install_windows_for_exe(&current_exe, set_default)
+}
+
+#[cfg(target_os = "windows")]
+pub fn install_windows_for_exe(current_exe: &Path, _set_default: bool) -> io::Result<()> {
+    let handler = windows_handler_for(current_exe);
     let command = windows_registry_command(&handler.path, handler.is_wrapper);
     let icon_file = install_windows_icon()?;
     let icon_ref = format!("\"{}\",0", icon_file.display());
-    let current_exe_command = windows_registry_command(&current_exe, false);
+    let current_exe_command = windows_registry_command(current_exe, false);
 
     register_windows_application("mdo.exe", &current_exe_command, &icon_ref)?;
     if handler.is_wrapper {

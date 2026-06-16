@@ -14,7 +14,9 @@
 //!   1. Locates `mdo[.exe]` next to itself.
 //!   2. Spawns it with `--open` and the rest of the args, using
 //!      `CREATE_NO_WINDOW` so the child never gets a console allocated.
-//!   3. Exits immediately. The child runs detached and pops the browser.
+//!   3. If launched directly on Windows with no file args, opens
+//!      `mdo-setup.exe` for native first-run onboarding.
+//!   4. Exits immediately. The child runs detached and pops the browser.
 //!
 //! Net result: registering `mdo-open.exe "%1"` in the Explorer file
 //! association gives a flash-free double-click experience without changing
@@ -38,16 +40,29 @@ fn main() -> ExitCode {
     };
     exe_path.pop(); // strip the file name, keep the directory
 
-    let target_name = if cfg!(target_os = "windows") {
-        "mdo.exe"
-    } else {
-        "mdo"
-    };
-    let target = exe_path.join(target_name);
+    let args = env::args_os().skip(1).collect::<Vec<_>>();
 
-    let mut cmd = Command::new(&target);
-    cmd.arg("--open");
-    cmd.args(env::args_os().skip(1));
+    #[cfg(target_os = "windows")]
+    let mut cmd = if args.is_empty() {
+        let setup = exe_path.join("mdo-setup.exe");
+        if !setup.exists() {
+            return ExitCode::from(1);
+        }
+        Command::new(setup)
+    } else {
+        let mut cmd = Command::new(exe_path.join("mdo.exe"));
+        cmd.arg("--open");
+        cmd.args(args);
+        cmd
+    };
+
+    #[cfg(not(target_os = "windows"))]
+    let mut cmd = {
+        let mut cmd = Command::new(exe_path.join("mdo"));
+        cmd.arg("--open");
+        cmd.args(args);
+        cmd
+    };
 
     // CREATE_NO_WINDOW (0x0800_0000) tells Windows not to give the child a
     // console of its own. Without it, even though *we* have no console, the

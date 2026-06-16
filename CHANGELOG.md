@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Move shared rendering, temp-output, browser-launch, tour-sample, and file-manager helpers into `src/lib.rs`.
+- Add `mdo-setup.exe`, a Windows GUI-subsystem onboarding/setup entrypoint that can install Explorer integration without opening a terminal.
+- Teach `mdo-open.exe` to launch `mdo-setup.exe` when opened directly with no file arguments.
+
 ## 0.2.0 - 2026-05-29
 
 - Rename the project from `md2htmlx` to `mdo`.

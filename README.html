@@ -58,9 +58,9 @@ Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener no
 <li>🔒 Raw Markdown HTML is sanitized by default; use <code>--unsafe-html</code> to preserve it for trusted input</li>
 <li>👀 <code>--watch</code> flag enables auto-rerender on file change (with debouncing)</li>
 <li>🌐 <code>--open</code> flag renders to a temp dir and launches the system default browser</li>
-<li>🧑‍🚀 <code>--tour</code> / no-arg interactive first-run guide for cautious new users</li>
+<li>🧑‍🚀 <code>--tour</code> / no-arg interactive first-run guide, plus native Windows <code>mdo-setup.exe</code> onboarding</li>
 <li>🧭 Built-in <code>--install-file-manager</code> / <code>--uninstall-file-manager</code> integration (no separate install scripts needed)</li>
-<li>⚡ Fast and self-contained — single binary, no runtime assets</li>
+<li>⚡ Fast and self-contained — no runtime assets; <code>mdo.exe</code> remains the core CLI</li>
 <li>🧩 Built on <code>pulldown-cmark</code>, <code>clap</code>, and <code>notify</code></li>
 </ul>
 <h3>Why?</h3>
@@ -73,10 +73,10 @@ Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener no
 <p>Download native archives for Linux, macOS, and Windows from
 <a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">GitHub Releases</a>, then verify them
 with the accompanying <code>SHA256SUMS</code> file. On Windows, the release ZIP includes
-<code>mdo.exe</code> and <code>mdo-open.exe</code>, so you can use <code>mdo</code> without installing Rust,
-Visual Studio, or the MSVC build tools. If you double-click <code>mdo.exe</code> before
-learning the command line, it opens a short first-run tour instead of only
-flashing an error window.</p>
+<code>mdo.exe</code>, <code>mdo-open.exe</code>, and <code>mdo-setup.exe</code>, so you can use <code>mdo</code> without
+installing Rust, Visual Studio, or the MSVC build tools. <code>mdo.exe</code> stays the
+normal command-line tool; double-click <code>mdo-setup.exe</code> for a native first-run
+window that can install the Explorer integration without opening a terminal.</p>
 <h3>From crates.io</h3>
 <pre><code class="language-bash">cargo install mdo-cli
 </code></pre>
@@ -162,14 +162,17 @@ beside the source file.</p>
 <p>Running <code>mdo --tour</code> prints a short new-user path:</p>
 <pre><code class="language-bash">mdo --tour
 </code></pre>
-<p>When run interactively with no arguments, <code>mdo</code> shows the same tour and, on
-Windows and Linux, offers to install the reversible per-user <strong>Open as HTML</strong>
-file-manager integration. The prompt defaults to <strong>Yes</strong>, but it still does not
-change your default Markdown app; choose <strong>No</strong> to skip or run the installer
-again later. After you press Enter to close the tour, mdo renders and opens a
-short welcome sample so you can immediately verify the browser-opening flow. In
-scripts or other non-interactive contexts, no-argument <code>mdo</code> still exits with a
-usage error and suggests <code>mdo --tour</code>.</p>
+<p>When run interactively with no arguments, <code>mdo</code> shows the same terminal tour
+and, on Windows and Linux, offers to install the reversible per-user <strong>Open as
+HTML</strong> file-manager integration. The prompt defaults to <strong>Yes</strong>, but it still
+does not change your default Markdown app; choose <strong>No</strong> to skip or run the
+installer again later. After you press Enter to close the tour, mdo renders and
+opens a short welcome sample so you can immediately verify the browser-opening
+flow. In scripts or other non-interactive contexts, no-argument <code>mdo</code> still
+exits with a usage error and suggests <code>mdo --tour</code>.</p>
+<p>On Windows release builds, double-click <code>mdo-setup.exe</code> for the same onboarding
+path in native Windows dialogs. This preserves <code>mdo.exe</code> as a console CLI while
+giving file-manager users a no-terminal setup flow.</p>
 <hr>
 <h2>Linux file manager integration</h2>
 <p><code>mdo</code> can install or remove its own per-user XDG file-manager integration;
@@ -201,8 +204,12 @@ mdo</strong> or <strong>Render with mdo</strong>.</p>
 <hr>
 <h2>🪟 Windows Explorer integration</h2>
 <p><code>mdo.exe</code> can install or remove its own per-user Explorer integration (no
-admin rights and no HKLM changes):</p>
-<pre><code class="language-powershell"># Add: an "Open as HTML" right-click verb and Open With app entry
+admin rights and no HKLM changes). Windows release ZIPs also include
+<code>mdo-setup.exe</code>, a native no-terminal setup window for the same first-run flow:</p>
+<pre><code class="language-powershell"># Native first-run window, including optional Explorer integration install
+.\mdo-setup.exe
+
+# CLI install: add an "Open as HTML" right-click verb and Open With app entry
 .\mdo.exe --install-file-manager
 
 # Undo everything the installer did
@@ -216,7 +223,9 @@ binaries. If only <code>mdo.exe</code> is present, the installer still works and
 for file-manager integration. The Windows binaries embed the mdo icon; the
 installer also writes that icon to a per-user path and registers both <code>mdo.exe</code>
 and <code>mdo-open.exe</code> with the friendly app name <strong>Open as HTML</strong>, so Windows
-"Open with" surfaces do not need to expose the wrapper binary name.</p>
+"Open with" surfaces do not need to expose the wrapper binary name. If you
+launch <code>mdo-open.exe</code> directly with no file, it opens <code>mdo-setup.exe</code> when the
+setup helper is present.</p>
 <p>To make <strong>Open as HTML</strong> the <em>default</em> <code>.md</code> handler after running the install
 command, right-click a <code>.md</code> file → <strong>Open with → Choose another app</strong> →
 pick <strong>Open as HTML</strong> → tick <strong>Always use this app</strong>. Windows requires that

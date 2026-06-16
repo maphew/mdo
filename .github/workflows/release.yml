@@ -123,6 +123,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $staging | Out-Null
           Copy-Item "target/${{ matrix.target }}/release/mdo.exe" $staging
           Copy-Item "target/${{ matrix.target }}/release/mdo-open.exe" $staging
+          Copy-Item "target/${{ matrix.target }}/release/mdo-setup.exe" $staging
           Copy-Item README.md, CHANGELOG.md, LICENSE-MIT, LICENSE-APACHE $staging
           Compress-Archive -Path $staging -DestinationPath "target/dist/$asset.zip" -Force
 

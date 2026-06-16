@@ -516,6 +516,7 @@ dependencies = [
  "notify",
  "opener",
  "pulldown-cmark",
+ "windows-sys 0.61.2",
  "winresource",
 ]
 

@@ -240,9 +240,9 @@ mdo --version</code></pre>
                                 Download native archives for Linux, Windows, and macOS from the
                                 release page, then verify them with <code>SHA256SUMS</code>.
                                 Windows users can use the release ZIP without installing Rust or
-                                Visual Studio. Double-clicking <code>mdo.exe</code> before learning
-                                the command line opens a short first-run tour instead of only
-                                flashing an error window.
+                                Visual Studio. The ZIP includes <code>mdo-setup.exe</code> for a
+                                native first-run setup window, while <code>mdo.exe</code> remains the
+                                command-line tool.
                             </p>
                         </div>
                         <div class="step">
@@ -285,7 +285,9 @@ mdo --open notes.md</code></pre>
                                 change the default Markdown app. Choose <strong>No</strong> to skip
                                 or run the installer again later. After you press Enter to close the
                                 tour, mdo opens a short welcome sample so you can immediately verify
-                                the browser-opening flow.
+                                the browser-opening flow. On Windows release builds,
+                                <code>mdo-setup.exe</code> provides the same onboarding path in native
+                                dialogs instead of a terminal window.
                             </p>
                         </div>
                     </div>
@@ -341,7 +343,8 @@ mdo --open notes.md</code></pre>
                             <h3>Windows Explorer</h3>
                             <pre
                                 class="code-block"
-                            ><code>mdo.exe --install-file-manager
+                            ><code>mdo-setup.exe
+mdo.exe --install-file-manager
 mdo.exe --uninstall-file-manager</code></pre>
                             <ul class="check-list">
                                 <li>
@@ -359,7 +362,9 @@ mdo.exe --uninstall-file-manager</code></pre>
                                 <li>
                                     If <code>mdo-open.exe</code> is next to <code>mdo.exe</code>, it
                                     is used for flash-free Explorer launches; otherwise the single
-                                    <code>mdo.exe</code> binary still works. Windows Open With should
+                                    <code>mdo.exe</code> binary still works. Launching
+                                    <code>mdo-open.exe</code> with no file opens
+                                    <code>mdo-setup.exe</code> when present. Windows Open With should
                                     show the friendly name <strong>Open as HTML</strong> with the mdo
                                     icon instead of exposing the wrapper file name.
                                 </li>
