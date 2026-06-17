@@ -69,7 +69,9 @@ fn converts_markdown_to_styled_html5_document() {
 
     assert!(output.status.success(), "mdo failed: {output:?}");
 
-    let html = fs::read_to_string(dir.join("sample.html")).expect("failed to read html output");
+    let html = fs::read_to_string(dir.join("sample.html"))
+        .expect("failed to read html output")
+        .replace("\r\n", "\n");
     assert!(html.contains("<!DOCTYPE html>"));
     assert!(html.contains("<title>Sample Title</title>"));
     assert!(html.contains("<h1>Sample Title</h1>"));
