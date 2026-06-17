@@ -16,7 +16,6 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
             <a href="#tour">Tour</a>
             <a href="#usage">Usage</a>
             <a href="#file-managers">File Managers</a>
-            <a href="#migration">Migration</a>
             <a href="metrics/">Metrics</a>
             <a href="https://github.com/maphew/mdo">GitHub</a>
             <a href="https://crates.io/crates/mdo-cli">crates.io</a>
@@ -29,9 +28,10 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
                 <p class="eyebrow">Markdown to HTML5</p>
                 <h1>mdo</h1>
                 <p class="lede">
-                    A small Rust CLI that turns Markdown into standalone HTML, with embedded
-                    simple.css styling, calmer default headings, and an open-in-browser
-                    workflow for local files.
+                    A fast lightweight command-line tool written in Rust that converts Markdown
+                    into HTML, with optional file manager integration for immediate on the fly
+                    viewing. The CLI supports live watch mode to automatically re-render whenever
+                    the Markdown file is edited.
                 </p>
                 <div class="command-row">
                     <pre class="command"><code>cargo install mdo-cli</code></pre>
@@ -51,7 +51,7 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
             <div
                 class="preview-shell"
                 data-preview-shell
-                data-preview-state="maximized"
+                data-preview-state="windowed"
                 aria-label="Rendered Markdown example desktop"
             >
                 <div class="desktop-scene" aria-hidden="true">
@@ -90,8 +90,8 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
                     </div>
                     <div class="herd-trail"></div>
                     <div class="mammoth-motion">
-                        <span class="OFF-mammoth-trunk"></span>
-                        <span class="OFF-NOmammoth-foot"></span>
+                        <span class="mammoth-trunk"></span>
+                        <span class="mammoth-foot"></span>
                     </div>
                 </div>
                 <div class="preview-window">
@@ -159,9 +159,8 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
                         I could not find a simple, fast, and self-contained solution.
                         Everything I looked at wanted to be a full-featured editor, relied
                         on node or python in <code>PATH</code>, or needed another runtime
-                        dependency. <code>md2htmlx</code> was close, but every day I read
-                        dozens to hundreds of Markdown files, and reading them as HTML is
-                        richer and calmer.
+                        dependency. Every day I read dozens to hundreds of Markdown files,
+                        and reading them as HTML is richer and calmer.
                     </p>
                     <p>
                         <code>mdo</code> plus file-manager integration creates disposable
@@ -450,43 +449,6 @@ macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
             </div>
         </div>
     </section>
-    <section class="section" id="migration">
-        <div class="section-inner">
-            <div class="section-heading">
-                <h2>Migration From md2htmlx</h2>
-                <p>
-                    <code>mdo</code> is the independent continuation of the original
-                    <code>md2htmlx</code> fork. The rename changes package and binary names,
-                    plus temp output and file-association paths.
-                </p>
-            </div>
-            <div class="two-column">
-                <div class="note warn">
-                    <h3>Before upgrading Windows integration</h3>
-                    <p>
-                        Run <code>mdo.exe --uninstall-file-manager</code> if you previously
-                        installed Explorer integration and want to reset it. The built-in
-                        uninstaller also removes legacy registry entries when present.
-                    </p>
-                </div>
-                <div class="note">
-                    <h3>Name changes</h3>
-                    <ul class="check-list">
-                        <li><code>md2htmlx</code> command becomes <code>mdo</code></li>
-                        <li>
-                            <code>md2htmlx-open</code> wrapper becomes <code>mdo-open</code>
-                        </li>
-                        <li>
-                            <code>%TEMP%\md2htmlx\</code> becomes <code>%TEMP%\mdo\</code>
-                        </li>
-                        <li>
-                            Crate install path becomes <code>cargo install mdo-cli</code>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
     <section class="section">
         <div class="section-inner">
             <div class="section-heading">
@@ -506,7 +468,6 @@ macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
                     href="https://github.com/maphew/mdo/blob/main/CHANGELOG.md"
                     >Changelog</a
                 >
-                <a class="link-panel" href="adr/0001-rename-to-mdo.html">Rename ADR</a>
                 <a class="link-panel" href="adr/0002-distribution-strategy.html"
                     >Distribution ADR</a
                 >

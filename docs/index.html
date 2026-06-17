@@ -76,9 +76,15 @@ h3 {
   --accent-hover: #208a7a;
   --accent-text: #ffffff;
   --code: #b02060;
-  --preformatted: #edf7f5;
-  --code-bg: #162126;
-  --code-text: #edf7f5;
+  --preformatted: #182d33;
+  --code-bg: #f1f6f4;
+  --code-text: #182d33;
+  --code-border: #d4e1dc;
+  --inline-code-bg: #eef3ef;
+  --inline-code-text: #7e2451;
+  --header-bg: rgba(251, 250, 247, 0.94);
+  --toolbar-bg: #edf1f3;
+  --window-control: #66757d;
   --disabled: #e5e5e5;
   --warn-bg: #fff5d8;
 }
@@ -101,6 +107,12 @@ h3 {
   --preformatted: #edf7f5;
   --code-bg: #10181c;
   --code-text: #edf7f5;
+  --code-border: #3f4a4f;
+  --inline-code-bg: #172328;
+  --inline-code-text: #ffabc8;
+  --header-bg: rgba(30, 37, 40, 0.94);
+  --toolbar-bg: #202b30;
+  --window-control: #a8b4b8;
   --disabled: #3f4a4f;
   --warn-bg: #4c3f23;
 }
@@ -152,7 +164,7 @@ a {
 
 .site-header {
   border-bottom: 1px solid var(--line);
-  background: rgba(251, 250, 247, 0.94);
+  background: var(--header-bg);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -282,7 +294,7 @@ a {
   min-width: min(100%, 330px);
   margin: 0;
   padding: 13px 15px;
-  border: 0;
+  border: 1px solid var(--code-border);
   border-radius: 8px;
   background: var(--code-bg);
   color: var(--code-text);
@@ -299,7 +311,7 @@ a {
   border-radius: 8px;
   padding: 0 16px;
   background: var(--accent);
-  color: white;
+  color: var(--accent-text);
   font-weight: 700;
   text-decoration: none;
 }
@@ -610,7 +622,7 @@ a {
 }
 
 .preview-shell[data-preview-state="windowed"] .preview-window {
-  inset: 20px 18px 74px;
+  inset: 42px 42% 82px 26px;
   border: 1px solid rgba(213, 225, 232, 0.78);
   box-shadow: 0 16px 36px rgba(7, 18, 24, 0.3);
 }
@@ -636,7 +648,7 @@ a {
   height: 38px;
   padding: 0 0 0 14px;
   border-bottom: 1px solid var(--line);
-  background: #edf1f3;
+  background: var(--toolbar-bg);
   color: var(--muted);
   font-size: 13px;
 }
@@ -698,19 +710,19 @@ a {
 
 .window-control.minimize::before {
   width: 12px;
-  border-top: 2px solid #66757d;
+  border-top: 2px solid var(--window-control);
 }
 
 .window-control.maximize::before {
   width: 11px;
   height: 9px;
-  border: 2px solid #66757d;
+  border: 2px solid var(--window-control);
 }
 
 .window-control.close::before,
 .window-control.close::after {
   width: 13px;
-  border-top: 2px solid #66757d;
+  border-top: 2px solid var(--window-control);
 }
 
 .window-control.close::before {
@@ -963,12 +975,10 @@ a {
   padding: 18px;
 }
 
-.step p code,
-.note p code,
-.check-list code,
-.source-note code {
+.docs-home :not(pre) > code {
   border-radius: 5px;
-  background: #e9efeb;
+  background: var(--inline-code-bg);
+  color: var(--inline-code-text);
   padding: 0.12em 0.36em;
   font-size: 0.95em;
 }
@@ -977,14 +987,18 @@ a {
   max-width: 100%;
   margin: 0;
   padding: 16px;
-  border: 0;
+  border: 1px solid var(--code-border);
   border-radius: 8px;
   background: var(--code-bg);
   color: var(--code-text);
   overflow-x: auto;
 }
 
+.command code,
 .code-block code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -1210,7 +1224,6 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
             <a href="#tour">Tour</a>
             <a href="#usage">Usage</a>
             <a href="#file-managers">File Managers</a>
-            <a href="#migration">Migration</a>
             <a href="metrics/">Metrics</a>
             <a href="https://github.com/maphew/mdo">GitHub</a>
             <a href="https://crates.io/crates/mdo-cli">crates.io</a>
@@ -1223,9 +1236,10 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
                 <p class="eyebrow">Markdown to HTML5</p>
                 <h1>mdo</h1>
                 <p class="lede">
-                    A small Rust CLI that turns Markdown into standalone HTML, with embedded
-                    simple.css styling, calmer default headings, and an open-in-browser
-                    workflow for local files.
+                    A fast lightweight command-line tool written in Rust that converts Markdown
+                    into HTML, with optional file manager integration for immediate on the fly
+                    viewing. The CLI supports live watch mode to automatically re-render whenever
+                    the Markdown file is edited.
                 </p>
                 <div class="command-row">
                     <pre class="command"><code>cargo install mdo-cli</code></pre>
@@ -1245,7 +1259,7 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
             <div
                 class="preview-shell"
                 data-preview-shell
-                data-preview-state="maximized"
+                data-preview-state="windowed"
                 aria-label="Rendered Markdown example desktop"
             >
                 <div class="desktop-scene" aria-hidden="true">
@@ -1284,8 +1298,8 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
                     </div>
                     <div class="herd-trail"></div>
                     <div class="mammoth-motion">
-                        <span class="OFF-mammoth-trunk"></span>
-                        <span class="OFF-NOmammoth-foot"></span>
+                        <span class="mammoth-trunk"></span>
+                        <span class="mammoth-foot"></span>
                     </div>
                 </div>
                 <div class="preview-window">
@@ -1353,9 +1367,8 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
                         I could not find a simple, fast, and self-contained solution.
                         Everything I looked at wanted to be a full-featured editor, relied
                         on node or python in <code>PATH</code>, or needed another runtime
-                        dependency. <code>md2htmlx</code> was close, but every day I read
-                        dozens to hundreds of Markdown files, and reading them as HTML is
-                        richer and calmer.
+                        dependency. Every day I read dozens to hundreds of Markdown files,
+                        and reading them as HTML is richer and calmer.
                     </p>
                     <p>
                         <code>mdo</code> plus file-manager integration creates disposable
@@ -1644,43 +1657,6 @@ macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
             </div>
         </div>
     </section>
-    <section class="section" id="migration">
-        <div class="section-inner">
-            <div class="section-heading">
-                <h2>Migration From md2htmlx</h2>
-                <p>
-                    <code>mdo</code> is the independent continuation of the original
-                    <code>md2htmlx</code> fork. The rename changes package and binary names,
-                    plus temp output and file-association paths.
-                </p>
-            </div>
-            <div class="two-column">
-                <div class="note warn">
-                    <h3>Before upgrading Windows integration</h3>
-                    <p>
-                        Run <code>mdo.exe --uninstall-file-manager</code> if you previously
-                        installed Explorer integration and want to reset it. The built-in
-                        uninstaller also removes legacy registry entries when present.
-                    </p>
-                </div>
-                <div class="note">
-                    <h3>Name changes</h3>
-                    <ul class="check-list">
-                        <li><code>md2htmlx</code> command becomes <code>mdo</code></li>
-                        <li>
-                            <code>md2htmlx-open</code> wrapper becomes <code>mdo-open</code>
-                        </li>
-                        <li>
-                            <code>%TEMP%\md2htmlx\</code> becomes <code>%TEMP%\mdo\</code>
-                        </li>
-                        <li>
-                            Crate install path becomes <code>cargo install mdo-cli</code>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
     <section class="section">
         <div class="section-inner">
             <div class="section-heading">
@@ -1700,7 +1676,6 @@ macOS    $TMPDIR/mdo/&lt;hash&gt;/notes.html</code></pre>
                     href="https://github.com/maphew/mdo/blob/main/CHANGELOG.md"
                     >Changelog</a
                 >
-                <a class="link-panel" href="adr/0001-rename-to-mdo.html">Rename ADR</a>
                 <a class="link-panel" href="adr/0002-distribution-strategy.html"
                     >Distribution ADR</a
                 >
