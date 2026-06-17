@@ -39,7 +39,8 @@
                         <h1>mdo</h1>
                         <p class="lede">
                             A small Rust CLI that turns Markdown into standalone HTML, with embedded
-                            simple.css styling and an open-in-browser workflow for local files.
+                            simple.css styling, calmer default headings, and an open-in-browser
+                            workflow for local files.
                         </p>
                         <div class="command-row">
                             <pre class="command"><code>cargo install mdo-cli</code></pre>
@@ -315,6 +316,7 @@ mdo --open notes.md</code></pre>
 mdo notes.md
 mdo notes.md -o public/notes.html
 mdo --css my-overrides.css notes.md
+mdo --css restore-simple-css.css notes.md
 mdo --bare notes.md
 mdo --watch notes.md
 mdo --open notes.md</code></pre>
@@ -323,8 +325,9 @@ mdo --open notes.md</code></pre>
                             <h3>What the output includes</h3>
                             <ul class="check-list">
                                 <li>HTML5 document shell with responsive viewport metadata</li>
-                                <li>Embedded simple.css, so output files work offline</li>
+                                <li>Embedded simple.css plus calmer mdo heading defaults</li>
                                 <li>Optional <code>--css</code> overrides appended after defaults</li>
+                                <li>Release CSS to restore the vendored simple.css typography</li>
                                 <li>Tables, footnotes, task lists, and strikethrough</li>
                                 <li>Title derived from the first top-level heading</li>
                                 <li>Light/dark theme toggle in styled output</li>

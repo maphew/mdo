@@ -24,6 +24,7 @@ include = [
     "/tests/**/*.rs",
     "/assets/simple.min.css",
     "/assets/simple.css.LICENSE",
+    "/assets/restore-simple-css.css",
     "/assets/mdo.ico",
     "/scripts/*.ps1",
     "/scripts/*.sh",

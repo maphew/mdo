@@ -93,6 +93,7 @@ jobs:
           cp "target/${{ matrix.target }}/release/mdo-open" "${staging}/"
           cp "target/${{ matrix.target }}/release/mdo-setup" "${staging}/"
           cp README.md CHANGELOG.md LICENSE-MIT LICENSE-APACHE "${staging}/"
+          cp assets/restore-simple-css.css "${staging}/"
           tar -C target/dist -czf "target/dist/${asset}.tar.gz" "${asset}"
 
       - name: Package macOS universal archive
@@ -113,6 +114,7 @@ jobs:
             target/aarch64-apple-darwin/release/mdo-open
           chmod +x "${staging}/mdo" "${staging}/mdo-open"
           cp README.md CHANGELOG.md LICENSE-MIT LICENSE-APACHE "${staging}/"
+          cp assets/restore-simple-css.css "${staging}/"
           tar -C target/dist -czf "target/dist/${asset}.tar.gz" "${asset}"
 
       - name: Package Windows archive
@@ -126,6 +128,7 @@ jobs:
           Copy-Item "target/${{ matrix.target }}/release/mdo-open.exe" $staging
           Copy-Item "target/${{ matrix.target }}/release/mdo-setup.exe" $staging
           Copy-Item README.md, CHANGELOG.md, LICENSE-MIT, LICENSE-APACHE $staging
+          Copy-Item assets/restore-simple-css.css $staging
           Compress-Archive -Path $staging -DestinationPath "target/dist/$asset.zip" -Force
 
       - name: Verify checkout matches release tag

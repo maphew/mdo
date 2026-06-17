@@ -17,7 +17,10 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 
 - ✅ Converts `.md` files to standalone HTML5 documents
 - 🎨 Pretty default styling via embedded [simple.css](https://simplecss.org/)
+  with a calmer mdo typography layer (`body` 1rem, `h1` 2.4rem, `h2` 2rem, `h3` 1.4rem)
 - 🧩 `--css` flag appends your own CSS overrides after the bundled defaults
+- ↩️ Release archives include `restore-simple-css.css` for reverting to the
+  vendored simple.css typography
 - 🌓 Automatic light/dark mode (follows OS) plus a manual toggle button
 - 📄 `--bare` flag emits a sanitized HTML fragment (no `<html>`/`<head>`/`<body>`/CSS)
 - 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
@@ -25,7 +28,7 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
 - 🧑‍🚀 `--tour` / no-arg interactive first-run guide, plus native Windows/Linux `mdo-setup` onboarding
 - 🧭 Built-in `--install-file-manager` / `--uninstall-file-manager` integration (no separate install scripts needed)
-- ⚡ Fast and self-contained — no runtime assets; `mdo.exe` remains the core CLI
+- ⚡ Fast and self-contained — no required runtime assets; `mdo.exe` remains the core CLI
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
 
 ### Why?
@@ -148,6 +151,13 @@ Append custom CSS after the built-in styles to tune the default theme:
 
 ```bash
 mdo --css my-overrides.css input.md
+```
+
+Release archives include `restore-simple-css.css` for users who prefer the
+unmodified simple.css typography scale:
+
+```bash
+mdo --css restore-simple-css.css input.md
 ```
 
 Raw HTML from the Markdown source is sanitized by default. Preserve it only
@@ -324,9 +334,12 @@ The default (non-`--bare`) output is a complete HTML5 document:
 - `<title>` derived from the first `# Heading` in the source (falls back to the
   input filename)
 - An inlined copy of [simple.css](https://simplecss.org/) inside `<style>`,
-  giving you sensible typography and automatic light/dark mode out of the box
+  followed by mdo's calmer default typography (`body` 1rem, `h1` 2.4rem,
+  `h2` 2rem, `h3` 1.4rem)
 - Optional custom CSS from `--css <FILE>`, appended after the built-in styles
-  so rules such as `h1 { font-size: 1.75rem; }` can override simple.css
+  and mdo defaults so rules such as `h1 { font-size: 1.75rem; }` can override them
+- `restore-simple-css.css` in release archives, which can be passed with `--css`
+  to restore the vendored simple.css typography scale
 - A small floating ☀/☾ button (top-right) for manually overriding the theme;
   the choice is remembered in `localStorage`
 - Body content wrapped in `<main>`

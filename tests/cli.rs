@@ -76,6 +76,11 @@ fn converts_markdown_to_styled_html5_document() {
     assert!(html.contains("<strong>strong</strong>"));
     assert!(html.contains("<table>"));
     assert!(html.contains("#theme-toggle"));
+    assert!(html.contains(r#"id="mdo-default-typography""#));
+    assert!(html.contains("body{font-size:1rem}"));
+    assert!(html.contains("h1{font-size:2.4rem}"));
+    assert!(html.contains("h2{font-size:2rem}"));
+    assert!(html.contains("h3{font-size:1.4rem}"));
     assert!(html.contains(&format!(
         "<meta name=\"generator\" content=\"mdo {}\">",
         env!("CARGO_PKG_VERSION")
@@ -120,16 +125,66 @@ fn css_override_is_embedded_after_default_styles() {
     let theme_pos = html
         .find("#theme-toggle")
         .expect("styled output should contain theme toggle CSS");
+    let default_pos = html
+        .find("id=\"mdo-default-typography\"")
+        .expect("styled output should contain default mdo typography block");
     let override_pos = html
         .find("id=\"mdo-css-override\"")
         .expect("styled output should contain CSS override block");
 
     assert!(
-        override_pos > theme_pos,
-        "custom CSS should be appended after built-in styles"
+        default_pos > theme_pos,
+        "default mdo typography should be appended after built-in styles"
+    );
+    assert!(
+        override_pos > default_pos,
+        "custom CSS should be appended after mdo defaults"
     );
     assert!(html.contains("h1 { font-size: 1.75rem; }"));
     assert!(html.contains("h2 { font-size: 1.35rem; }"));
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[test]
+fn bundled_restore_simple_css_can_restore_vendored_typography() {
+    let dir = fixture_dir("restore-simple-css");
+    let input = dir.join("sample.md");
+    let output_path = dir.join("sample.html");
+    let restore_css = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("assets")
+        .join("restore-simple-css.css");
+    fs::write(&input, "# Sample Title\n\nA paragraph.\n")
+        .expect("failed to write markdown fixture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--css")
+        .arg(&restore_css)
+        .arg("--output")
+        .arg(&output_path)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let html = fs::read_to_string(output_path).expect("failed to read html output");
+    let default_pos = html
+        .find("id=\"mdo-default-typography\"")
+        .expect("styled output should contain default mdo typography block");
+    let override_pos = html
+        .find("id=\"mdo-css-override\"")
+        .expect("styled output should contain CSS override block");
+
+    assert!(
+        override_pos > default_pos,
+        "restore CSS should be appended after mdo defaults"
+    );
+    assert!(html.contains("font-size: 1.15rem;"));
+    assert!(html.contains("font-size: 3rem;"));
+    assert!(html.contains("font-size: 2.6rem;"));
+    assert!(html.contains("font-size: 2rem;"));
+    assert!(html.contains("@media only screen and (width <= 720px)"));
 
     fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
 }
