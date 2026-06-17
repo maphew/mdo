@@ -279,7 +279,11 @@ mdo --open notes.md</code></pre>
                         the browser-opening flow. On Windows and Linux release builds,
                         <code>mdo-setup</code> / <code>mdo-setup.exe</code> provides the same
                         onboarding path in native desktop dialogs instead of a terminal
-                        window.
+                        window. On Windows, launching <code>mdo-open.exe</code> directly
+                        with no file opens the terminal tour in a fresh Windows Terminal
+                        (<code>wt</code>) window using the <strong>One Half Light</strong>
+                        color scheme, centered on the active display; if <code>wt</code> is
+                        unavailable, it falls back to <code>mdo-setup.exe</code> when present.
                     </p>
                 </div>
             </div>
@@ -357,8 +361,11 @@ mdo.exe --uninstall-file-manager</code></pre>
                             If <code>mdo-open.exe</code> is next to <code>mdo.exe</code>, it
                             is used for flash-free Explorer launches; otherwise the single
                             <code>mdo.exe</code> binary still works. Launching
-                            <code>mdo-open.exe</code> with no file opens
-                            <code>mdo-setup.exe</code> when present. Windows Open With should
+                            <code>mdo-open.exe</code> with no file opens the terminal tour in
+                            a fresh <code>wt</code> window with the
+                            <strong>One Half Light</strong> color scheme and centers it on
+                            the active display, falling back to <code>mdo-setup.exe</code>
+                            when <code>wt</code> cannot be started. Windows Open With should
                             show the friendly name <strong>Open as HTML</strong> with the mdo
                             icon instead of exposing the wrapper file name.
                         </li>

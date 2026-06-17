@@ -217,7 +217,10 @@ exits with a usage error and suggests `mdo --tour`.
 On Windows and Linux release builds, double-click `mdo-setup` /
 `mdo-setup.exe` for the same onboarding path in native desktop dialogs. This
 preserves `mdo` as the normal CLI while giving file-manager users a no-terminal
-setup flow.
+setup flow. On Windows, launching `mdo-open.exe` directly with no file opens the
+terminal tour in a fresh Windows Terminal (`wt`) window using the **One Half
+Light** color scheme, centered on the active display; if `wt` is unavailable it
+falls back to `mdo-setup.exe` when present.
 
 ---
 
@@ -289,8 +292,9 @@ for file-manager integration. The Windows binaries embed the mdo icon; the
 installer also writes that icon to a per-user path and registers both `mdo.exe`
 and `mdo-open.exe` with the friendly app name **Open as HTML**, so Windows
 "Open with" surfaces do not need to expose the wrapper binary name. If you
-launch `mdo-open.exe` directly with no file, it opens `mdo-setup.exe` when the
-setup helper is present.
+launch `mdo-open.exe` directly with no file, it opens the terminal tour in a
+fresh `wt` window with the **One Half Light** color scheme and centers it on the
+active display, falling back to `mdo-setup.exe` when `wt` cannot be started.
 
 To make **Open as HTML** the *default* `.md` handler after running the install
 command, right-click a `.md` file → **Open with → Choose another app** →
