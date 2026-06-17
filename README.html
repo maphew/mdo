@@ -37,10 +37,25 @@
 })();
 </script>
 <style id="mdo-default-typography">
-body{font-size:1rem}
-h1{font-size:2.4rem}
-h2{font-size:2rem}
-h3{font-size:1.4rem}
+/* mdo's default typography layer.
+   This is embedded after the vendored simple.css base and before any --css file. */
+
+body {
+  font-size: 1rem;
+}
+
+h1 {
+  font-size: 2.4rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.4rem;
+}
+
 </style>
 </head>
 <body>
@@ -303,7 +318,8 @@ and no <code>.html</code> file is left beside the source.</li>
 input filename)</li>
 <li>An inlined copy of <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> inside <code>&lt;style&gt;</code>,
 followed by mdo's calmer default typography (<code>body</code> 1rem, <code>h1</code> 2.4rem,
-<code>h2</code> 2rem, <code>h3</code> 1.4rem)</li>
+<code>h2</code> 2rem, <code>h3</code> 1.4rem) sourced from
+<a href="assets/mdo-default-typography.css" rel="noopener noreferrer"><code>assets/mdo-default-typography.css</code></a></li>
 <li>Optional custom CSS from <code>--css &lt;FILE&gt;</code>, appended after the built-in styles
 and mdo defaults so rules such as <code>h1 { font-size: 1.75rem; }</code> can override them</li>
 <li><code>restore-simple-css.css</code> in release archives, which can be passed with <code>--css</code>

@@ -1,0 +1,18 @@
+/* mdo's default typography layer.
+   This is embedded after the vendored simple.css base and before any --css file. */
+
+body {
+  font-size: 1rem;
+}
+
+h1 {
+  font-size: 2.4rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.4rem;
+}

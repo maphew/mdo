@@ -335,7 +335,8 @@ The default (non-`--bare`) output is a complete HTML5 document:
   input filename)
 - An inlined copy of [simple.css](https://simplecss.org/) inside `<style>`,
   followed by mdo's calmer default typography (`body` 1rem, `h1` 2.4rem,
-  `h2` 2rem, `h3` 1.4rem)
+  `h2` 2rem, `h3` 1.4rem) sourced from
+  [`assets/mdo-default-typography.css`](assets/mdo-default-typography.css)
 - Optional custom CSS from `--css <FILE>`, appended after the built-in styles
   and mdo defaults so rules such as `h1 { font-size: 1.75rem; }` can override them
 - `restore-simple-css.css` in release archives, which can be passed with `--css`

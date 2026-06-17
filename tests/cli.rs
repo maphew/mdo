@@ -77,10 +77,10 @@ fn converts_markdown_to_styled_html5_document() {
     assert!(html.contains("<table>"));
     assert!(html.contains("#theme-toggle"));
     assert!(html.contains(r#"id="mdo-default-typography""#));
-    assert!(html.contains("body{font-size:1rem}"));
-    assert!(html.contains("h1{font-size:2.4rem}"));
-    assert!(html.contains("h2{font-size:2rem}"));
-    assert!(html.contains("h3{font-size:1.4rem}"));
+    assert!(html.contains("body {\n  font-size: 1rem;"));
+    assert!(html.contains("h1 {\n  font-size: 2.4rem;"));
+    assert!(html.contains("h2 {\n  font-size: 2rem;"));
+    assert!(html.contains("h3 {\n  font-size: 1.4rem;"));
     assert!(html.contains(&format!(
         "<meta name=\"generator\" content=\"mdo {}\">",
         env!("CARGO_PKG_VERSION")

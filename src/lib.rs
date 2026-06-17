@@ -38,13 +38,7 @@ const UNSAFE_TEMP_OUTPUT_STEM_CHARS: &[char] = &[
 // mdo keeps simple.css as the base stylesheet but softens the heading/body
 // scale for generated documents. Users who prefer the unmodified vendored
 // simple.css typography can pass assets/restore-simple-css.css with --css.
-const MDO_DEFAULT_TYPOGRAPHY: &str = r#"<style id="mdo-default-typography">
-body{font-size:1rem}
-h1{font-size:2.4rem}
-h2{font-size:2rem}
-h3{font-size:1.4rem}
-</style>
-"#;
+const MDO_DEFAULT_TYPOGRAPHY_CSS: &str = include_str!("../assets/mdo-default-typography.css");
 
 // ─── BEGIN THEME TOGGLE ────────────────────────────────────────────────
 // Self-contained light/dark mode toggle. To remove this feature entirely:
@@ -292,6 +286,10 @@ fn wrap_html5(
             )
         })
         .unwrap_or_default();
+    let mdo_default_typography = format!(
+        "<style id=\"mdo-default-typography\">\n{}\n</style>\n",
+        escape_style_end_tags(MDO_DEFAULT_TYPOGRAPHY_CSS)
+    );
     let generator = format!("{APP_DISPLAY_NAME} {APP_VERSION}");
     let rendered_in = format_duration(render_duration);
     format!(
@@ -318,7 +316,7 @@ fn wrap_html5(
         title = html_escape(title),
         css = SIMPLE_CSS,
         theme_toggle = THEME_TOGGLE, // ← THEME TOGGLE injection point (delete this line to remove)
-        mdo_default_typography = MDO_DEFAULT_TYPOGRAPHY,
+        mdo_default_typography = mdo_default_typography,
         css_override_block = css_override_block,
         body = body,
         homepage = html_escape(APP_HOMEPAGE),
