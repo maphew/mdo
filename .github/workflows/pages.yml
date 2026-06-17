@@ -34,10 +34,17 @@ jobs:
       - name: Build mdo
         run: cargo build --release --locked
 
+      - name: Generate checked-in docs HTML
+        env:
+          MDO_BIN: ./target/release/mdo
+        run: python3 scripts/build-docs.py
+
       - name: Generate ADR HTML
+        env:
+          MDO_BIN: ./target/release/mdo
         run: |
           for adr in docs/adr/*.md; do
-            ./target/release/mdo "$adr"
+            "$MDO_BIN" --css docs/assets/site.css "$adr"
           done
 
       - name: Configure Pages

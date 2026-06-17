@@ -184,6 +184,14 @@ unmodified simple.css typography scale:</p>
 when the source is trusted:</p>
 <pre><code class="language-bash">mdo --unsafe-html input.md
 </code></pre>
+<p>Regenerate the checked-in project-site pages with the same runtime CSS pipeline
+used by normal mdo output:</p>
+<pre><code class="language-bash">python scripts/build-docs.py
+</code></pre>
+<p>The homepage source is <code>docs/index.md</code>; it uses <code>--unsafe-html --css docs/assets/site.css</code> so the mammoth/hero HTML and docs-only presentation are
+layered after mdo's embedded simple.css and typography defaults. The GitHub
+Pages workflow applies the same <code>--css docs/assets/site.css</code> override when it
+generates ADR pages.</p>
 <p>Watch for changes and re-render on every save:</p>
 <pre><code class="language-bash">mdo --watch input.md
 </code></pre>

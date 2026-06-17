@@ -167,6 +167,19 @@ when the source is trusted:
 mdo --unsafe-html input.md
 ```
 
+Regenerate the checked-in project-site pages with the same runtime CSS pipeline
+used by normal mdo output:
+
+```bash
+python scripts/build-docs.py
+```
+
+The homepage source is `docs/index.md`; it uses `--unsafe-html --css
+docs/assets/site.css` so the mammoth/hero HTML and docs-only presentation are
+layered after mdo's embedded simple.css and typography defaults. The GitHub
+Pages workflow applies the same `--css docs/assets/site.css` override when it
+generates ADR pages.
+
 Watch for changes and re-render on every save:
 
 ```bash

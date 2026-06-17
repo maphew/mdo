@@ -258,7 +258,64 @@ fn derive_title(markdown: &str, fallback: &str) -> String {
             return rest.trim().to_string();
         }
     }
+    if let Some(title) = derive_raw_html_h1_title(markdown) {
+        return title;
+    }
     fallback.to_string()
+}
+
+fn derive_raw_html_h1_title(markdown: &str) -> Option<String> {
+    let lower = markdown.to_ascii_lowercase();
+    let mut search_start = 0;
+
+    while let Some(offset) = lower[search_start..].find("<h1") {
+        let start = search_start + offset;
+        let after_tag_name = start + 3;
+        let next = lower.as_bytes().get(after_tag_name).copied();
+        if !matches!(
+            next,
+            Some(b'>') | Some(b' ') | Some(b'\t') | Some(b'\r') | Some(b'\n')
+        ) {
+            search_start = after_tag_name;
+            continue;
+        }
+
+        let content_start = match markdown[start..].find('>') {
+            Some(end) => start + end + 1,
+            None => return None,
+        };
+        let content_end = match lower[content_start..].find("</h1>") {
+            Some(end) => content_start + end,
+            None => return None,
+        };
+        let title = strip_html_tags(&markdown[content_start..content_end])
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        if !title.is_empty() {
+            return Some(title);
+        }
+
+        search_start = content_end + 5;
+    }
+
+    None
+}
+
+fn strip_html_tags(input: &str) -> String {
+    let mut output = String::with_capacity(input.len());
+    let mut in_tag = false;
+
+    for ch in input.chars() {
+        match ch {
+            '<' => in_tag = true,
+            '>' if in_tag => in_tag = false,
+            _ if !in_tag => output.push(ch),
+            _ => {}
+        }
+    }
+
+    output
 }
 
 fn wrap_html5(
@@ -609,6 +666,16 @@ mod tests {
         assert_eq!(format_duration(Duration::ZERO), "0.000s");
         assert_eq!(format_duration(Duration::from_nanos(1)), "0.001s");
         assert_eq!(format_duration(Duration::from_millis(340)), "0.340s");
+    }
+
+    #[test]
+    fn title_can_come_from_raw_html_h1() {
+        let title = derive_title(
+            r#"<section><h1 class="hero-title">Project <span>Home</span></h1></section>"#,
+            "fallback",
+        );
+
+        assert_eq!(title, "Project Home");
     }
 
     #[test]
