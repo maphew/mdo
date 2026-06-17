@@ -138,6 +138,32 @@ mdo --open notes.md
 - Title derived from the first top-level heading
 - Light/dark theme toggle in styled output
 
+## Imaginative Markdown + CSS
+
+The project site dogfoods `mdo` by building a visual preview without raw HTML embeds or iframes. The source is only normal Markdown:
+
+```markdown
+![Desktop background](assets/mammoth-bluefinhero-1024x695.jpg)
+
+> sample.md rendered by mdo
+>
+> # Release Notes Draft
+>
+> `mdo` turns Markdown into a standalone HTML5 document.
+```
+
+The docs CSS override recognizes that generated shape and styles the blockquote as a faux browser window floating over the image:
+
+```css
+main > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"]) + blockquote {
+  margin-top: -460px;
+  background: white;
+  box-shadow: 0 16px 36px rgba(7, 18, 24, 0.3);
+}
+```
+
+That trick keeps the content portable and readable as Markdown while using `--css` to create a richer static page. It is a good example of how `mdo` can be used imaginatively: write semantic Markdown first, then layer presentation on top when the rendered page needs to tell a visual story.
+
 ## File Manager Integration
 
 Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same `mdo --open` render-and-open path.
