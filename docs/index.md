@@ -18,7 +18,27 @@ License: MIT or Apache-2.0
 
 ![A mammoth beside a bluefin tuna in a snowy prehistoric scene.](assets/mammoth-bluefinhero-1024x695.jpg)
 
-> **Sample preview:** [Open `sample.md` rendered by mdo](assets/sample.html). The preview page is generated from Markdown with the same runtime CSS pipeline and its own docs-only `--css` override.
+> sample.md rendered by mdo
+>
+> # Release Notes Draft
+>
+> `mdo` turns Markdown into a standalone HTML5 document with embedded styling.
+>
+> ## Open in Browser
+>
+> - [x] Convert Markdown once and exit
+> - [x] Open rendered output in the default browser
+> - [ ] Publish the first independent release
+>
+> ## Commands
+>
+> | Task | Command |
+> |---|---|
+> | Install | `cargo install mdo-cli` |
+> | Convert | `mdo notes.md` |
+> | Open | `mdo --open notes.md` |
+>
+> [Open the live sample preview](assets/sample.html).
 
 ## Why mdo?
 

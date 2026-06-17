@@ -1280,12 +1280,161 @@ body:has(> footer.mdo-generated) > main img {
   box-shadow: 0 18px 50px rgba(28, 36, 40, 0.12);
 }
 
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"]) {
+  position: relative;
+  margin: 32px 0 0;
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  img {
+  min-height: 440px;
+  object-position: center top;
+}
+
 body:has(> footer.mdo-generated) > main > blockquote {
   margin: 24px 0 0;
   border-color: var(--accent);
   border-radius: 8px;
   background: var(--panel-alt);
   color: var(--text);
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote {
+  position: relative;
+  z-index: 1;
+  width: min(430px, 52%);
+  min-height: 360px;
+  max-height: 390px;
+  margin: -460px 0 88px clamp(24px, 36%, 430px);
+  padding: 0 1.25rem 1.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(213, 225, 232, 0.92);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(7, 18, 24, 0.3);
+  color: #161d22;
+  font-style: normal;
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote::after {
+  content: "";
+  position: absolute;
+  top: 74px;
+  right: 6px;
+  width: 4px;
+  height: 132px;
+  border-radius: 999px;
+  background: rgba(37, 48, 55, 0.38);
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  > p:first-child {
+  position: relative;
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  margin: 0 -1.25rem 1.35rem;
+  padding: 0 7.8rem 0 1.1rem;
+  border-bottom: 1px solid #d9dde0;
+  background: #edf1f3;
+  color: #5c666b;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  > p:first-child::after {
+  content: "−   □   ×";
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  width: 8rem;
+  height: 100%;
+  place-items: center;
+  border-left: 1px solid rgba(139, 154, 162, 0.22);
+  color: #66757d;
+  font-size: 1.25rem;
+  letter-spacing: 0.42rem;
+  white-space: pre;
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  > :not(p:first-child) {
+  max-width: none;
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  h1 {
+  margin: 0 0 1.2rem;
+  color: #101820;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.12;
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  h2 {
+  margin: 2rem 0 1rem;
+  color: #101820;
+  font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  p,
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  li {
+  color: #101820;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  table {
+  width: 100%;
+  font-size: 0.82rem;
+}
+
+body:has(> footer.mdo-generated)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote
+  > p:last-child {
+  margin-top: 1rem;
+  font-size: 0.88rem;
 }
 
 body:has(> footer.mdo-generated) > main > h2 {
@@ -1320,6 +1469,25 @@ body:has(> footer.mdo-generated) > main :not(pre) > code {
   font-size: 0.95em;
 }
 
+@media (max-width: 760px) {
+  body:has(> footer.mdo-generated)
+    > main
+    > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+    img {
+    min-height: 390px;
+  }
+
+  body:has(> footer.mdo-generated)
+    > main
+    > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+    + blockquote {
+    width: calc(100% - 28px);
+    min-height: 300px;
+    max-height: 320px;
+    margin: -360px 14px 72px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1337,7 +1505,25 @@ Package: <code>mdo-cli</code><br>
 License: MIT or Apache-2.0</p>
 <p><img src="assets/mammoth-bluefinhero-1024x695.jpg" alt="A mammoth beside a bluefin tuna in a snowy prehistoric scene."></p>
 <blockquote>
-<p><strong>Sample preview:</strong> <a href="assets/sample.html" rel="noopener noreferrer">Open <code>sample.md</code> rendered by mdo</a>. The preview page is generated from Markdown with the same runtime CSS pipeline and its own docs-only <code>--css</code> override.</p>
+<p>sample.md rendered by mdo</p>
+<h1>Release Notes Draft</h1>
+<p><code>mdo</code> turns Markdown into a standalone HTML5 document with embedded styling.</p>
+<h2>Open in Browser</h2>
+<ul>
+<li><input type="checkbox" checked="" disabled="">
+Convert Markdown once and exit</li>
+<li><input type="checkbox" checked="" disabled="">
+Open rendered output in the default browser</li>
+<li><input type="checkbox" disabled="">
+Publish the first independent release</li>
+</ul>
+<h2>Commands</h2>
+<table><thead><tr><th>Task</th><th>Command</th></tr></thead><tbody>
+<tr><td>Install</td><td><code>cargo install mdo-cli</code></td></tr>
+<tr><td>Convert</td><td><code>mdo notes.md</code></td></tr>
+<tr><td>Open</td><td><code>mdo --open notes.md</code></td></tr>
+</tbody></table>
+<p><a href="assets/sample.html" rel="noopener noreferrer">Open the live sample preview</a>.</p>
 </blockquote>
 <h2>Why mdo?</h2>
 <p>Markdown is excellent for authoring and diffs, but long local Markdown files are calmer to read as browser-rendered HTML.</p>
