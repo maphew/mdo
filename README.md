@@ -186,10 +186,12 @@ used by normal mdo output:
 python scripts/build-docs.py
 ```
 
-The homepage source is `docs/index.source.html`; it uses `--unsafe-html --css
-docs/assets/site.css` so the mammoth/hero HTML and docs-only presentation are
-layered after mdo's embedded simple.css and typography defaults. The GitHub
-Pages workflow applies the same `--css docs/assets/site.css` override when it
+The homepage source is `docs/index.md`; it uses only Markdown and the `--css
+docs/assets/site.css` override so the docs-only presentation is layered after
+mdo's embedded simple.css and typography defaults. The sample preview source is
+`docs/assets/sample.md`; `scripts/build-docs.py` renders it with
+`docs/assets/sample.css` to demonstrate per-page CSS overrides. The GitHub Pages
+workflow applies the same `--css docs/assets/site.css` override when it
 generates ADR pages.
 
 Watch for changes and re-render on every save:

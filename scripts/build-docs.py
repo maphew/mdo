@@ -23,14 +23,15 @@ def run_mdo(*args: str) -> None:
 
 def main() -> int:
     run_mdo(
-        "--unsafe-html",
         "--css",
         "docs/assets/site.css",
         "--output",
         "docs/index.html",
-        "docs/index.source.html",
+        "docs/index.md",
     )
     run_mdo(
+        "--css",
+        "docs/assets/sample.css",
         "--output",
         "docs/assets/sample.html",
         "docs/assets/sample.md",
