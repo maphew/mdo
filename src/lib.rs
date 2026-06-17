@@ -260,6 +260,7 @@ fn wrap_html5(
     body: &str,
     title: &str,
     base_href: Option<&str>,
+    css_override: Option<&str>,
     render_duration: Duration,
     generated_date: &str,
 ) -> String {
@@ -271,6 +272,15 @@ fn wrap_html5(
         Some(href) => format!("<base href=\"{}\">\n", html_escape(href)),
         None => String::new(),
     };
+    let css_override_block = css_override
+        .filter(|css| !css.trim().is_empty())
+        .map(|css| {
+            format!(
+                "<style id=\"mdo-css-override\">\n/* Custom CSS from --css */\n{}\n</style>\n",
+                escape_style_end_tags(css)
+            )
+        })
+        .unwrap_or_default();
     let generator = format!("{APP_DISPLAY_NAME} {APP_VERSION}");
     let rendered_in = format_duration(render_duration);
     format!(
@@ -284,6 +294,7 @@ fn wrap_html5(
          <title>{title}</title>\n\
          <style>\n{css}\n.mdo-generated{{margin-top:3rem;border:0;padding:1rem 0 1.5rem;font-size:.8rem;line-height:1.4;color:var(--text-light);text-align:center}}\n.mdo-generated a{{color:inherit}}\n</style>\n\
          {theme_toggle}\
+         {css_override_block}\
          </head>\n\
          <body>\n\
          <main>\n{body}\n</main>\n\
@@ -295,6 +306,7 @@ fn wrap_html5(
         title = html_escape(title),
         css = SIMPLE_CSS,
         theme_toggle = THEME_TOGGLE, // ← THEME TOGGLE injection point (delete this line to remove)
+        css_override_block = css_override_block,
         body = body,
         homepage = html_escape(APP_HOMEPAGE),
         app = html_escape(APP_DISPLAY_NAME),
@@ -302,6 +314,32 @@ fn wrap_html5(
         rendered_in = html_escape(&rendered_in),
         generated_date = html_escape(generated_date),
     )
+}
+
+fn escape_style_end_tags(css: &str) -> String {
+    const STYLE_END_PREFIX: &[u8] = b"</style";
+
+    let mut escaped = String::with_capacity(css.len());
+    let bytes = css.as_bytes();
+    let mut i = 0;
+
+    while i < css.len() {
+        if i + STYLE_END_PREFIX.len() <= css.len()
+            && bytes[i..i + STYLE_END_PREFIX.len()].eq_ignore_ascii_case(STYLE_END_PREFIX)
+        {
+            escaped.push_str("<\\/style");
+            i += STYLE_END_PREFIX.len();
+        } else {
+            let ch = css[i..]
+                .chars()
+                .next()
+                .expect("index should always point at a char boundary");
+            escaped.push(ch);
+            i += ch.len_utf8();
+        }
+    }
+
+    escaped
 }
 
 fn format_duration(duration: Duration) -> String {
@@ -357,11 +395,37 @@ pub fn convert(
     unsafe_html: bool,
     private_output: bool,
 ) -> bool {
+    convert_with_css_override(input, output, bare, unsafe_html, private_output, None)
+}
+
+pub fn convert_with_css_override(
+    input: &Path,
+    output: &Path,
+    bare: bool,
+    unsafe_html: bool,
+    private_output: bool,
+    css_override: Option<&Path>,
+) -> bool {
     let markdown = match fs::read_to_string(input) {
         Ok(s) => s,
         Err(e) => {
             eprintln!("❌ Failed to read {:?}: {}", input, e);
             return false;
+        }
+    };
+
+    let css_override = if bare {
+        None
+    } else {
+        match css_override {
+            Some(path) => match fs::read_to_string(path) {
+                Ok(css) => Some(css),
+                Err(e) => {
+                    eprintln!("❌ Failed to read CSS override {:?}: {}", path, e);
+                    return false;
+                }
+            },
+            None => None,
         }
     };
 
@@ -394,6 +458,7 @@ pub fn convert(
             &body,
             &title,
             base_href.as_deref(),
+            css_override.as_deref(),
             render_duration,
             &utc_date_now(),
         )
@@ -533,6 +598,14 @@ mod tests {
         assert_eq!(format_duration(Duration::ZERO), "0.000s");
         assert_eq!(format_duration(Duration::from_nanos(1)), "0.001s");
         assert_eq!(format_duration(Duration::from_millis(340)), "0.340s");
+    }
+
+    #[test]
+    fn css_override_escapes_style_end_tags() {
+        let escaped = escape_style_end_tags("h1{} </STYLE><script>alert(1)</script>");
+
+        assert!(escaped.contains("<\\/style><script>"));
+        assert!(!escaped.to_ascii_lowercase().contains("</style><script>"));
     }
 
     #[test]

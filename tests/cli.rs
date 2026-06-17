@@ -92,6 +92,74 @@ fn converts_markdown_to_styled_html5_document() {
 }
 
 #[test]
+fn css_override_is_embedded_after_default_styles() {
+    let dir = fixture_dir("css-override");
+    let input = dir.join("sample.md");
+    let css = dir.join("override.css");
+    let output_path = dir.join("sample.html");
+    fs::write(&input, "# Sample Title\n\nA paragraph.\n")
+        .expect("failed to write markdown fixture");
+    fs::write(
+        &css,
+        "h1 { font-size: 1.75rem; }\nh2 { font-size: 1.35rem; }\n",
+    )
+    .expect("failed to write css fixture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--css")
+        .arg(&css)
+        .arg("--output")
+        .arg(&output_path)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let html = fs::read_to_string(output_path).expect("failed to read html output");
+    let theme_pos = html
+        .find("#theme-toggle")
+        .expect("styled output should contain theme toggle CSS");
+    let override_pos = html
+        .find("id=\"mdo-css-override\"")
+        .expect("styled output should contain CSS override block");
+
+    assert!(
+        override_pos > theme_pos,
+        "custom CSS should be appended after built-in styles"
+    );
+    assert!(html.contains("h1 { font-size: 1.75rem; }"));
+    assert!(html.contains("h2 { font-size: 1.35rem; }"));
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[test]
+fn css_override_cannot_be_combined_with_bare_output() {
+    let dir = fixture_dir("css-override-bare");
+    let input = dir.join("sample.md");
+    let css = dir.join("override.css");
+    fs::write(&input, "# Sample Title\n").expect("failed to write markdown fixture");
+    fs::write(&css, "h1 { font-size: 1.75rem; }\n").expect("failed to write css fixture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--bare")
+        .arg("--css")
+        .arg(&css)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(!output.status.success(), "mdo unexpectedly succeeded");
+    assert_eq!(output.status.code(), Some(2));
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("--css cannot be combined with --bare"));
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[test]
 fn bare_output_omits_document_shell() {
     let dir = fixture_dir("bare");
     let input = dir.join("fragment.md");

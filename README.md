@@ -17,6 +17,7 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 
 - ✅ Converts `.md` files to standalone HTML5 documents
 - 🎨 Pretty default styling via embedded [simple.css](https://simplecss.org/)
+- 🧩 `--css` flag appends your own CSS overrides after the bundled defaults
 - 🌓 Automatic light/dark mode (follows OS) plus a manual toggle button
 - 📄 `--bare` flag emits a sanitized HTML fragment (no `<html>`/`<head>`/`<body>`/CSS)
 - 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
@@ -100,6 +101,7 @@ Options:
                             or to a temp directory when --open is used). Existing files are overwritten
   -w, --watch               Watch the input file and re-render on every change
   -b, --bare                Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
+      --css <FILE>          Append a custom CSS file after mdo's default styling
       --unsafe-html         Preserve raw HTML from the Markdown source instead of sanitizing it
       --open                Render to a temp directory and launch the system default browser.
                             The source folder is left untouched unless --output is given
@@ -140,6 +142,12 @@ Emit a bare HTML fragment (useful for embedding in another template):
 
 ```bash
 mdo --bare input.md
+```
+
+Append custom CSS after the built-in styles to tune the default theme:
+
+```bash
+mdo --css my-overrides.css input.md
 ```
 
 Raw HTML from the Markdown source is sanitized by default. Preserve it only
@@ -317,6 +325,8 @@ The default (non-`--bare`) output is a complete HTML5 document:
   input filename)
 - An inlined copy of [simple.css](https://simplecss.org/) inside `<style>`,
   giving you sensible typography and automatic light/dark mode out of the box
+- Optional custom CSS from `--css <FILE>`, appended after the built-in styles
+  so rules such as `h1 { font-size: 1.75rem; }` can override simple.css
 - A small floating ☀/☾ button (top-right) for manually overriding the theme;
   the choice is remembered in `localStorage`
 - Body content wrapped in `<main>`

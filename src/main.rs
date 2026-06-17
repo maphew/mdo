@@ -19,6 +19,7 @@
 //! - `-o, --output <FILE>`  Write to `<FILE>` instead of the derived name
 //! - `-w, --watch`          Keep running and re-render on file changes
 //! - `-b, --bare`           Emit only the HTML fragment (no `<html>`, `<head>`, `<body>`, no CSS)
+//! - `--css <FILE>`         Append custom CSS after mdo's default styling
 //! - `--unsafe-html`        Preserve raw HTML from the Markdown source
 //! - `--tour`               Show a cautious first-run tour
 //!
@@ -36,7 +37,8 @@ use std::time::{Duration, Instant};
 
 use clap::Parser;
 use mdo_cli::{
-    convert, derive_output, file_manager, launch_browser, open_tour_sample, temp_output_for,
+    convert_with_css_override, derive_output, file_manager, launch_browser, open_tour_sample,
+    temp_output_for,
 };
 use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
 
@@ -59,6 +61,10 @@ struct Cli {
     /// Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
     #[arg(short, long)]
     bare: bool,
+
+    /// Append a custom CSS file after mdo's default styling
+    #[arg(long, value_name = "FILE")]
+    css: Option<PathBuf>,
 
     /// Preserve raw HTML from the Markdown source instead of sanitizing it
     #[arg(long)]
@@ -218,6 +224,7 @@ fn main() -> notify::Result<()> {
             || args.output.is_some()
             || args.watch
             || args.bare
+            || args.css.is_some()
             || args.unsafe_html
             || args.open
             || args.install_file_manager
@@ -241,11 +248,17 @@ fn main() -> notify::Result<()> {
         std::process::exit(2);
     }
 
+    if args.bare && args.css.is_some() {
+        eprintln!("❌ --css cannot be combined with --bare because bare output emits no CSS");
+        std::process::exit(2);
+    }
+
     if args.install_file_manager || args.uninstall_file_manager {
         if args.input.is_some()
             || args.output.is_some()
             || args.watch
             || args.bare
+            || args.css.is_some()
             || args.unsafe_html
             || args.open
             || args.tour
@@ -303,7 +316,14 @@ fn main() -> notify::Result<()> {
         (None, false) => (derive_output(&input), false),
     };
 
-    let converted = convert(&input, &output, args.bare, args.unsafe_html, private_output);
+    let converted = convert_with_css_override(
+        &input,
+        &output,
+        args.bare,
+        args.unsafe_html,
+        private_output,
+        args.css.as_deref(),
+    );
 
     if args.open && converted {
         match launch_browser(&output) {
@@ -334,7 +354,14 @@ fn main() -> notify::Result<()> {
                         continue;
                     }
                     println!("🔁 File changed, re-rendering...");
-                    convert(&input, &output, args.bare, args.unsafe_html, private_output);
+                    convert_with_css_override(
+                        &input,
+                        &output,
+                        args.bare,
+                        args.unsafe_html,
+                        private_output,
+                        args.css.as_deref(),
+                    );
                     last_render = Instant::now();
                 }
             }
