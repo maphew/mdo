@@ -1012,6 +1012,20 @@ a {
   gap: 14px;
 }
 
+.install-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.install-card .code-block {
+  margin: 0;
+}
+
+.install-card-wide {
+  grid-column: span 2;
+}
+
 .platform-card .code-block {
   margin: 0;
 }
@@ -1093,6 +1107,10 @@ a {
 
   .platform-grid {
     grid-template-columns: 1fr;
+  }
+
+  .install-card-wide {
+    grid-column: auto;
   }
 
   .preview-shell {

@@ -1,6 +1,6 @@
 <!--
 Generated with mdo's runtime CSS plus docs/assets/site.css override:
-  cargo run -- --unsafe-html --css docs/assets/site.css -o docs/index.html docs/index.md
+  cargo run -- --unsafe-html --css docs/assets/site.css -o docs/index.html docs/index.source.html
 Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it as HTML.
 -->
 <div class="docs-home">
@@ -204,43 +204,45 @@ Keep the raw docs-home HTML block free of blank lines so CommonMark preserves it
             <div class="section-heading">
                 <h2>Install</h2>
                 <p>
-                    The Rust package is named <code>mdo-cli</code> because the bare
-                    <code>mdo</code> crate name is already occupied. The installed command
-                    is still <code>mdo</code>.
+                    Start with the hosted installer unless you already use Rust. It fetches
+                    the latest GitHub Release, verifies <code>SHA256SUMS</code>, and installs
+                    <code>mdo</code> into a user-local bin directory.
                 </p>
             </div>
-            <div class="grid">
-                <div class="step">
-                    <h3>Cargo</h3>
+            <div class="grid install-grid">
+                <div class="step install-card install-card-wide">
+                    <h3>Linux and macOS</h3>
+                    <pre class="code-block"><code>curl -fsSL https://maphew.github.io/mdo/install.sh | sh</code></pre>
+                    <p>
+                        Installs to <code>$HOME/.local/bin</code> by default. Set
+                        <code>MDO_INSTALL_DIR</code> first to choose another directory.
+                    </p>
+                </div>
+                <div class="step install-card install-card-wide">
+                    <h3>Windows PowerShell</h3>
+                    <pre class="code-block"><code>irm https://maphew.github.io/mdo/install.ps1 | iex</code></pre>
+                    <p>
+                        Installs to <code>%LOCALAPPDATA%\mdo\bin</code> by default and
+                        adds that directory to your user <code>PATH</code> when needed.
+                    </p>
+                </div>
+                <div class="step install-card">
+                    <h3>Cargo for Rust developers</h3>
                     <pre class="code-block"><code>cargo install mdo-cli
 mdo --version</code></pre>
                     <p>
-                        Cargo builds from source. On Windows with the
-                        <code>*-pc-windows-msvc</code> target, install
-                        Visual Studio Build Tools with Desktop development
-                        with C++ first; <code>link.exe not found</code>
-                        means the MSVC linker is missing.
+                        Cargo builds from source, so native downloads are usually simpler
+                        for non-Rust users.
                     </p>
                 </div>
-                <div class="step">
-                    <h3>GitHub Releases</h3>
+                <div class="step install-card">
+                    <h3>Manual archives</h3>
                     <p>
-                        Download native archives for Linux, Windows, and macOS from the
-                        release page, then verify them with <code>SHA256SUMS</code>.
-                        Linux and Windows users can use the native archives without
-                        installing Rust. The Linux archive includes <code>mdo-setup</code>
-                        and the Windows ZIP includes <code>mdo-setup.exe</code> for a native
-                        first-run setup window, while <code>mdo</code> remains the
-                        command-line tool. On Linux, the setup window uses
-                        <code>zenity</code>, <code>kdialog</code>, or <code>yad</code> when
-                        available.
+                        Release archives and <code>SHA256SUMS</code> are available from
+                        <a href="https://github.com/maphew/mdo/releases">GitHub Releases</a>.
+                        Linux and Windows archives include the setup helper for guided
+                        file-manager integration.
                     </p>
-                </div>
-                <div class="step">
-                    <h3>From Source</h3>
-                    <pre class="code-block"><code>gh repo clone maphew/mdo
-cd mdo
-cargo build --release</code></pre>
                 </div>
             </div>
         </div>

@@ -28,7 +28,7 @@ def main() -> int:
         "docs/assets/site.css",
         "--output",
         "docs/index.html",
-        "docs/index.md",
+        "docs/index.source.html",
     )
     run_mdo(
         "--output",

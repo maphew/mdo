@@ -95,17 +95,21 @@ vendored simple.css typography</li>
 <hr>
 <h2>📦 Installation</h2>
 <h3>Native downloads</h3>
-<p>Download native archives for Linux, macOS, and Windows from
-<a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">GitHub Releases</a>, then verify them
-with the accompanying <code>SHA256SUMS</code> file. The Linux archive includes <code>mdo</code>,
-<code>mdo-open</code>, and <code>mdo-setup</code>; the Windows ZIP includes <code>mdo.exe</code>,
-<code>mdo-open.exe</code>, and <code>mdo-setup.exe</code>, so you can use <code>mdo</code> without installing
-Rust, Visual Studio, or the MSVC build tools. <code>mdo</code> stays the normal
-command-line tool; double-click <code>mdo-setup</code> / <code>mdo-setup.exe</code> for a native
-first-run window that can install file-manager integration without opening a
-terminal. On Linux, <code>mdo-setup</code> uses <code>zenity</code>, <code>kdialog</code>, or <code>yad</code> if one is
-available.</p>
-<h3>From crates.io</h3>
+<p>Use the hosted installer when you want <code>mdo</code> without installing Rust.</p>
+<p>Linux and macOS:</p>
+<pre><code class="language-bash">curl -fsSL https://maphew.github.io/mdo/install.sh | sh
+</code></pre>
+<p>Windows PowerShell:</p>
+<pre><code class="language-powershell">irm https://maphew.github.io/mdo/install.ps1 | iex
+</code></pre>
+<p>The scripts install the latest GitHub Release into <code>$HOME/.local/bin</code> on Linux
+and macOS, or <code>%LOCALAPPDATA%\mdo\bin</code> on Windows. They verify the release
+archive against <code>SHA256SUMS</code>, install the companion launcher where available,
+and print <code>mdo --version</code> when finished. Set <code>MDO_INSTALL_DIR</code> first to choose a
+different install directory.</p>
+<p>Manual archives remain available on
+<a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">GitHub Releases</a>.</p>
+<h3>Cargo for Rust developers</h3>
 <pre><code class="language-bash">cargo install mdo-cli
 </code></pre>
 <p><code>cargo install</code> builds from source and therefore needs a working Rust build
@@ -188,7 +192,7 @@ when the source is trusted:</p>
 used by normal mdo output:</p>
 <pre><code class="language-bash">python scripts/build-docs.py
 </code></pre>
-<p>The homepage source is <code>docs/index.md</code>; it uses <code>--unsafe-html --css docs/assets/site.css</code> so the mammoth/hero HTML and docs-only presentation are
+<p>The homepage source is <code>docs/index.source.html</code>; it uses <code>--unsafe-html --css  docs/assets/site.css</code> so the mammoth/hero HTML and docs-only presentation are
 layered after mdo's embedded simple.css and typography defaults. The GitHub
 Pages workflow applies the same <code>--css docs/assets/site.css</code> override when it
 generates ADR pages.</p>

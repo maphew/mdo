@@ -45,18 +45,30 @@ Mdo + file-manager integration creates html pages so quickly they are throw-away
 
 ### Native downloads
 
-Download native archives for Linux, macOS, and Windows from
-[GitHub Releases](https://github.com/maphew/mdo/releases), then verify them
-with the accompanying `SHA256SUMS` file. The Linux archive includes `mdo`,
-`mdo-open`, and `mdo-setup`; the Windows ZIP includes `mdo.exe`,
-`mdo-open.exe`, and `mdo-setup.exe`, so you can use `mdo` without installing
-Rust, Visual Studio, or the MSVC build tools. `mdo` stays the normal
-command-line tool; double-click `mdo-setup` / `mdo-setup.exe` for a native
-first-run window that can install file-manager integration without opening a
-terminal. On Linux, `mdo-setup` uses `zenity`, `kdialog`, or `yad` if one is
-available.
+Use the hosted installer when you want `mdo` without installing Rust.
 
-### From crates.io
+Linux and macOS:
+
+```bash
+curl -fsSL https://maphew.github.io/mdo/install.sh | sh
+```
+
+Windows PowerShell:
+
+```powershell
+irm https://maphew.github.io/mdo/install.ps1 | iex
+```
+
+The scripts install the latest GitHub Release into `$HOME/.local/bin` on Linux
+and macOS, or `%LOCALAPPDATA%\mdo\bin` on Windows. They verify the release
+archive against `SHA256SUMS`, install the companion launcher where available,
+and print `mdo --version` when finished. Set `MDO_INSTALL_DIR` first to choose a
+different install directory.
+
+Manual archives remain available on
+[GitHub Releases](https://github.com/maphew/mdo/releases).
+
+### Cargo for Rust developers
 
 ```bash
 cargo install mdo-cli
@@ -174,7 +186,7 @@ used by normal mdo output:
 python scripts/build-docs.py
 ```
 
-The homepage source is `docs/index.md`; it uses `--unsafe-html --css
+The homepage source is `docs/index.source.html`; it uses `--unsafe-html --css
 docs/assets/site.css` so the mammoth/hero HTML and docs-only presentation are
 layered after mdo's embedded simple.css and typography defaults. The GitHub
 Pages workflow applies the same `--css docs/assets/site.css` override when it
