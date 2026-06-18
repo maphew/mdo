@@ -255,15 +255,16 @@ flow. In scripts or other non-interactive contexts, no-argument `mdo` still
 exits with a usage error and suggests `mdo --tour`.
 
 On Windows, double-click `mdo-setup.exe` to open that same terminal tour in a
-fresh console — the no-terminal entry point for Explorer users. On Linux, run
-`mdo-setup` to get the tour in your `$TERMINAL` or a known terminal emulator
+fresh Windows Terminal (`wt`) window, falling back to a plain new console if
+`wt` is unavailable — the no-terminal entry point for Explorer users. On
+Linux, run `mdo-setup` to get the tour in your `$TERMINAL` or a known terminal emulator
 (`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open`
 runs when launched with no file. Double-clicking the bare `mdo-setup` binary from
 a file manager is not reliable on Linux, so prefer `mdo --tour` from a shell.
 This preserves `mdo` as the normal CLI. On Windows, launching `mdo-open.exe`
-directly with no file opens the terminal tour in a fresh Windows Terminal (`wt`)
-window using the **One Half Light** color scheme, centered on the active display;
-if `wt` is unavailable it falls back to `mdo-setup.exe` when present.
+directly with no file opens the same terminal tour in a fresh Windows Terminal
+(`wt`) window using the **One Half Light** color scheme, centered on the active
+display; if `wt` is unavailable it falls back to a plain new console.
 
 ---
 
@@ -315,10 +316,11 @@ Result examples after install:
 
 `mdo.exe` can install or remove its own per-user Explorer integration (no
 admin rights and no HKLM changes). Windows release ZIPs also include
-`mdo-setup.exe`, which opens the same first-run tour in a new console window:
+`mdo-setup.exe`, which opens the same first-run tour in Windows Terminal
+(`wt`) when available, falling back to a new console window:
 
 ```powershell
-# Open the first-run tour in a console (offers the optional Explorer integration install)
+# Open the first-run tour (offers the optional Explorer integration install)
 .\mdo-setup.exe
 
 # CLI install: add an "Open as HTML" right-click verb and Open With app entry
@@ -337,9 +339,9 @@ for file-manager integration. The Windows binaries embed the mdo icon; the
 installer also writes that icon to a per-user path and registers both `mdo.exe`
 and `mdo-open.exe` with the friendly app name **Open as HTML**, so Windows
 "Open with" surfaces do not need to expose the wrapper binary name. If you
-launch `mdo-open.exe` directly with no file, it opens the terminal tour in a
+launch `mdo-open.exe` directly with no file, it opens the same terminal tour in a
 fresh `wt` window with the **One Half Light** color scheme and centers it on the
-active display, falling back to `mdo-setup.exe` when `wt` cannot be started.
+active display, falling back to a plain new console when `wt` cannot be started.
 
 To make **Open as HTML** the *default* `.md` handler after running the install
 command, right-click a `.md` file → **Open with → Choose another app** →

@@ -284,19 +284,12 @@ mod linux_setup {
 mod windows_setup {
     use std::io;
     use std::iter;
-    use std::os::windows::process::CommandExt;
     use std::path::PathBuf;
-    use std::process::Command;
     use std::ptr;
 
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         MessageBoxW, MB_ICONERROR, MB_OK, MESSAGEBOX_STYLE,
     };
-
-    // CREATE_NEW_CONSOLE: give the console-subsystem mdo.exe its own visible
-    // console window. mdo-setup.exe is a GUI-subsystem process with no console
-    // of its own, so without this the tour would have nowhere to draw.
-    const CREATE_NEW_CONSOLE: u32 = 0x0000_0010;
 
     pub fn run() -> io::Result<()> {
         let mdo = sibling_binary("mdo.exe")?;
@@ -310,14 +303,10 @@ mod windows_setup {
             ));
         }
 
-        // Open the single-screen terminal tour in a fresh console. This is the
-        // fallback path when Windows Terminal (`wt`) is unavailable; `mdo-open`
-        // prefers `wt` and only reaches here when it cannot be started.
-        Command::new(&mdo)
-            .arg("--tour")
-            .creation_flags(CREATE_NEW_CONSOLE)
-            .spawn()?;
-        Ok(())
+        // Match the no-file `mdo-open.exe` onboarding path: prefer Windows
+        // Terminal for a styled, centered tour, then fall back to a plain new
+        // console if `wt` cannot be started.
+        mdo_cli::windows_tour::spawn_terminal_tour(&mdo)
     }
 
     pub fn error_dialog(title: &str, main_instruction: &str, content: &str) {
