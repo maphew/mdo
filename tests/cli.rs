@@ -413,7 +413,13 @@ fn open_output_refuses_precreated_symlink() {
         .output()
         .expect("failed to run mdo");
 
-    assert!(output.status.success(), "mdo failed: {output:?}");
+    // Refusing the pre-created symlink means nothing was rendered, so mdo now
+    // exits non-zero (so scripts/pipelines can detect it). The safe no-op is
+    // still enforced by the assertions below.
+    assert!(
+        !output.status.success(),
+        "mdo should exit non-zero when it refuses the symlinked output: {output:?}"
+    );
     let target_contents = fs::read_to_string(&target).expect("failed to read symlink target");
     assert_eq!(target_contents, "do not overwrite");
     assert!(

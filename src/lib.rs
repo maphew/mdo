@@ -29,7 +29,8 @@ pub const TOUR_SAMPLE_MARKDOWN: &str = "\
 If you are reading this in your browser, mdo rendered Markdown as HTML and
 opened it successfully.
 
-Next, try **Open as HTML** (double-click) on any `.md` file you want to read.
+Next, right-click any `.md` file and choose **Open as HTML** to read it this way.
+If you make mdo your default Markdown app, a double-click does the same.
 ";
 const UNSAFE_TEMP_OUTPUT_STEM_CHARS: &[char] = &[
     '&', '^', '%', '(', ')', '!', '"', '\'', '<', '>', '|', ';', '`', '$', '\\', '/', ':',
@@ -216,9 +217,48 @@ pub fn launch_browser(path: &Path) -> std::io::Result<()> {
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     {
-        std::process::Command::new("xdg-open").arg(path).spawn()?;
+        launch_via_xdg_open(path)?;
     }
     Ok(())
+}
+
+/// Open `path` with the first available freedesktop opener. Falls back through
+/// common launchers when `xdg-open` (xdg-utils) is not installed, and reaps the
+/// launcher process in a detached thread so it does not linger as a zombie
+/// during long `--watch` sessions. We never wait on the browser itself, so the
+/// call stays effectively fire-and-forget.
+#[cfg(all(unix, not(target_os = "macos")))]
+fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
+    const OPENERS: &[(&str, &[&str])] = &[
+        ("xdg-open", &[]),
+        ("gio", &["open"]),
+        ("gnome-open", &[]),
+        ("kde-open5", &[]),
+        ("kde-open", &[]),
+        ("wslview", &[]),
+    ];
+
+    let mut last_err = None;
+    for (program, leading) in OPENERS {
+        let mut command = std::process::Command::new(program);
+        command.args(*leading).arg(path);
+        match command.spawn() {
+            Ok(mut child) => {
+                std::thread::spawn(move || {
+                    let _ = child.wait();
+                });
+                return Ok(());
+            }
+            Err(e) => last_err = Some(e),
+        }
+    }
+
+    Err(last_err.unwrap_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::NotFound,
+            "no desktop opener found (install xdg-utils)",
+        )
+    }))
 }
 
 fn render_markdown(markdown: &str, unsafe_html: bool) -> String {
@@ -252,9 +292,23 @@ fn sanitize_html(html: &str) -> String {
 }
 
 fn derive_title(markdown: &str, fallback: &str) -> String {
+    let mut fence: Option<char> = None;
     for line in markdown.lines() {
-        let trimmed = line.trim();
-        if let Some(rest) = trimmed.strip_prefix("# ") {
+        let trimmed = line.trim_start();
+        // Track fenced code blocks so a heading inside ``` or ~~~ is not
+        // mistaken for the document title.
+        if let Some(marker) = code_fence_marker(trimmed) {
+            match fence {
+                Some(open) if open == marker => fence = None,
+                Some(_) => {}
+                None => fence = Some(marker),
+            }
+            continue;
+        }
+        if fence.is_some() {
+            continue;
+        }
+        if let Some(rest) = trimmed.trim_end().strip_prefix("# ") {
             return rest.trim().to_string();
         }
     }
@@ -262,6 +316,18 @@ fn derive_title(markdown: &str, fallback: &str) -> String {
         return title;
     }
     fallback.to_string()
+}
+
+/// Detect a code-fence line, returning its marker char when the line starts
+/// with at least three backticks or tildes.
+fn code_fence_marker(trimmed_start: &str) -> Option<char> {
+    if trimmed_start.starts_with("```") {
+        Some('`')
+    } else if trimmed_start.starts_with("~~~") {
+        Some('~')
+    } else {
+        None
+    }
 }
 
 fn derive_raw_html_h1_title(markdown: &str) -> Option<String> {
@@ -676,6 +742,18 @@ mod tests {
         );
 
         assert_eq!(title, "Project Home");
+    }
+
+    #[test]
+    fn derive_title_ignores_headings_in_code_fences() {
+        let markdown = "```sh\n# not a title\n```\n\n# Real Title\n";
+        assert_eq!(derive_title(markdown, "fallback"), "Real Title");
+    }
+
+    #[test]
+    fn derive_title_falls_back_when_only_heading_is_fenced() {
+        let markdown = "~~~\n# fenced heading\n~~~\n";
+        assert_eq!(derive_title(markdown, "Fallback Title"), "Fallback Title");
     }
 
     #[test]

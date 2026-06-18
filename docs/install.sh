@@ -87,3 +87,13 @@ done
 
 echo "mdo installed to ${install_dir}"
 "${install_dir}/mdo" --version
+
+case ":${PATH}:" in
+  *":${install_dir}:"*) ;;
+  *)
+    echo ""
+    echo "Note: ${install_dir} is not on your PATH."
+    echo "Add it by appending this line to your shell profile (e.g. ~/.profile, ~/.bashrc, or ~/.zshrc):"
+    echo "  export PATH=\"${install_dir}:\$PATH\""
+    ;;
+esac

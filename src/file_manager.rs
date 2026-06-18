@@ -62,36 +62,41 @@ pub fn install_linux_for_exe(current_exe: &Path, set_default: bool) -> io::Resul
     }
 
     run_optional("update-desktop-database", &[desktop_dir.as_os_str()]);
-    run_optional(
-        "gtk-update-icon-cache",
-        &[std::ffi::OsStr::new("-q"), icon_root.as_os_str()],
-    );
 
-    if set_default {
-        run_optional(
-            "xdg-mime",
-            &[
-                std::ffi::OsStr::new("default"),
-                std::ffi::OsStr::new(DESKTOP_FILE_NAME),
-                std::ffi::OsStr::new("text/markdown"),
-            ],
-        );
-        run_optional(
-            "xdg-mime",
-            &[
-                std::ffi::OsStr::new("default"),
-                std::ffi::OsStr::new(DESKTOP_FILE_NAME),
-                std::ffi::OsStr::new("text/x-markdown"),
-            ],
-        );
-    }
+    // A scalable SVG under hicolor/scalable/apps is resolved by name, so it
+    // needs no icon-cache refresh; gtk-update-icon-cache on a user theme dir
+    // without an index.theme just fails. Skip it.
+
+    let default_set = if set_default {
+        let mut ok = false;
+        for mime in ["text/markdown", "text/x-markdown"] {
+            ok |= run_optional_status(
+                "xdg-mime",
+                &[
+                    std::ffi::OsStr::new("default"),
+                    std::ffi::OsStr::new(DESKTOP_FILE_NAME),
+                    std::ffi::OsStr::new(mime),
+                ],
+            );
+        }
+        ok
+    } else {
+        false
+    };
 
     remove_legacy_nautilus_scripts(&data_home)?;
 
     println!("Installed desktop entry: {}", desktop_file.display());
     println!("Installed icon: {}", icon_file.display());
     if set_default {
-        println!("{APP_DISPLAY_NAME} is now the default Markdown handler.");
+        if default_set {
+            println!("{APP_DISPLAY_NAME} is now the default Markdown handler.");
+        } else {
+            println!(
+                "Could not set {APP_DISPLAY_NAME} as the default automatically (is xdg-mime installed?)."
+            );
+            println!("To set it manually, run: xdg-mime default {DESKTOP_FILE_NAME} text/markdown");
+        }
     } else {
         println!(
             "{APP_DISPLAY_NAME} is available from Open With without changing your default Markdown handler."
@@ -118,10 +123,6 @@ fn uninstall_impl() -> io::Result<()> {
     }
 
     run_optional("update-desktop-database", &[desktop_dir.as_os_str()]);
-    run_optional(
-        "gtk-update-icon-cache",
-        &[std::ffi::OsStr::new("-q"), icon_root.as_os_str()],
-    );
 
     println!("Done.");
     Ok(())
@@ -277,6 +278,15 @@ fn quote_desktop_exec_arg(value: &str) -> String {
 #[cfg(target_os = "linux")]
 fn run_optional(program: &str, args: &[&std::ffi::OsStr]) {
     let _ = Command::new(program).args(args).status();
+}
+
+#[cfg(target_os = "linux")]
+fn run_optional_status(program: &str, args: &[&std::ffi::OsStr]) -> bool {
+    Command::new(program)
+        .args(args)
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
 }
 
 #[cfg(target_os = "linux")]

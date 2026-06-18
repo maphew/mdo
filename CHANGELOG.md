@@ -3,6 +3,12 @@
 ## Unreleased
 
 - Replace the `mdo-setup` multi-dialog onboarding with a launcher for the single-screen `mdo --tour`: Linux opens a terminal emulator (`$TERMINAL` or a known one such as `gnome-terminal`/`konsole`/`xterm`, with a `zenity`/`kdialog`/`yad` fallback notice), and the Windows `wt`-unavailable fallback opens `mdo --tour` in a new console. This drops the chain of `[OK]` dialogs in favor of the one-screen, single Y/N tour and avoids the dialog-dismiss and missing-backend failures of the old flow.
+- Exit non-zero from `mdo` when a one-shot render fails (refused symlinked output, temp-dir setup failure, or conversion failure) so scripts and the docs pipeline can detect errors; `--watch` keeps running.
+- Linux: fall back through `gio open` / `gnome-open` / `kde-open` / `wslview` when `xdg-open` is missing, and reap the launcher so it does not linger as a zombie during long `--watch` sessions.
+- Linux: only report "is now the default Markdown handler" when `xdg-mime` actually succeeds (otherwise print the manual command), and drop the no-op `gtk-update-icon-cache` calls.
+- Do not treat a heading inside a fenced code block as the document title.
+- `docs/install.sh`: warn and show how to add the install directory to `PATH` when it is not already present, matching `install.ps1`.
+- Reword the welcome-sample tip to match what setup installs (right-click → **Open as HTML**) instead of implying double-click works by default.
 
 ## 0.4.0 - 2026-06-17
 

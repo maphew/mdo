@@ -310,7 +310,7 @@ fn main() -> notify::Result<()> {
             Ok(path) => (path, true),
             Err(e) => {
                 eprintln!("❌ Failed to prepare temp output directory: {}", e);
-                return Ok(());
+                std::process::exit(1);
             }
         },
         (None, false) => (derive_output(&input), false),
@@ -333,7 +333,13 @@ fn main() -> notify::Result<()> {
     }
 
     if !args.watch {
-        return Ok(());
+        // Exit non-zero on a failed one-shot render so scripts and the docs
+        // pipeline can detect errors. In watch mode we keep running so the
+        // next successful edit re-renders.
+        if converted {
+            return Ok(());
+        }
+        std::process::exit(1);
     }
 
     let (tx, rx) = channel();
