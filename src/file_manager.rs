@@ -96,6 +96,7 @@ pub fn install_linux_for_exe(current_exe: &Path, set_default: bool) -> io::Resul
                 "Could not set {APP_DISPLAY_NAME} as the default automatically (is xdg-mime installed?)."
             );
             println!("To set it manually, run: xdg-mime default {DESKTOP_FILE_NAME} text/markdown");
+            println!("(and the same for text/x-markdown)");
         }
     } else {
         println!(
@@ -277,7 +278,7 @@ fn quote_desktop_exec_arg(value: &str) -> String {
 
 #[cfg(target_os = "linux")]
 fn run_optional(program: &str, args: &[&std::ffi::OsStr]) {
-    let _ = Command::new(program).args(args).status();
+    let _ = run_optional_status(program, args);
 }
 
 #[cfg(target_os = "linux")]

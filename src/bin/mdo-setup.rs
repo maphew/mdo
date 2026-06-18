@@ -53,15 +53,21 @@ mod linux_setup {
     use std::ffi::OsString;
     use std::io::{self, IsTerminal};
     use std::path::{Path, PathBuf};
-    use std::process::{Command, ExitStatus};
+    use std::process::Command;
 
     /// Terminal emulators we know how to launch a command in, in preference
     /// order, each paired with the option(s) that introduce the command and
     /// its arguments as a real argv (never a shell string, so paths with
     /// spaces are safe). `tilix` and friends that take `-e "cmd string"` are
     /// intentionally omitted to avoid quoting ambiguity.
+    ///
+    /// The named terminals come first because their argument semantics are
+    /// known and stable. `x-terminal-emulator` is the Debian "alternatives"
+    /// indirection: its `-e` is delegated to whatever it points at (often
+    /// gnome-terminal, whose legacy `-e` shell-splits and would orphan
+    /// `--tour`), so it is a best-effort last resort, tried only after the
+    /// terminals we control.
     const TERMINALS: &[(&str, &[&str])] = &[
-        ("x-terminal-emulator", &["-e"]),
         ("gnome-terminal", &["--"]),
         ("konsole", &["-e"]),
         ("xfce4-terminal", &["-x"]),
@@ -71,6 +77,7 @@ mod linux_setup {
         ("wezterm", &["start", "--"]),
         ("foot", &[]),
         ("xterm", &["-e"]),
+        ("x-terminal-emulator", &["-e"]),
     ];
 
     pub fn run() -> io::Result<()> {
@@ -83,10 +90,13 @@ mod linux_setup {
         }
 
         // Already attached to a terminal (e.g. run from a shell): show the tour
-        // right here instead of spawning a second window.
+        // right here instead of spawning a second window. The `?` still
+        // propagates a genuine spawn failure (e.g. mdo missing), but a nonzero
+        // tour exit is the tour's own business — it surfaces its own errors, so
+        // we do not re-report it as "could not start the tour".
         if io::stdin().is_terminal() && io::stdout().is_terminal() {
-            let status = Command::new(&mdo).arg("--tour").status()?;
-            return ensure_success(status, "mdo --tour");
+            Command::new(&mdo).arg("--tour").status()?;
+            return Ok(());
         }
 
         // Launched from a file manager with no terminal: open one and run the
@@ -96,16 +106,14 @@ mod linux_setup {
         }
 
         // No terminal emulator on PATH: point the user at the CLI tour rather
-        // than failing invisibly.
+        // than failing invisibly. We report here and return Ok so main() does
+        // not pop a second, redundant error dialog.
         error_dialog(
             "mdo setup needs a terminal",
             "Could not find a terminal program to open",
             "Install a terminal emulator (for example gnome-terminal, konsole, or xterm), then run `mdo --tour` to finish onboarding.",
         );
-        Err(io::Error::new(
-            io::ErrorKind::NotFound,
-            "no terminal emulator found on PATH",
-        ))
+        Ok(())
     }
 
     fn spawn_tour_in_terminal(mdo: &Path) -> bool {
@@ -215,16 +223,6 @@ mod linux_setup {
         std::env::var_os("PATH")
             .map(|path| std::env::split_paths(&path).any(|dir| dir.join(program).is_file()))
             .unwrap_or(false)
-    }
-
-    fn ensure_success(status: ExitStatus, action: &str) -> io::Result<()> {
-        if status.success() {
-            Ok(())
-        } else {
-            Err(io::Error::other(format!(
-                "{action} exited with status {status}"
-            )))
-        }
     }
 
     fn sibling_binary(name: &str) -> io::Result<PathBuf> {

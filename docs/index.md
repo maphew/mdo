@@ -107,7 +107,7 @@ The tour explains the render-and-open workflow, the normal convert-once command,
 
 Running `mdo` with no arguments in an interactive terminal shows the same tour. On Windows and Linux it can offer to install **Open as HTML** for the current user only. The default answer is **Yes**, but mdo still does not change the default Markdown app. Choose **No** to skip or run the installer again later.
 
-After you press Enter to close the tour, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows and Linux release builds, `mdo-setup` / `mdo-setup.exe` opens that same terminal tour in a fresh terminal window — a no-terminal-required entry point for file-manager users. On Linux it launches your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`, `xterm`, and others); on Windows it opens a new console.
+After you press Enter to close the tour, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same terminal tour in a fresh console. On Linux, run `mdo-setup` to get the tour in your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open` runs when launched with no file. Double-clicking the bare binary from a file manager is not reliable on Linux, so prefer `mdo --tour` from a shell.
 
 On Windows, launching `mdo-open.exe` directly with no file opens the terminal tour in a fresh Windows Terminal (`wt`) window using the **One Half Light** color scheme, centered on the active display; if `wt` is unavailable, it falls back to `mdo-setup.exe` when present.
 

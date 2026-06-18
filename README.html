@@ -238,15 +238,16 @@ installer again later. After you press Enter to close the tour, mdo renders and
 opens a short welcome sample so you can immediately verify the browser-opening
 flow. In scripts or other non-interactive contexts, no-argument <code>mdo</code> still
 exits with a usage error and suggests <code>mdo --tour</code>.</p>
-<p>On Windows and Linux release builds, double-click <code>mdo-setup</code> /
-<code>mdo-setup.exe</code> to open that same terminal tour in a fresh terminal window — the
-no-terminal-required entry point for file-manager users. On Linux it launches
-your <code>$TERMINAL</code> or a known terminal emulator (<code>gnome-terminal</code>, <code>konsole</code>,
-<code>xterm</code>, and others); on Windows it opens a new console. This preserves <code>mdo</code> as
-the normal CLI. On Windows, launching <code>mdo-open.exe</code> directly with no file opens
-the terminal tour in a fresh Windows Terminal (<code>wt</code>) window using the <strong>One Half
-Light</strong> color scheme, centered on the active display; if <code>wt</code> is unavailable it
-falls back to <code>mdo-setup.exe</code> when present.</p>
+<p>On Windows, double-click <code>mdo-setup.exe</code> to open that same terminal tour in a
+fresh console — the no-terminal entry point for Explorer users. On Linux, run
+<code>mdo-setup</code> to get the tour in your <code>$TERMINAL</code> or a known terminal emulator
+(<code>gnome-terminal</code>, <code>konsole</code>, <code>xterm</code>, and others); it is also what <code>mdo-open</code>
+runs when launched with no file. Double-clicking the bare <code>mdo-setup</code> binary from
+a file manager is not reliable on Linux, so prefer <code>mdo --tour</code> from a shell.
+This preserves <code>mdo</code> as the normal CLI. On Windows, launching <code>mdo-open.exe</code>
+directly with no file opens the terminal tour in a fresh Windows Terminal (<code>wt</code>)
+window using the <strong>One Half Light</strong> color scheme, centered on the active display;
+if <code>wt</code> is unavailable it falls back to <code>mdo-setup.exe</code> when present.</p>
 <hr>
 <h2>Linux file manager integration</h2>
 <p><code>mdo</code> can install or remove its own per-user XDG file-manager integration;

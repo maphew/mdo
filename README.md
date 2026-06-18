@@ -254,15 +254,16 @@ opens a short welcome sample so you can immediately verify the browser-opening
 flow. In scripts or other non-interactive contexts, no-argument `mdo` still
 exits with a usage error and suggests `mdo --tour`.
 
-On Windows and Linux release builds, double-click `mdo-setup` /
-`mdo-setup.exe` to open that same terminal tour in a fresh terminal window — the
-no-terminal-required entry point for file-manager users. On Linux it launches
-your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`,
-`xterm`, and others); on Windows it opens a new console. This preserves `mdo` as
-the normal CLI. On Windows, launching `mdo-open.exe` directly with no file opens
-the terminal tour in a fresh Windows Terminal (`wt`) window using the **One Half
-Light** color scheme, centered on the active display; if `wt` is unavailable it
-falls back to `mdo-setup.exe` when present.
+On Windows, double-click `mdo-setup.exe` to open that same terminal tour in a
+fresh console — the no-terminal entry point for Explorer users. On Linux, run
+`mdo-setup` to get the tour in your `$TERMINAL` or a known terminal emulator
+(`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open`
+runs when launched with no file. Double-clicking the bare `mdo-setup` binary from
+a file manager is not reliable on Linux, so prefer `mdo --tour` from a shell.
+This preserves `mdo` as the normal CLI. On Windows, launching `mdo-open.exe`
+directly with no file opens the terminal tour in a fresh Windows Terminal (`wt`)
+window using the **One Half Light** color scheme, centered on the active display;
+if `wt` is unavailable it falls back to `mdo-setup.exe` when present.
 
 ---
 
