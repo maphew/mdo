@@ -83,7 +83,7 @@ vendored simple.css typography</li>
 <li>🔒 Raw Markdown HTML is sanitized by default; use <code>--unsafe-html</code> to preserve it for trusted input</li>
 <li>👀 <code>--watch</code> flag enables auto-rerender on file change (with debouncing)</li>
 <li>🌐 <code>--open</code> flag renders to a temp dir and launches the system default browser</li>
-<li>🧑‍🚀 <code>--tour</code> / no-arg interactive first-run guide, plus native Windows/Linux <code>mdo-setup</code> onboarding</li>
+<li>🧑‍🚀 <code>--tour</code> / no-arg interactive first-run guide, plus a Windows/Linux <code>mdo-setup</code> launcher that opens it for file-manager users</li>
 <li>🧭 Built-in <code>--install-file-manager</code> / <code>--uninstall-file-manager</code> integration (no separate install scripts needed)</li>
 <li>⚡ Fast and self-contained — no required runtime assets; <code>mdo.exe</code> remains the core CLI</li>
 <li>🧩 Built on <code>pulldown-cmark</code>, <code>clap</code>, and <code>notify</code></li>
@@ -192,7 +192,7 @@ when the source is trusted:</p>
 used by normal mdo output:</p>
 <pre><code class="language-bash">python scripts/build-docs.py
 </code></pre>
-<p>The homepage source is <code>docs/index.md</code>; it uses only Markdown and the <code>--css  docs/assets/site.css</code> override so the docs-only presentation is layered after
+<p>The homepage source is <code>docs/index.md</code>; it uses only Markdown and the <code>--css docs/assets/site.css</code> override so the docs-only presentation is layered after
 mdo's embedded simple.css and typography defaults. The sample preview source is
 <code>docs/assets/sample.md</code>; <code>scripts/build-docs.py</code> renders it with
 <code>docs/assets/sample.css</code> to demonstrate per-page CSS overrides. The GitHub Pages
@@ -238,18 +238,21 @@ installer again later. After you press Enter to close the tour, mdo renders and
 opens a short welcome sample so you can immediately verify the browser-opening
 flow. In scripts or other non-interactive contexts, no-argument <code>mdo</code> still
 exits with a usage error and suggests <code>mdo --tour</code>.</p>
-<p>On Windows and Linux release builds, double-click <code>mdo-setup</code> /
-<code>mdo-setup.exe</code> for the same onboarding path in native desktop dialogs. This
-preserves <code>mdo</code> as the normal CLI while giving file-manager users a no-terminal
-setup flow. On Windows, launching <code>mdo-open.exe</code> directly with no file opens the
-terminal tour in a fresh Windows Terminal (<code>wt</code>) window using the <strong>One Half
-Light</strong> color scheme, centered on the active display; if <code>wt</code> is unavailable it
-falls back to <code>mdo-setup.exe</code> when present.</p>
+<p>On Windows, double-click <code>mdo-setup.exe</code> to open that same terminal tour in a
+fresh console — the no-terminal entry point for Explorer users. On Linux, run
+<code>mdo-setup</code> to get the tour in your <code>$TERMINAL</code> or a known terminal emulator
+(<code>gnome-terminal</code>, <code>konsole</code>, <code>xterm</code>, and others); it is also what <code>mdo-open</code>
+runs when launched with no file. Double-clicking the bare <code>mdo-setup</code> binary from
+a file manager is not reliable on Linux, so prefer <code>mdo --tour</code> from a shell.
+This preserves <code>mdo</code> as the normal CLI. On Windows, launching <code>mdo-open.exe</code>
+directly with no file opens the terminal tour in a fresh Windows Terminal (<code>wt</code>)
+window using the <strong>One Half Light</strong> color scheme, centered on the active display;
+if <code>wt</code> is unavailable it falls back to <code>mdo-setup.exe</code> when present.</p>
 <hr>
 <h2>Linux file manager integration</h2>
 <p><code>mdo</code> can install or remove its own per-user XDG file-manager integration;
 no companion install script is required:</p>
-<pre><code class="language-bash"># Native first-run window, including optional file-manager integration install
+<pre><code class="language-bash"># Open the first-run tour in a terminal (offers the optional integration install)
 mdo-setup
 
 # Add "Open as HTML" as an "Open With" handler for Markdown files
@@ -268,8 +271,10 @@ named <strong>Open as HTML</strong>, so GNOME Files/Nautilus and other XDG file 
 show an action-oriented entry instead of a tool-name-only entry. Rerunning the
 installer also removes older Nautilus Scripts entries named <strong>Preview with
 mdo</strong> or <strong>Render with mdo</strong>.</p>
-<p>Linux release archives also include <code>mdo-setup</code>, which shows the same onboarding
-path in desktop dialogs when <code>zenity</code>, <code>kdialog</code>, or <code>yad</code> is available. If you
+<p>Linux release archives also include <code>mdo-setup</code>, which opens the same first-run
+tour in a terminal window. It launches your <code>$TERMINAL</code> or a known terminal
+emulator (<code>gnome-terminal</code>, <code>konsole</code>, <code>xterm</code>, and others); if none is found it
+shows a <code>zenity</code>/<code>kdialog</code>/<code>yad</code> notice pointing you to <code>mdo --tour</code>. If you
 launch <code>mdo-open</code> directly with no file, it opens <code>mdo-setup</code> when the setup
 helper is present.</p>
 <p>Result examples after install:</p>
@@ -284,8 +289,8 @@ helper is present.</p>
 <h2>🪟 Windows Explorer integration</h2>
 <p><code>mdo.exe</code> can install or remove its own per-user Explorer integration (no
 admin rights and no HKLM changes). Windows release ZIPs also include
-<code>mdo-setup.exe</code>, a native no-terminal setup window for the same first-run flow:</p>
-<pre><code class="language-powershell"># Native first-run window, including optional Explorer integration install
+<code>mdo-setup.exe</code>, which opens the same first-run tour in a new console window:</p>
+<pre><code class="language-powershell"># Open the first-run tour in a console (offers the optional Explorer integration install)
 .\mdo-setup.exe
 
 # CLI install: add an "Open as HTML" right-click verb and Open With app entry
@@ -404,6 +409,6 @@ dated footer; no network calls or identifiers are added</li>
 <p>at your option, matching the licensing of the upstream project.</p>
 
 </main>
-<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.4.0 in 0.006s on <time datetime="2026-06-17">2026-06-17</time>.</footer>
+<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.4.0 in 0.001s on <time datetime="2026-06-18">2026-06-18</time>.</footer>
 </body>
 </html>
