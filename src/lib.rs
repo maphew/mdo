@@ -17,6 +17,8 @@ use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsE
 use pulldown_cmark::{html, Options, Parser as MdParser};
 
 pub mod file_manager;
+#[cfg(target_os = "windows")]
+pub mod windows_tour;
 
 const SIMPLE_CSS: &str = include_str!("../assets/simple.min.css");
 const APP_DISPLAY_NAME: &str = "mdo";

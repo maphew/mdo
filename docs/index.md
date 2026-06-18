@@ -107,9 +107,9 @@ The tour explains the render-and-open workflow, the normal convert-once command,
 
 Running `mdo` with no arguments in an interactive terminal shows the same tour. On Windows and Linux it can offer to install **Open as HTML** for the current user only. The default answer is **Yes**, but mdo still does not change the default Markdown app. Choose **No** to skip or run the installer again later.
 
-After you press Enter to close the tour, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same terminal tour in a fresh console. On Linux, run `mdo-setup` to get the tour in your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open` runs when launched with no file. Double-clicking the bare binary from a file manager is not reliable on Linux, so prefer `mdo --tour` from a shell.
+After you press Enter to close the tour, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same terminal tour in a fresh Windows Terminal (`wt`) window, falling back to a plain new console if `wt` is unavailable. On Linux, run `mdo-setup` to get the tour in your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open` runs when launched with no file. Double-clicking the bare binary from a file manager is not reliable on Linux, so prefer `mdo --tour` from a shell.
 
-On Windows, launching `mdo-open.exe` directly with no file opens the terminal tour in a fresh Windows Terminal (`wt`) window using the **One Half Light** color scheme, centered on the active display; if `wt` is unavailable, it falls back to `mdo-setup.exe` when present.
+On Windows, launching `mdo-open.exe` directly with no file opens the same terminal tour in a fresh Windows Terminal (`wt`) window using the **One Half Light** color scheme, centered on the active display; if `wt` is unavailable, it falls back to a plain new console.
 
 ## Usage
 
@@ -180,7 +180,7 @@ mdo.exe --uninstall-file-manager
 - **Open with** offers **Open as HTML**.
 - If **Open as HTML** is made the default handler, double-click opens the browser.
 - If `mdo-open.exe` is next to `mdo.exe`, it is used for flash-free Explorer launches; otherwise the single `mdo.exe` binary still works.
-- Launching `mdo-open.exe` with no file opens the terminal tour in a fresh `wt` window with the **One Half Light** color scheme and centers it on the active display, falling back to `mdo-setup.exe` when `wt` cannot be started.
+- `mdo-setup.exe` and no-file `mdo-open.exe` open the terminal tour in a fresh `wt` window with the **One Half Light** color scheme and center it on the active display, falling back to a plain new console when `wt` cannot be started.
 - Windows Open With should show the friendly name **Open as HTML** with the mdo icon instead of exposing the wrapper file name.
 
 ### Linux File Managers
