@@ -1,8 +1,11 @@
-//! Native first-run setup window for mdo.
+//! Native first-run setup launcher for mdo.
 //!
 //! `mdo` stays the normal CLI. This companion binary gives desktop users a
-//! no-terminal onboarding path for installing file-manager integration and
-//! opening the welcome sample.
+//! no-terminal entry point into onboarding: it opens the interactive
+//! `mdo --tour` (a single screen with one Y/N prompt) in a terminal window so
+//! double-clicking from a file manager behaves like running the tour from a
+//! shell. It deliberately does not reimplement onboarding as a chain of GUI
+//! dialogs.
 
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
@@ -15,7 +18,7 @@ fn main() -> ExitCode {
         Err(e) => {
             windows_setup::error_dialog(
                 "mdo setup failed",
-                "mdo setup could not finish",
+                "mdo setup could not start the tour",
                 &e.to_string(),
             );
             ExitCode::from(1)
@@ -30,7 +33,7 @@ fn main() -> ExitCode {
         Err(e) => {
             linux_setup::error_dialog(
                 "mdo setup failed",
-                "mdo setup could not finish",
+                "mdo setup could not start the tour",
                 &e.to_string(),
             );
             ExitCode::from(1)
@@ -40,187 +43,172 @@ fn main() -> ExitCode {
 
 #[cfg(not(any(target_os = "windows", target_os = "linux")))]
 fn main() -> ExitCode {
-    eprintln!("mdo-setup is only needed for native Windows and Linux onboarding windows.");
+    eprintln!("mdo-setup is only needed for native Windows and Linux onboarding.");
     eprintln!("Run `mdo --tour` for the command-line tour on this platform.");
     ExitCode::from(2)
 }
 
 #[cfg(target_os = "linux")]
 mod linux_setup {
-    use std::io;
-    use std::path::PathBuf;
+    use std::ffi::OsString;
+    use std::io::{self, IsTerminal};
+    use std::path::{Path, PathBuf};
     use std::process::{Command, ExitStatus};
 
-    use mdo_cli::{file_manager, open_tour_sample};
+    /// Terminal emulators we know how to launch a command in, in preference
+    /// order, each paired with the option(s) that introduce the command and
+    /// its arguments as a real argv (never a shell string, so paths with
+    /// spaces are safe). `tilix` and friends that take `-e "cmd string"` are
+    /// intentionally omitted to avoid quoting ambiguity.
+    const TERMINALS: &[(&str, &[&str])] = &[
+        ("x-terminal-emulator", &["-e"]),
+        ("gnome-terminal", &["--"]),
+        ("konsole", &["-e"]),
+        ("xfce4-terminal", &["-x"]),
+        ("mate-terminal", &["--"]),
+        ("kitty", &[]),
+        ("alacritty", &["-e"]),
+        ("wezterm", &["start", "--"]),
+        ("foot", &[]),
+        ("xterm", &["-e"]),
+    ];
 
     pub fn run() -> io::Result<()> {
-        let dialogs = Dialogs::detect()?;
+        let mdo = sibling_binary("mdo")?;
+        if !mdo.exists() {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("expected mdo next to mdo-setup at {}", mdo.display()),
+            ));
+        }
 
-        dialogs.info(
-            "Welcome to mdo",
-            "Read Markdown as HTML from your file manager",
-            "mdo remains the command-line tool. This setup window can add the reversible Open as HTML action for Markdown files without opening a terminal.",
-        )?;
+        // Already attached to a terminal (e.g. run from a shell): show the tour
+        // right here instead of spawning a second window.
+        if io::stdin().is_terminal() && io::stdout().is_terminal() {
+            let status = Command::new(&mdo).arg("--tour").status()?;
+            return ensure_success(status, "mdo --tour");
+        }
 
-        if dialogs.yes_no(
-            "Install Open as HTML?",
-            "Add mdo to your Linux file manager?",
-            "This per-user install writes an XDG desktop entry and icon. It does not need admin rights and does not change your default Markdown app. You can remove it later with mdo --uninstall-file-manager.",
-        )? {
-            let mdo_exe = sibling_binary("mdo")?;
-            if !mdo_exe.exists() {
-                return Err(io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("expected mdo next to mdo-setup at {}", mdo_exe.display()),
-                ));
+        // Launched from a file manager with no terminal: open one and run the
+        // tour inside it.
+        if spawn_tour_in_terminal(&mdo) {
+            return Ok(());
+        }
+
+        // No terminal emulator on PATH: point the user at the CLI tour rather
+        // than failing invisibly.
+        error_dialog(
+            "mdo setup needs a terminal",
+            "Could not find a terminal program to open",
+            "Install a terminal emulator (for example gnome-terminal, konsole, or xterm), then run `mdo --tour` to finish onboarding.",
+        );
+        Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "no terminal emulator found on PATH",
+        ))
+    }
+
+    fn spawn_tour_in_terminal(mdo: &Path) -> bool {
+        for (program, lead) in preferred_terminals() {
+            if !command_on_path(program) {
+                continue;
             }
-
-            file_manager::install_linux_for_exe(&mdo_exe, false)?;
-            dialogs.info(
-                "Open as HTML installed",
-                "File-manager integration is ready",
-                "Open With should now offer Open as HTML for .md files. To make it the default, run mdo --install-file-manager --set-default.",
-            )?;
+            let args = terminal_tour_args(lead, mdo);
+            if Command::new(program).args(&args).spawn().is_ok() {
+                return true;
+            }
         }
+        false
+    }
 
-        if dialogs.yes_no(
-            "Open welcome sample?",
-            "Verify the browser-opening flow?",
-            "mdo will render a short Markdown sample to a private temp path and open it in your default browser.",
-        )? {
-            open_tour_sample()?;
+    /// `$TERMINAL` wins when it names a terminal we understand; otherwise use
+    /// the built-in preference order.
+    fn preferred_terminals() -> Vec<(&'static str, &'static [&'static str])> {
+        let mut ordered = TERMINALS.to_vec();
+        if let Some(value) = std::env::var_os("TERMINAL") {
+            if let Some(base) = Path::new(&value).file_name().and_then(|n| n.to_str()) {
+                if let Some(pos) = ordered.iter().position(|(program, _)| *program == base) {
+                    let chosen = ordered.remove(pos);
+                    ordered.insert(0, chosen);
+                }
+            }
         }
+        ordered
+    }
 
-        Ok(())
+    fn terminal_tour_args(lead: &[&str], mdo: &Path) -> Vec<OsString> {
+        let mut args: Vec<OsString> = lead.iter().map(OsString::from).collect();
+        args.push(mdo.as_os_str().to_os_string());
+        args.push(OsString::from("--tour"));
+        args
     }
 
     pub fn error_dialog(title: &str, main_instruction: &str, content: &str) {
-        if let Ok(dialogs) = Dialogs::detect() {
-            let _ = dialogs.error(title, main_instruction, content);
+        if let Some(dialog) = DialogTool::detect() {
+            let _ = dialog.error(title, main_instruction, content);
         } else {
             eprintln!("{title}: {main_instruction}: {content}");
         }
     }
 
+    /// Minimal GUI error reporting for the rare no-terminal case. Onboarding
+    /// itself is the terminal tour, not a dialog chain.
     #[derive(Clone, Copy)]
-    enum Dialogs {
+    enum DialogTool {
         Zenity,
         KDialog,
         Yad,
     }
 
-    impl Dialogs {
-        fn detect() -> io::Result<Self> {
-            for (program, dialogs) in [
-                ("zenity", Dialogs::Zenity),
-                ("kdialog", Dialogs::KDialog),
-                ("yad", Dialogs::Yad),
+    impl DialogTool {
+        fn detect() -> Option<Self> {
+            for (program, dialog) in [
+                ("zenity", DialogTool::Zenity),
+                ("kdialog", DialogTool::KDialog),
+                ("yad", DialogTool::Yad),
             ] {
                 if command_on_path(program) {
-                    return Ok(dialogs);
+                    return Some(dialog);
                 }
             }
-
-            Err(io::Error::new(
-                io::ErrorKind::NotFound,
-                "could not find zenity, kdialog, or yad; install one of them or run `mdo --tour` in a terminal",
-            ))
+            None
         }
 
-        fn info(&self, title: &str, main_instruction: &str, content: &str) -> io::Result<()> {
-            self.message(MessageKind::Info, title, main_instruction, content)
-        }
-
-        fn error(&self, title: &str, main_instruction: &str, content: &str) -> io::Result<()> {
-            self.message(MessageKind::Error, title, main_instruction, content)
-        }
-
-        fn message(
-            &self,
-            kind: MessageKind,
-            title: &str,
-            main_instruction: &str,
-            content: &str,
-        ) -> io::Result<()> {
-            let body = dialog_body(main_instruction, content);
-            let mut command = match self {
-                Dialogs::Zenity => {
-                    let mut command = Command::new("zenity");
-                    command
-                        .arg(match kind {
-                            MessageKind::Info => "--info",
-                            MessageKind::Error => "--error",
-                        })
-                        .arg("--title")
-                        .arg(title)
-                        .arg("--text")
-                        .arg(&body)
-                        .arg("--no-wrap");
-                    command
-                }
-                Dialogs::KDialog => {
-                    let mut command = Command::new("kdialog");
-                    command.arg("--title").arg(title).arg(match kind {
-                        MessageKind::Info => "--msgbox",
-                        MessageKind::Error => "--error",
-                    });
-                    command.arg(&body);
-                    command
-                }
-                Dialogs::Yad => {
-                    let mut command = Command::new("yad");
-                    command
-                        .arg(match kind {
-                            MessageKind::Info => "--info",
-                            MessageKind::Error => "--error",
-                        })
-                        .arg("--title")
-                        .arg(title)
-                        .arg("--text")
-                        .arg(&body)
-                        .arg("--button=OK:0");
-                    command
-                }
-            };
-
-            ensure_success(command.status()?, "dialog")
-        }
-
-        fn yes_no(&self, title: &str, main_instruction: &str, content: &str) -> io::Result<bool> {
-            let body = dialog_body(main_instruction, content);
+        fn error(self, title: &str, main_instruction: &str, content: &str) -> io::Result<()> {
+            let body = format!("{main_instruction}\n\n{content}");
             let status = match self {
-                Dialogs::Zenity => Command::new("zenity")
-                    .arg("--question")
+                DialogTool::Zenity => Command::new("zenity")
+                    .arg("--error")
                     .arg("--title")
                     .arg(title)
                     .arg("--text")
                     .arg(&body)
                     .arg("--no-wrap")
                     .status()?,
-                Dialogs::KDialog => Command::new("kdialog")
+                DialogTool::KDialog => Command::new("kdialog")
                     .arg("--title")
                     .arg(title)
-                    .arg("--yesno")
+                    .arg("--error")
                     .arg(&body)
                     .status()?,
-                Dialogs::Yad => Command::new("yad")
-                    .arg("--question")
+                DialogTool::Yad => Command::new("yad")
+                    .arg("--error")
                     .arg("--title")
                     .arg(title)
                     .arg("--text")
                     .arg(&body)
-                    .arg("--button=Yes:0")
-                    .arg("--button=No:1")
+                    .arg("--button=OK:0")
                     .status()?,
             };
 
-            Ok(status.success())
+            if status.success() {
+                Ok(())
+            } else {
+                Err(io::Error::other(format!(
+                    "error dialog exited with status {status}"
+                )))
+            }
         }
-    }
-
-    enum MessageKind {
-        Info,
-        Error,
     }
 
     fn command_on_path(program: &str) -> bool {
@@ -239,14 +227,58 @@ mod linux_setup {
         }
     }
 
-    fn dialog_body(main_instruction: &str, content: &str) -> String {
-        format!("{main_instruction}\n\n{content}")
-    }
-
     fn sibling_binary(name: &str) -> io::Result<PathBuf> {
         let mut path = std::env::current_exe()?;
         path.pop();
         Ok(path.join(name))
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        fn rendered(lead: &[&str]) -> Vec<String> {
+            terminal_tour_args(lead, Path::new("/opt/my tools/mdo"))
+                .into_iter()
+                .map(|arg| arg.to_string_lossy().into_owned())
+                .collect()
+        }
+
+        #[test]
+        fn dash_e_terminals_pass_command_as_argv() {
+            assert_eq!(rendered(&["-e"]), ["-e", "/opt/my tools/mdo", "--tour"]);
+        }
+
+        #[test]
+        fn double_dash_terminals_pass_command_as_argv() {
+            assert_eq!(rendered(&["--"]), ["--", "/opt/my tools/mdo", "--tour"]);
+        }
+
+        #[test]
+        fn positional_terminals_pass_command_as_argv() {
+            assert_eq!(rendered(&[]), ["/opt/my tools/mdo", "--tour"]);
+        }
+
+        #[test]
+        fn multi_arg_lead_is_preserved_in_order() {
+            assert_eq!(
+                rendered(&["start", "--"]),
+                ["start", "--", "/opt/my tools/mdo", "--tour"]
+            );
+        }
+
+        #[test]
+        fn terminal_table_only_lists_argv_safe_invocations() {
+            // Every entry must launch `mdo --tour` as a real argv. Bare `-e`
+            // that takes a single shell string (e.g. tilix) must not creep in.
+            for (program, lead) in TERMINALS {
+                let args = rendered(lead);
+                assert!(
+                    args.ends_with(&["/opt/my tools/mdo".to_string(), "--tour".to_string()]),
+                    "{program} must forward the mdo argv unchanged"
+                );
+            }
+        }
     }
 }
 
@@ -254,78 +286,48 @@ mod linux_setup {
 mod windows_setup {
     use std::io;
     use std::iter;
+    use std::os::windows::process::CommandExt;
     use std::path::PathBuf;
+    use std::process::Command;
     use std::ptr;
 
-    use mdo_cli::{file_manager, open_tour_sample};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        MessageBoxW, IDYES, MB_DEFBUTTON1, MB_ICONERROR, MB_ICONINFORMATION, MB_OK, MB_YESNO,
-        MESSAGEBOX_STYLE,
+        MessageBoxW, MB_ICONERROR, MB_OK, MESSAGEBOX_STYLE,
     };
 
+    // CREATE_NEW_CONSOLE: give the console-subsystem mdo.exe its own visible
+    // console window. mdo-setup.exe is a GUI-subsystem process with no console
+    // of its own, so without this the tour would have nowhere to draw.
+    const CREATE_NEW_CONSOLE: u32 = 0x0000_0010;
+
     pub fn run() -> io::Result<()> {
-        info_dialog(
-            "Welcome to mdo",
-            "Read Markdown as HTML from Explorer",
-            "mdo.exe remains the command-line tool. This native setup window can add the reversible Open as HTML action for Markdown files without opening a terminal.",
-        )?;
-
-        if yes_no_dialog(
-            "Install Open as HTML?",
-            "Add mdo to Windows Explorer?",
-            "This per-user install does not need admin rights and does not change your default Markdown app. You can remove it later with mdo --uninstall-file-manager.",
-        )? {
-            let mdo_exe = sibling_binary("mdo.exe")?;
-            if !mdo_exe.exists() {
-                return Err(io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("expected mdo.exe next to mdo-setup.exe at {}", mdo_exe.display()),
-                ));
-            }
-
-            file_manager::install_windows_for_exe(&mdo_exe, false)?;
-            info_dialog(
-                "Open as HTML installed",
-                "Explorer integration is ready",
-                "Right-click any .md file and choose Open as HTML. To make it the default, use Windows' Open with -> Choose another app -> Always flow.",
-            )?;
+        let mdo = sibling_binary("mdo.exe")?;
+        if !mdo.exists() {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!(
+                    "expected mdo.exe next to mdo-setup.exe at {}",
+                    mdo.display()
+                ),
+            ));
         }
 
-        if yes_no_dialog(
-            "Open welcome sample?",
-            "Verify the browser-opening flow?",
-            "mdo will render a short Markdown sample to a private temp path and open it in your default browser.",
-        )? {
-            open_tour_sample()?;
-        }
-
+        // Open the single-screen terminal tour in a fresh console. This is the
+        // fallback path when Windows Terminal (`wt`) is unavailable; `mdo-open`
+        // prefers `wt` and only reaches here when it cannot be started.
+        Command::new(&mdo)
+            .arg("--tour")
+            .creation_flags(CREATE_NEW_CONSOLE)
+            .spawn()?;
         Ok(())
     }
 
     pub fn error_dialog(title: &str, main_instruction: &str, content: &str) {
         let _ = message_box(
             title,
-            &dialog_body(main_instruction, content),
+            &format!("{main_instruction}\n\n{content}"),
             MB_OK | MB_ICONERROR,
         );
-    }
-
-    fn info_dialog(title: &str, main_instruction: &str, content: &str) -> io::Result<()> {
-        message_box(
-            title,
-            &dialog_body(main_instruction, content),
-            MB_OK | MB_ICONINFORMATION,
-        )?;
-        Ok(())
-    }
-
-    fn yes_no_dialog(title: &str, main_instruction: &str, content: &str) -> io::Result<bool> {
-        let button = message_box(
-            title,
-            &dialog_body(main_instruction, content),
-            MB_YESNO | MB_ICONINFORMATION | MB_DEFBUTTON1,
-        )?;
-        Ok(button == IDYES)
     }
 
     fn message_box(title: &str, text: &str, style: MESSAGEBOX_STYLE) -> io::Result<i32> {
@@ -338,10 +340,6 @@ mod windows_setup {
         }
 
         Ok(button)
-    }
-
-    fn dialog_body(main_instruction: &str, content: &str) -> String {
-        format!("{main_instruction}\n\n{content}")
     }
 
     fn sibling_binary(name: &str) -> io::Result<PathBuf> {

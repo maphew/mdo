@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Replace the `mdo-setup` multi-dialog onboarding with a launcher for the single-screen `mdo --tour`: Linux opens a terminal emulator (`$TERMINAL` or a known one such as `gnome-terminal`/`konsole`/`xterm`, with a `zenity`/`kdialog`/`yad` fallback notice), and the Windows `wt`-unavailable fallback opens `mdo --tour` in a new console. This drops the chain of `[OK]` dialogs in favor of the one-screen, single Y/N tour and avoids the dialog-dismiss and missing-backend failures of the old flow.
+
 ## 0.4.0 - 2026-06-17
 
 - Add `--css` support for appending custom CSS after mdo's embedded defaults, plus bundled CSS for restoring vendored simple.css typography.

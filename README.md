@@ -26,7 +26,7 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 - 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
 - 👀 `--watch` flag enables auto-rerender on file change (with debouncing)
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
-- 🧑‍🚀 `--tour` / no-arg interactive first-run guide, plus native Windows/Linux `mdo-setup` onboarding
+- 🧑‍🚀 `--tour` / no-arg interactive first-run guide, plus a Windows/Linux `mdo-setup` launcher that opens it for file-manager users
 - 🧭 Built-in `--install-file-manager` / `--uninstall-file-manager` integration (no separate install scripts needed)
 - ⚡ Fast and self-contained — no required runtime assets; `mdo.exe` remains the core CLI
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
@@ -255,10 +255,12 @@ flow. In scripts or other non-interactive contexts, no-argument `mdo` still
 exits with a usage error and suggests `mdo --tour`.
 
 On Windows and Linux release builds, double-click `mdo-setup` /
-`mdo-setup.exe` for the same onboarding path in native desktop dialogs. This
-preserves `mdo` as the normal CLI while giving file-manager users a no-terminal
-setup flow. On Windows, launching `mdo-open.exe` directly with no file opens the
-terminal tour in a fresh Windows Terminal (`wt`) window using the **One Half
+`mdo-setup.exe` to open that same terminal tour in a fresh terminal window — the
+no-terminal-required entry point for file-manager users. On Linux it launches
+your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`,
+`xterm`, and others); on Windows it opens a new console. This preserves `mdo` as
+the normal CLI. On Windows, launching `mdo-open.exe` directly with no file opens
+the terminal tour in a fresh Windows Terminal (`wt`) window using the **One Half
 Light** color scheme, centered on the active display; if `wt` is unavailable it
 falls back to `mdo-setup.exe` when present.
 
@@ -270,7 +272,7 @@ falls back to `mdo-setup.exe` when present.
 no companion install script is required:
 
 ```bash
-# Native first-run window, including optional file-manager integration install
+# Open the first-run tour in a terminal (offers the optional integration install)
 mdo-setup
 
 # Add "Open as HTML" as an "Open With" handler for Markdown files
@@ -291,8 +293,10 @@ show an action-oriented entry instead of a tool-name-only entry. Rerunning the
 installer also removes older Nautilus Scripts entries named **Preview with
 mdo** or **Render with mdo**.
 
-Linux release archives also include `mdo-setup`, which shows the same onboarding
-path in desktop dialogs when `zenity`, `kdialog`, or `yad` is available. If you
+Linux release archives also include `mdo-setup`, which opens the same first-run
+tour in a terminal window. It launches your `$TERMINAL` or a known terminal
+emulator (`gnome-terminal`, `konsole`, `xterm`, and others); if none is found it
+shows a `zenity`/`kdialog`/`yad` notice pointing you to `mdo --tour`. If you
 launch `mdo-open` directly with no file, it opens `mdo-setup` when the setup
 helper is present.
 
@@ -310,10 +314,10 @@ Result examples after install:
 
 `mdo.exe` can install or remove its own per-user Explorer integration (no
 admin rights and no HKLM changes). Windows release ZIPs also include
-`mdo-setup.exe`, a native no-terminal setup window for the same first-run flow:
+`mdo-setup.exe`, which opens the same first-run tour in a new console window:
 
 ```powershell
-# Native first-run window, including optional Explorer integration install
+# Open the first-run tour in a console (offers the optional Explorer integration install)
 .\mdo-setup.exe
 
 # CLI install: add an "Open as HTML" right-click verb and Open With app entry

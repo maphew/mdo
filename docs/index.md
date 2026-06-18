@@ -107,7 +107,7 @@ The tour explains the render-and-open workflow, the normal convert-once command,
 
 Running `mdo` with no arguments in an interactive terminal shows the same tour. On Windows and Linux it can offer to install **Open as HTML** for the current user only. The default answer is **Yes**, but mdo still does not change the default Markdown app. Choose **No** to skip or run the installer again later.
 
-After you press Enter to close the tour, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows and Linux release builds, `mdo-setup` / `mdo-setup.exe` provides the same onboarding path in native desktop dialogs instead of a terminal window.
+After you press Enter to close the tour, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows and Linux release builds, `mdo-setup` / `mdo-setup.exe` opens that same terminal tour in a fresh terminal window — a no-terminal-required entry point for file-manager users. On Linux it launches your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`, `xterm`, and others); on Windows it opens a new console.
 
 On Windows, launching `mdo-open.exe` directly with no file opens the terminal tour in a fresh Windows Terminal (`wt`) window using the **One Half Light** color scheme, centered on the active display; if `wt` is unavailable, it falls back to `mdo-setup.exe` when present.
 
@@ -192,7 +192,7 @@ mdo --install-file-manager --set-default
 mdo --uninstall-file-manager
 ```
 
-- `mdo-setup` shows the same no-terminal onboarding flow in desktop dialogs when `zenity`, `kdialog`, or `yad` is available.
+- `mdo-setup` opens the same first-run tour in a terminal window (your `$TERMINAL` or a known emulator such as `gnome-terminal`, `konsole`, or `xterm`); if none is found it shows a `zenity`/`kdialog`/`yad` notice pointing to `mdo --tour`.
 - Most XDG file managers show **Open With -> Open as HTML** for Markdown files.
 - GNOME Files/Nautilus uses the same Open With entry; no duplicate Scripts item is installed.
 - With `--set-default`, double-clicking Markdown files launches the browser.
