@@ -1,14 +1,14 @@
 {
-  "collected_at": "2026-07-02T09:25:47Z",
+  "collected_at": "2026-06-07T09:26:16Z",
   "crates_io": {
     "crate": {
       "created_at": "2026-05-30T00:01:38.591296Z",
-      "downloads": 37,
+      "downloads": 30,
       "html_url": "https://crates.io/crates/mdo-cli",
       "id": "mdo-cli",
       "max_version": "0.3.0",
       "name": "mdo-cli",
-      "recent_downloads": 37,
+      "recent_downloads": 30,
       "updated_at": "2026-05-30T00:13:33.236683Z"
     },
     "source": "https://crates.io/api/v1/crates/mdo-cli",
@@ -20,43 +20,6 @@
   "github": {
     "releases": {
       "releases": [
-        {
-          "asset_downloads": 1,
-          "assets": [
-            {
-              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.4.0/mdo-universal-apple-darwin.tar.gz",
-              "download_count": 0,
-              "name": "mdo-universal-apple-darwin.tar.gz",
-              "size": 2471695,
-              "updated_at": "2026-06-17T21:00:12Z"
-            },
-            {
-              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.4.0/mdo-x86_64-pc-windows-msvc.zip",
-              "download_count": 0,
-              "name": "mdo-x86_64-pc-windows-msvc.zip",
-              "size": 1805752,
-              "updated_at": "2026-06-17T21:00:12Z"
-            },
-            {
-              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.4.0/mdo-x86_64-unknown-linux-gnu.tar.gz",
-              "download_count": 0,
-              "name": "mdo-x86_64-unknown-linux-gnu.tar.gz",
-              "size": 2261491,
-              "updated_at": "2026-06-17T21:00:12Z"
-            },
-            {
-              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.4.0/SHA256SUMS",
-              "download_count": 1,
-              "name": "SHA256SUMS",
-              "size": 299,
-              "updated_at": "2026-06-17T21:00:12Z"
-            }
-          ],
-          "html_url": "https://github.com/maphew/mdo/releases/tag/v0.4.0",
-          "name": "v0.4.0",
-          "published_at": "2026-06-17T21:00:13Z",
-          "tag_name": "v0.4.0"
-        },
         {
           "asset_downloads": 17,
           "assets": [
@@ -123,19 +86,19 @@
         "ok": true,
         "status": 200
       },
-      "total_asset_downloads": 18
+      "total_asset_downloads": 17
     },
     "repository": {
       "repository": {
         "created_at": "2026-05-11T18:15:30Z",
-        "description": "mdo - a fast lightweight command-line tool written in Rust that converts Markdown into HTML, with optional file manager integration for immediate on the fly viewing. The CLI supports live watch mode to automatically re-render whenever the Markdown file is edited",
+        "description": "mdo is a fast, lightweight, and user-friendly command-line tool written in Rust that converts Markdown files into HTML. It also supports a live watch mode to automatically re-render your HTML output whenever the Markdown file is edited.",
         "forks": 0,
         "full_name": "maphew/mdo",
         "html_url": "https://github.com/maphew/mdo",
         "open_issues": 0,
-        "pushed_at": "2026-07-01T09:29:00Z",
-        "stars": 2,
-        "updated_at": "2026-07-01T09:29:03Z",
+        "pushed_at": "2026-06-06T09:09:51Z",
+        "stars": 1,
+        "updated_at": "2026-06-06T09:09:55Z",
         "watchers": 0
       },
       "source": "https://api.github.com/repos/maphew/mdo",

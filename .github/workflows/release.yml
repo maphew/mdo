@@ -10,6 +10,11 @@ on:
         description: "Existing tag to release, such as v0.2.0"
         required: true
         type: string
+      prerelease:
+        description: "Mark the GitHub release as a prerelease"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -49,6 +54,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
 
       - name: Install Rust
         # dtolnay/rust-toolchain stable
@@ -59,6 +65,9 @@ jobs:
       - name: Cache Rust build artifacts
         # Swatinem/rust-cache v2
         uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
+
+      - name: Test
+        run: cargo test --locked
 
       - name: Build release binaries
         if: matrix.target != 'universal-apple-darwin'
@@ -82,7 +91,10 @@ jobs:
           mkdir -p "${staging}"
           cp "target/${{ matrix.target }}/release/mdo" "${staging}/"
           cp "target/${{ matrix.target }}/release/mdo-open" "${staging}/"
+          cp "target/${{ matrix.target }}/release/mdo-setup" "${staging}/"
           cp README.md CHANGELOG.md LICENSE-MIT LICENSE-APACHE "${staging}/"
+          cp assets/mdo-default-typography.css "${staging}/"
+          cp assets/restore-simple-css.css "${staging}/"
           tar -C target/dist -czf "target/dist/${asset}.tar.gz" "${asset}"
 
       - name: Package macOS universal archive
@@ -103,6 +115,8 @@ jobs:
             target/aarch64-apple-darwin/release/mdo-open
           chmod +x "${staging}/mdo" "${staging}/mdo-open"
           cp README.md CHANGELOG.md LICENSE-MIT LICENSE-APACHE "${staging}/"
+          cp assets/mdo-default-typography.css "${staging}/"
+          cp assets/restore-simple-css.css "${staging}/"
           tar -C target/dist -czf "target/dist/${asset}.tar.gz" "${asset}"
 
       - name: Package Windows archive
@@ -114,7 +128,10 @@ jobs:
           New-Item -ItemType Directory -Force -Path $staging | Out-Null
           Copy-Item "target/${{ matrix.target }}/release/mdo.exe" $staging
           Copy-Item "target/${{ matrix.target }}/release/mdo-open.exe" $staging
+          Copy-Item "target/${{ matrix.target }}/release/mdo-setup.exe" $staging
           Copy-Item README.md, CHANGELOG.md, LICENSE-MIT, LICENSE-APACHE $staging
+          Copy-Item assets/mdo-default-typography.css $staging
+          Copy-Item assets/restore-simple-css.css $staging
           Compress-Archive -Path $staging -DestinationPath "target/dist/$asset.zip" -Force
 
       - name: Verify checkout matches release tag
@@ -135,6 +152,7 @@ jobs:
           name: ${{ matrix.asset }}
           path: target/dist/${{ matrix.asset }}.${{ matrix.archive }}
           if-no-files-found: error
+          retention-days: 7
 
   publish:
     name: Publish GitHub Release
@@ -146,6 +164,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      PRERELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease || false }}
 
     steps:
       - name: Checkout
@@ -153,6 +172,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
 
       - name: Download archive artifacts
         # actions/download-artifact v4
@@ -187,11 +207,13 @@ jobs:
       - name: Create or update release
         run: |
           set -euo pipefail
+          release_flags=(--verify-tag --title "${RELEASE_TAG}" --generate-notes)
+          if [[ "${PRERELEASE}" == "true" ]]; then
+            release_flags+=(--prerelease)
+          fi
+
           if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
             gh release upload "${RELEASE_TAG}" target/dist/* --clobber
           else
-            gh release create "${RELEASE_TAG}" target/dist/* \
-              --verify-tag \
-              --title "${RELEASE_TAG}" \
-              --generate-notes
+            gh release create "${RELEASE_TAG}" target/dist/* "${release_flags[@]}"
           fi

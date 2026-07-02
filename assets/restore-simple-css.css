@@ -1,0 +1,32 @@
+/* Restore the vendored simple.css typography that mdo softens by default.
+   Use with: mdo --css restore-simple-css.css input.md */
+
+body {
+  font-size: 1.15rem;
+}
+
+h1 {
+  font-size: 3rem;
+}
+
+h2 {
+  font-size: 2.6rem;
+}
+
+h3 {
+  font-size: 2rem;
+}
+
+@media only screen and (width <= 720px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 2.1rem;
+  }
+
+  h3 {
+    font-size: 1.75rem;
+  }
+}

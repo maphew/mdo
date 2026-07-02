@@ -1,11 +1,10 @@
 use std::fs;
-use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use std::collections::hash_map::DefaultHasher;
-
+#[cfg(target_os = "linux")]
+use std::hash::{Hash, Hasher};
 #[cfg(target_os = "linux")]
 use std::os::unix::fs::{symlink, PermissionsExt};
 
@@ -17,6 +16,40 @@ fn fixture_dir(name: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!("mdo-test-{name}-{}-{stamp}", std::process::id()));
     fs::create_dir_all(&dir).expect("failed to create temp fixture dir");
     dir
+}
+
+#[test]
+fn tour_prints_new_user_path_without_prompt_when_piped() {
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--tour")
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Welcome to mdo."));
+    assert!(stdout.contains("mdo --open notes.md"));
+    if cfg!(any(target_os = "linux", target_os = "windows")) {
+        assert!(stdout.contains("mdo --install-file-manager"));
+    } else {
+        assert!(stdout.contains("does not have a built-in mdo installer yet"));
+    }
+    assert!(!stdout.contains("Install Open as HTML file-manager integration now?"));
+}
+
+#[test]
+fn no_args_noninteractive_reports_tour_hint() {
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(!output.status.success(), "mdo unexpectedly succeeded");
+    assert_eq!(output.status.code(), Some(2));
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("Missing input Markdown file"));
+    assert!(stderr.contains("mdo --tour"));
 }
 
 #[test]
@@ -36,13 +69,20 @@ fn converts_markdown_to_styled_html5_document() {
 
     assert!(output.status.success(), "mdo failed: {output:?}");
 
-    let html = fs::read_to_string(dir.join("sample.html")).expect("failed to read html output");
+    let html = fs::read_to_string(dir.join("sample.html"))
+        .expect("failed to read html output")
+        .replace("\r\n", "\n");
     assert!(html.contains("<!DOCTYPE html>"));
     assert!(html.contains("<title>Sample Title</title>"));
     assert!(html.contains("<h1>Sample Title</h1>"));
     assert!(html.contains("<strong>strong</strong>"));
     assert!(html.contains("<table>"));
     assert!(html.contains("#theme-toggle"));
+    assert!(html.contains(r#"id="mdo-default-typography""#));
+    assert!(html.contains("body {\n  font-size: 1rem;"));
+    assert!(html.contains("h1 {\n  font-size: 2.4rem;"));
+    assert!(html.contains("h2 {\n  font-size: 2rem;"));
+    assert!(html.contains("h3 {\n  font-size: 1.4rem;"));
     assert!(html.contains(&format!(
         "<meta name=\"generator\" content=\"mdo {}\">",
         env!("CARGO_PKG_VERSION")
@@ -54,6 +94,124 @@ fn converts_markdown_to_styled_html5_document() {
     )));
     assert!(html.contains("<time datetime=\""));
     assert!(html.contains("</time>."));
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[test]
+fn css_override_is_embedded_after_default_styles() {
+    let dir = fixture_dir("css-override");
+    let input = dir.join("sample.md");
+    let css = dir.join("override.css");
+    let output_path = dir.join("sample.html");
+    fs::write(&input, "# Sample Title\n\nA paragraph.\n")
+        .expect("failed to write markdown fixture");
+    fs::write(
+        &css,
+        "h1 { font-size: 1.75rem; }\nh2 { font-size: 1.35rem; }\n",
+    )
+    .expect("failed to write css fixture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--css")
+        .arg(&css)
+        .arg("--output")
+        .arg(&output_path)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let html = fs::read_to_string(output_path).expect("failed to read html output");
+    let theme_pos = html
+        .find("#theme-toggle")
+        .expect("styled output should contain theme toggle CSS");
+    let default_pos = html
+        .find("id=\"mdo-default-typography\"")
+        .expect("styled output should contain default mdo typography block");
+    let override_pos = html
+        .find("id=\"mdo-css-override\"")
+        .expect("styled output should contain CSS override block");
+
+    assert!(
+        default_pos > theme_pos,
+        "default mdo typography should be appended after built-in styles"
+    );
+    assert!(
+        override_pos > default_pos,
+        "custom CSS should be appended after mdo defaults"
+    );
+    assert!(html.contains("h1 { font-size: 1.75rem; }"));
+    assert!(html.contains("h2 { font-size: 1.35rem; }"));
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[test]
+fn bundled_restore_simple_css_can_restore_vendored_typography() {
+    let dir = fixture_dir("restore-simple-css");
+    let input = dir.join("sample.md");
+    let output_path = dir.join("sample.html");
+    let restore_css = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("assets")
+        .join("restore-simple-css.css");
+    fs::write(&input, "# Sample Title\n\nA paragraph.\n")
+        .expect("failed to write markdown fixture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--css")
+        .arg(&restore_css)
+        .arg("--output")
+        .arg(&output_path)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let html = fs::read_to_string(output_path).expect("failed to read html output");
+    let default_pos = html
+        .find("id=\"mdo-default-typography\"")
+        .expect("styled output should contain default mdo typography block");
+    let override_pos = html
+        .find("id=\"mdo-css-override\"")
+        .expect("styled output should contain CSS override block");
+
+    assert!(
+        override_pos > default_pos,
+        "restore CSS should be appended after mdo defaults"
+    );
+    assert!(html.contains("font-size: 1.15rem;"));
+    assert!(html.contains("font-size: 3rem;"));
+    assert!(html.contains("font-size: 2.6rem;"));
+    assert!(html.contains("font-size: 2rem;"));
+    assert!(html.contains("@media only screen and (width <= 720px)"));
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[test]
+fn css_override_cannot_be_combined_with_bare_output() {
+    let dir = fixture_dir("css-override-bare");
+    let input = dir.join("sample.md");
+    let css = dir.join("override.css");
+    fs::write(&input, "# Sample Title\n").expect("failed to write markdown fixture");
+    fs::write(&css, "h1 { font-size: 1.75rem; }\n").expect("failed to write css fixture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--bare")
+        .arg("--css")
+        .arg(&css)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(!output.status.success(), "mdo unexpectedly succeeded");
+    assert_eq!(output.status.code(), Some(2));
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("--css cannot be combined with --bare"));
 
     fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
 }
@@ -255,7 +413,13 @@ fn open_output_refuses_precreated_symlink() {
         .output()
         .expect("failed to run mdo");
 
-    assert!(output.status.success(), "mdo failed: {output:?}");
+    // Refusing the pre-created symlink means nothing was rendered, so mdo now
+    // exits non-zero (so scripts/pipelines can detect it). The safe no-op is
+    // still enforced by the assertions below.
+    assert!(
+        !output.status.success(),
+        "mdo should exit non-zero when it refuses the symlinked output: {output:?}"
+    );
     let target_contents = fs::read_to_string(&target).expect("failed to read symlink target");
     assert_eq!(target_contents, "do not overwrite");
     assert!(
@@ -273,7 +437,7 @@ fn open_output_refuses_precreated_symlink() {
 #[cfg(target_os = "linux")]
 fn temp_output_for_test(input: &std::path::Path) -> PathBuf {
     let canonical = fs::canonicalize(input).unwrap_or_else(|_| input.to_path_buf());
-    let mut hasher = DefaultHasher::new();
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
     canonical.hash(&mut hasher);
     let hash = hasher.finish();
 

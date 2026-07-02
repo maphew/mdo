@@ -1,8 +1,9 @@
 [package]
 name = "mdo-cli"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 default-run = "mdo"
+build = "build.rs"
 authors = [
     "Matt Wilkie <maphew@gmail.com>",
     "Hafiz Ali Raza <haffizaliraza@gmail.com>",  # original upstream author
@@ -23,8 +24,12 @@ include = [
     "/tests/**/*.rs",
     "/assets/simple.min.css",
     "/assets/simple.css.LICENSE",
+    "/assets/mdo-default-typography.css",
+    "/assets/restore-simple-css.css",
+    "/assets/mdo.ico",
     "/scripts/*.ps1",
     "/scripts/*.sh",
+    "/build.rs",
     "/Cargo.toml",
     "/Cargo.lock",
     "/CHANGELOG.md",
@@ -47,12 +52,16 @@ pulldown-cmark = "0.10"
 clap = { version = "4", features = ["derive"] }
 notify = "6"
 
+[build-dependencies]
+winresource = "0.1.31"
+
 # Windows-only. Opens the rendered file via the Win32 ShellExecuteW API
 # instead of `cmd /C start`, so cmd metacharacters in the path can never be
 # interpreted as commands. See the SECURITY note in launch_browser
 # (src/main.rs). opener calls ShellExecuteW directly — no cmd.exe.
 [target.'cfg(windows)'.dependencies]
 opener = "0.8"
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging"] }
 
 [[bin]]
 name = "mdo"
@@ -61,3 +70,7 @@ path = "src/main.rs"
 [[bin]]
 name = "mdo-open"
 path = "src/bin/mdo-open.rs"
+
+[[bin]]
+name = "mdo-setup"
+path = "src/bin/mdo-setup.rs"

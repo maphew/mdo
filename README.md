@@ -17,12 +17,18 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 
 - ✅ Converts `.md` files to standalone HTML5 documents
 - 🎨 Pretty default styling via embedded [simple.css](https://simplecss.org/)
+  with a calmer mdo typography layer (`body` 1rem, `h1` 2.4rem, `h2` 2rem, `h3` 1.4rem)
+- 🧩 `--css` flag appends your own CSS overrides after the bundled defaults
+- ↩️ Release archives include `restore-simple-css.css` for reverting to the
+  vendored simple.css typography
 - 🌓 Automatic light/dark mode (follows OS) plus a manual toggle button
 - 📄 `--bare` flag emits a sanitized HTML fragment (no `<html>`/`<head>`/`<body>`/CSS)
 - 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
 - 👀 `--watch` flag enables auto-rerender on file change (with debouncing)
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
-- ⚡ Fast and self-contained — single binary, no runtime assets
+- 🧑‍🚀 `--tour` / no-arg interactive first-run guide, plus a Windows/Linux `mdo-setup` launcher that opens it for file-manager users
+- 🧭 Built-in `--install-file-manager` / `--uninstall-file-manager` integration (no separate install scripts needed)
+- ⚡ Fast and self-contained — no required runtime assets; `mdo.exe` remains the core CLI
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
 
 ### Why?
@@ -37,50 +43,45 @@ Mdo + file-manager integration creates html pages so quickly they are throw-away
 
 ## 📦 Installation
 
-### GitHub release binaries
+### Native downloads
+
+Use the hosted installer when you want `mdo` without installing Rust.
+
+Linux and macOS:
+
+```bash
+curl -fsSL https://maphew.github.io/mdo/install.sh | sh
+```
 
 Windows PowerShell:
 
 ```powershell
-$InstallDir = "$env:LOCALAPPDATA\mdo\bin"
-$Zip = "$env:TEMP\mdo.zip"
-New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-Invoke-WebRequest -Uri "https://github.com/maphew/mdo/releases/latest/download/mdo-x86_64-pc-windows-msvc.zip" -OutFile $Zip
-Expand-Archive -Force -Path $Zip -DestinationPath $InstallDir
-$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
-$NewPath = if ([string]::IsNullOrWhiteSpace($UserPath)) { $InstallDir } else { "$($UserPath.TrimEnd(';'));$InstallDir" }
-if (($UserPath -split ';') -notcontains $InstallDir) { [Environment]::SetEnvironmentVariable("Path", $NewPath, "User") }
-& "$InstallDir\mdo.exe" --version
+irm https://maphew.github.io/mdo/install.ps1 | iex
 ```
 
-Linux:
+The scripts install the latest GitHub Release into `$HOME/.local/bin` on Linux
+and macOS, or `%LOCALAPPDATA%\mdo\bin` on Windows. They verify the release
+archive against `SHA256SUMS`, install the companion launcher where available,
+and print `mdo --version` when finished. Set `MDO_INSTALL_DIR` first to choose a
+different install directory.
+
+Manual archives remain available on
+[GitHub Releases](https://github.com/maphew/mdo/releases).
+
+### Cargo for Rust developers
 
 ```bash
-mkdir -p "$HOME/.local/bin"
-curl -fsSL "https://github.com/maphew/mdo/releases/latest/download/mdo-x86_64-unknown-linux-gnu.tar.gz" \
-  | tar -xz -C "$HOME/.local/bin" mdo mdo-open
-chmod +x "$HOME/.local/bin/mdo" "$HOME/.local/bin/mdo-open"
-case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"; export PATH="$HOME/.local/bin:$PATH";; esac
-mdo --version
+cargo install mdo-cli
 ```
 
-macOS:
-
-```bash
-mkdir -p "$HOME/.local/bin"
-curl -fsSL "https://github.com/maphew/mdo/releases/latest/download/mdo-universal-apple-darwin.tar.gz" \
-  | tar -xz -C "$HOME/.local/bin" mdo mdo-open
-chmod +x "$HOME/.local/bin/mdo" "$HOME/.local/bin/mdo-open"
-case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"; export PATH="$HOME/.local/bin:$PATH";; esac
-mdo --version
-```
-
-The release page also publishes `SHA256SUMS` for archive verification.
+`cargo install` builds from source and therefore needs a working Rust build
+toolchain. On Windows with the default `*-pc-windows-msvc` Rust target, install
+**Visual Studio Build Tools** with **Desktop development with C++** (or the
+equivalent Visual Studio workload) so `link.exe` is available. If Cargo reports
+`linker link.exe not found`, use the GitHub Release ZIP above or install the
+MSVC linker before retrying.
 
 ### Build from source
-
-Use the source build path when developing `mdo` or when you specifically
-want Cargo to compile it locally:
 
 ```bash
 git clone https://github.com/maphew/mdo.git
@@ -89,33 +90,45 @@ cargo build --release
 ./target/release/mdo input.md
 ```
 
-Rust users can also install from crates.io, but this compiles from source
-and requires the platform's native build tools:
+### Maintainer releases
 
-```bash
-cargo install mdo-cli
-```
+GitHub releases are published from this fork by `.github/workflows/release.yml`.
+Push a version tag such as `v0.2.0` to build Linux, macOS, and Windows archives
+and publish them to a GitHub Release. The workflow can also be run manually with
+an existing tag via **Actions -> Release -> Run workflow**.
+
+The release workflow keeps repository access read-only for build jobs and grants
+`contents: write` only to the final release-publishing job. GitHub Actions are
+pinned to commit SHAs, with Dependabot configured to propose updates.
 
 ---
 
 ## 📦 Usage
 
 ```text
-Usage: mdo [OPTIONS] <INPUT>
+Usage: mdo [OPTIONS] [INPUT]
 
 Arguments:
-  <INPUT>  Input Markdown file
+  [INPUT]  Input Markdown file
 
 Options:
-  -o, --output <OUTPUT>  Output HTML file (defaults to <input>.html alongside the input,
-                         or to a temp directory when --open is used). Existing files are overwritten
-  -w, --watch            Watch the input file and re-render on every change
-  -b, --bare             Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
-      --unsafe-html      Preserve raw HTML from the Markdown source instead of sanitizing it
-      --open             Render to a temp directory and launch the system default browser.
-                         The source folder is left untouched unless --output is given
-  -h, --help             Print help
-  -V, --version          Print version
+  -o, --output <OUTPUT>     Output HTML file (defaults to <input>.html alongside the input,
+                            or to a temp directory when --open is used). Existing files are overwritten
+  -w, --watch               Watch the input file and re-render on every change
+  -b, --bare                Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
+      --css <FILE>          Append a custom CSS file after mdo's default styling
+      --unsafe-html         Preserve raw HTML from the Markdown source instead of sanitizing it
+      --open                Render to a temp directory and launch the system default browser.
+                            The source folder is left untouched unless --output is given
+      --tour                Show a first-run tour with safe next steps for new users
+      --install-file-manager
+                            Install per-user file-manager integration for Markdown files
+      --uninstall-file-manager
+                            Remove per-user file-manager integration installed by mdo
+      --set-default         With --install-file-manager on Linux, make Open as HTML the default
+                            Markdown handler. Windows default selection remains interactive
+  -h, --help                Print help
+  -V, --version             Print version
 ```
 
 If `--output` is omitted, the output is written next to the input with the
@@ -146,12 +159,40 @@ Emit a bare HTML fragment (useful for embedding in another template):
 mdo --bare input.md
 ```
 
+Append custom CSS after the built-in styles to tune the default theme:
+
+```bash
+mdo --css my-overrides.css input.md
+```
+
+Release archives include `restore-simple-css.css` for users who prefer the
+unmodified simple.css typography scale:
+
+```bash
+mdo --css restore-simple-css.css input.md
+```
+
 Raw HTML from the Markdown source is sanitized by default. Preserve it only
 when the source is trusted:
 
 ```bash
 mdo --unsafe-html input.md
 ```
+
+Regenerate the checked-in project-site pages with the same runtime CSS pipeline
+used by normal mdo output:
+
+```bash
+python scripts/build-docs.py
+```
+
+The homepage source is `docs/index.md`; it uses only Markdown and the `--css
+docs/assets/site.css` override so the docs-only presentation is layered after
+mdo's embedded simple.css and typography defaults. The sample preview source is
+`docs/assets/sample.md`; `scripts/build-docs.py` renders it with
+`docs/assets/sample.css` to demonstrate per-page CSS overrides. The GitHub Pages
+workflow applies the same `--css docs/assets/site.css` override when it
+generates ADR pages.
 
 Watch for changes and re-render on every save:
 
@@ -166,40 +207,100 @@ write next to the source):
 mdo --open input.md
 ```
 
-This is the recommended setup for a Windows **Open as HTML** file
-association — use the bundled `mdo-open.exe` wrapper and double-clicking
-a `.md` file in Explorer will render to the platform temp directory and
-open it without leaving any artifacts in the source folder.
+This same render-to-temp path is what the built-in file-manager integration
+registers, so double-click/right-click opens never leave `.html` artifacts
+beside the source file.
+
+## Imaginative Markdown + CSS
+
+The project site dogfoods `mdo` by building a visual preview without raw HTML embeds or iframes. The source is only normal Markdown:
+
+```markdown
+![Desktop background](assets/mammoth-bluefinhero-1024x695.jpg)
+
+> sample.md rendered by mdo
+>
+> # Release Notes Draft
+>
+> `mdo` turns Markdown into a standalone HTML5 document.
+```
+
+The docs CSS override recognizes that generated shape and styles the blockquote as a faux browser window floating over the image:
+
+```css
+main > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"]) + blockquote {
+  margin-top: -460px;
+  background: white;
+  box-shadow: 0 16px 36px rgba(7, 18, 24, 0.3);
+}
+```
+
+That trick keeps the content portable and readable as Markdown while using `--css` to create a richer static page. It is a good example of how `mdo` can be used imaginatively: write semantic Markdown first, then layer presentation on top when the rendered page needs to tell a visual story.
+
+### First-run tour
+
+Running `mdo --tour` prints a short new-user path:
+
+```bash
+mdo --tour
+```
+
+When run interactively with no arguments, `mdo` shows the same terminal tour
+and, on Windows and Linux, offers to install the reversible per-user **Open as
+HTML** file-manager integration. The prompt defaults to **Yes**, but it still
+does not change your default Markdown app; choose **No** to skip or run the
+installer again later. After you press Enter to close the tour, mdo renders and
+opens a short welcome sample so you can immediately verify the browser-opening
+flow. In scripts or other non-interactive contexts, no-argument `mdo` still
+exits with a usage error and suggests `mdo --tour`.
+
+On Windows, double-click `mdo-setup.exe` to open that same terminal tour in a
+fresh Windows Terminal (`wt`) window, falling back to a plain new console if
+`wt` is unavailable — the no-terminal entry point for Explorer users. On
+Linux, run `mdo-setup` to get the tour in your `$TERMINAL` or a known terminal emulator
+(`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open`
+runs when launched with no file. Double-clicking the bare `mdo-setup` binary from
+a file manager is not reliable on Linux, so prefer `mdo --tour` from a shell.
+This preserves `mdo` as the normal CLI. On Windows, launching `mdo-open.exe`
+directly with no file opens the same terminal tour in a fresh Windows Terminal
+(`wt`) window using the **One Half Light** color scheme, centered on the active
+display; if `wt` is unavailable it falls back to a plain new console.
 
 ---
 
 ## Linux file manager integration
 
-The repo also ships Linux helpers under [`scripts/`](scripts) for per-user
-file-manager integration:
+`mdo` can install or remove its own per-user XDG file-manager integration;
+no companion install script is required:
 
 ```bash
+# Open the first-run tour in a terminal (offers the optional integration install)
+mdo-setup
+
 # Add "Open as HTML" as an "Open With" handler for Markdown files
-./scripts/install-linux-file-manager.sh
+mdo --install-file-manager
 
 # Same, but also make it the default Markdown handler
-./scripts/install-linux-file-manager.sh --set-default
+mdo --install-file-manager --set-default
 
-# Undo everything the install script did
-./scripts/uninstall-linux-file-manager.sh
+# Undo everything the installer did
+mdo --uninstall-file-manager
 ```
 
 The installer writes `~/.local/share/applications/mdo.desktop`, whose
-command is `mdo --open %f`, plus a small `Ⓜ` SVG icon under
+command is the current binary plus `--open %f`, and a small `Ⓜ` SVG icon under
 `~/.local/share/icons/hicolor/scalable/apps/mdo.svg`. The desktop entry is
 named **Open as HTML**, so GNOME Files/Nautilus and other XDG file managers
 show an action-oriented entry instead of a tool-name-only entry. Rerunning the
 installer also removes older Nautilus Scripts entries named **Preview with
 mdo** or **Render with mdo**.
 
-Pass `--exe /path/to/mdo` if the binary is not on `PATH`. The script looks
-for `mdo` on `PATH` first, then falls back to `target/release/mdo`
-next to this repo after `cargo build --release`.
+Linux release archives also include `mdo-setup`, which opens the same first-run
+tour in a terminal window. It launches your `$TERMINAL` or a known terminal
+emulator (`gnome-terminal`, `konsole`, `xterm`, and others); if none is found it
+shows a `zenity`/`kdialog`/`yad` notice pointing you to `mdo --tour`. If you
+launch `mdo-open` directly with no file, it opens `mdo-setup` when the setup
+helper is present.
 
 Result examples after install:
 
@@ -207,53 +308,43 @@ Result examples after install:
   **Open as HTML**.
 - With `--set-default`: double-clicking a Markdown file launches `mdo --open`.
 - The rendered page opens in your default browser from a temp path such as
-  `/tmp/mdo/<hash>/<name>.html`, and no `.html` file is left beside the source.
+  `/tmp/mdo-<uid>/<hash>/<name>.html`, and no `.html` file is left beside the source.
 
 ---
 
 ## 🪟 Windows Explorer integration
 
-The repo ships two PowerShell helpers under [`scripts/`](scripts) that wire
-mdo into Explorer for the current user only (no admin, no HKLM changes):
+`mdo.exe` can install or remove its own per-user Explorer integration (no
+admin rights and no HKLM changes). Windows release ZIPs also include
+`mdo-setup.exe`, which opens the same first-run tour in Windows Terminal
+(`wt`) when available, falling back to a new console window:
 
 ```powershell
-# Add: an "Open as HTML" right-click verb and Open With app entry
-powershell -ExecutionPolicy Bypass -File .\scripts\install-explorer.ps1
+# Open the first-run tour (offers the optional Explorer integration install)
+.\mdo-setup.exe
 
-# Undo everything the install script did
-powershell -ExecutionPolicy Bypass -File .\scripts\uninstall-explorer.ps1
+# CLI install: add an "Open as HTML" right-click verb and Open With app entry
+.\mdo.exe --install-file-manager
+
+# Undo everything the installer did
+.\mdo.exe --uninstall-file-manager
 ```
 
-The install script registers `mdo-open.exe`, a tiny windows-subsystem
-wrapper built alongside `mdo.exe`. The wrapper exists for one reason:
-when Explorer launches a normal console binary it briefly flashes a black
-console window. `mdo-open.exe` runs as a GUI subsystem app and spawns
-`mdo.exe --open` with `CREATE_NO_WINDOW`, so double-clicking a `.md`
-file renders from the platform temp directory and opens straight in the
-browser with no flash. The regular CLI is
-unchanged — `mdo.exe` from a terminal still prints to stdout normally.
-
-The install script auto-locates `mdo-open.exe` via `PATH`, falling
-back to `target\release\mdo-open.exe` next to the repo. Pass
-`-ExePath C:\path\to\mdo-open.exe` to override. `mdo.exe` must
-sit next to `mdo-open.exe`; both are included in the Windows release
-archive and are also produced by local source builds.
-
-It also generates a small `.ico` at `%LOCALAPPDATA%\mdo\md.ico` by
-rendering a single Unicode character — by default Ⓜ (circled M) in a
-mid-tone blue chosen so it stays legible in both light and dark Explorer
-themes. Override either via parameters:
-
-```powershell
-.\scripts\install-explorer.ps1 -IconChar "📄" -IconColor "#E64A19"
-```
-
-`uninstall-explorer.ps1` removes the .ico (and its folder if empty)
-along with all the registry keys. It also removes the old **Preview with mdo**
-and **Render with mdo** verbs from earlier installs.
+The installer registers **Open as HTML** for `.md` files. If `mdo-open.exe`
+is present next to `mdo.exe`, it is used as the Explorer handler to avoid the
+brief black console-window flash that Windows shows for normal console
+binaries. If only `mdo.exe` is present, the installer still works and registers
+`mdo.exe --open "%1"` directly, so a single downloaded executable is enough
+for file-manager integration. The Windows binaries embed the mdo icon; the
+installer also writes that icon to a per-user path and registers both `mdo.exe`
+and `mdo-open.exe` with the friendly app name **Open as HTML**, so Windows
+"Open with" surfaces do not need to expose the wrapper binary name. If you
+launch `mdo-open.exe` directly with no file, it opens the same terminal tour in a
+fresh `wt` window with the **One Half Light** color scheme and centers it on the
+active display, falling back to a plain new console when `wt` cannot be started.
 
 To make **Open as HTML** the *default* `.md` handler after running the install
-script, right-click a `.md` file → **Open with → Choose another app** →
+command, right-click a `.md` file → **Open with → Choose another app** →
 pick **Open as HTML** → tick **Always use this app**. Windows requires that
 last step to be done interactively.
 
@@ -263,7 +354,7 @@ Result examples after install:
   appear under **Show more options**.
 - **Open with → Open as HTML** appears as an available app for Markdown files.
 - If you make **Open as HTML** the default handler, double-clicking a `.md`
-  file opens the rendered page in your browser with no console-window flash.
+  file opens the rendered page in your browser.
 - The rendered page opens from `%TEMP%\mdo\<hash>\<name>.html`, and the source
   folder stays unchanged.
 
@@ -307,7 +398,13 @@ The default (non-`--bare`) output is a complete HTML5 document:
 - `<title>` derived from the first `# Heading` in the source (falls back to the
   input filename)
 - An inlined copy of [simple.css](https://simplecss.org/) inside `<style>`,
-  giving you sensible typography and automatic light/dark mode out of the box
+  followed by mdo's calmer default typography (`body` 1rem, `h1` 2.4rem,
+  `h2` 2rem, `h3` 1.4rem) sourced from
+  [`assets/mdo-default-typography.css`](assets/mdo-default-typography.css)
+- Optional custom CSS from `--css <FILE>`, appended after the built-in styles
+  and mdo defaults so rules such as `h1 { font-size: 1.75rem; }` can override them
+- `restore-simple-css.css` in release archives, which can be passed with `--css`
+  to restore the vendored simple.css typography scale
 - A small floating ☀/☾ button (top-right) for manually overriding the theme;
   the choice is remembered in `localStorage`
 - Body content wrapped in `<main>`

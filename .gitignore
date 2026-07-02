@@ -11,4 +11,9 @@ docs/adr/*.html
 .beads/.local_version
 .beads/backup/
 .beads/export-state.json
+# Local Dolt database + backup stores (sync via refs/dolt/data, not git files)
+.beads/embeddeddolt/
+
+# Local Beads runtime artifacts
+.beads/interactions.jsonl
 .beads/last-touched
