@@ -1,5 +1,5 @@
 {
-  "collected_at": "2026-07-07T23:06:58Z",
+  "collected_at": "2026-07-07T23:19:38Z",
   "crates_io": {
     "crate": {
       "created_at": "2026-05-30T00:01:38.591296Z",
@@ -133,9 +133,9 @@
         "full_name": "maphew/mdo",
         "html_url": "https://github.com/maphew/mdo",
         "open_issues": 0,
-        "pushed_at": "2026-07-07T09:28:26Z",
+        "pushed_at": "2026-07-07T23:14:22Z",
         "stars": 2,
-        "updated_at": "2026-07-07T09:28:41Z",
+        "updated_at": "2026-07-07T23:14:25Z",
         "watchers": 0
       },
       "source": "https://api.github.com/repos/maphew/mdo",
@@ -145,15 +145,193 @@
       }
     },
     "traffic": {
-      "available": false,
-      "clones": null,
+      "available": true,
+      "clones": {
+        "count": 137,
+        "days": [
+          {
+            "count": 2,
+            "timestamp": "2026-06-23T00:00:00Z",
+            "uniques": 2
+          },
+          {
+            "count": 10,
+            "timestamp": "2026-06-24T00:00:00Z",
+            "uniques": 6
+          },
+          {
+            "count": 11,
+            "timestamp": "2026-06-25T00:00:00Z",
+            "uniques": 6
+          },
+          {
+            "count": 1,
+            "timestamp": "2026-06-26T00:00:00Z",
+            "uniques": 1
+          },
+          {
+            "count": 11,
+            "timestamp": "2026-06-27T00:00:00Z",
+            "uniques": 6
+          },
+          {
+            "count": 14,
+            "timestamp": "2026-06-28T00:00:00Z",
+            "uniques": 7
+          },
+          {
+            "count": 3,
+            "timestamp": "2026-06-29T00:00:00Z",
+            "uniques": 3
+          },
+          {
+            "count": 2,
+            "timestamp": "2026-06-30T00:00:00Z",
+            "uniques": 2
+          },
+          {
+            "count": 7,
+            "timestamp": "2026-07-01T00:00:00Z",
+            "uniques": 4
+          },
+          {
+            "count": 12,
+            "timestamp": "2026-07-02T00:00:00Z",
+            "uniques": 5
+          },
+          {
+            "count": 32,
+            "timestamp": "2026-07-03T00:00:00Z",
+            "uniques": 17
+          },
+          {
+            "count": 15,
+            "timestamp": "2026-07-04T00:00:00Z",
+            "uniques": 11
+          },
+          {
+            "count": 14,
+            "timestamp": "2026-07-05T00:00:00Z",
+            "uniques": 8
+          },
+          {
+            "count": 3,
+            "timestamp": "2026-07-06T00:00:00Z",
+            "uniques": 3
+          }
+        ],
+        "uniques": 60
+      },
       "minimum_public_count": 3,
       "note": "GitHub traffic endpoints expose only recent aggregate windows. Entries with counts below the public threshold are omitted.",
       "paths": [],
       "referrers": [],
-      "skip_reason": "Set METRICS_GITHUB_TOKEN or GITHUB_TOKEN to collect GitHub traffic aggregates.",
-      "sources": {},
-      "views": null
+      "sources": {
+        "clones": {
+          "source": "https://api.github.com/repos/maphew/mdo/traffic/clones",
+          "status": {
+            "ok": true,
+            "status": 200
+          }
+        },
+        "paths": {
+          "source": "https://api.github.com/repos/maphew/mdo/traffic/popular/paths",
+          "status": {
+            "ok": true,
+            "status": 200
+          }
+        },
+        "referrers": {
+          "source": "https://api.github.com/repos/maphew/mdo/traffic/popular/referrers",
+          "status": {
+            "ok": true,
+            "status": 200
+          }
+        },
+        "views": {
+          "source": "https://api.github.com/repos/maphew/mdo/traffic/views",
+          "status": {
+            "ok": true,
+            "status": 200
+          }
+        }
+      },
+      "views": {
+        "count": 3,
+        "days": [
+          {
+            "count": 0,
+            "timestamp": "2026-06-23T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-06-24T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-06-25T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-06-26T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-06-27T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-06-28T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-06-29T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 3,
+            "timestamp": "2026-06-30T00:00:00Z",
+            "uniques": 2
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-07-01T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-07-02T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-07-03T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-07-04T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-07-05T00:00:00Z",
+            "uniques": 0
+          },
+          {
+            "count": 0,
+            "timestamp": "2026-07-06T00:00:00Z",
+            "uniques": 0
+          }
+        ],
+        "uniques": 2
+      }
     }
   },
   "package_presence": [
