@@ -27,7 +27,6 @@ When an agent completes implementation work, it is authorized to:
 Agents must inspect `git status` before committing and must not include
 unrelated user changes.
 
-Do not push git commits or run `bd dolt push` unless explicitly asked.
 
 ## Quick Reference
 
