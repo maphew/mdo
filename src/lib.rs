@@ -786,6 +786,9 @@ mod tests {
     fn setup_sample_contains_welcome_copy() {
         assert!(SETUP_SAMPLE_MARKDOWN.contains("# Welcome to the world of Open as HTML with mdo"));
         assert!(SETUP_SAMPLE_MARKDOWN.contains("opened it successfully"));
-        assert_eq!(SETUP_SAMPLE_FILE_NAME, "welcome-to-open-as-html-with-mdo.md");
+        assert_eq!(
+            SETUP_SAMPLE_FILE_NAME,
+            "welcome-to-open-as-html-with-mdo.md"
+        );
     }
 }
