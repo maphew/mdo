@@ -18,14 +18,14 @@ use pulldown_cmark::{html, Options, Parser as MdParser};
 
 pub mod file_manager;
 #[cfg(target_os = "windows")]
-pub mod windows_tour;
+pub mod windows_setup;
 
 const SIMPLE_CSS: &str = include_str!("../assets/simple.min.css");
 const APP_DISPLAY_NAME: &str = "mdo";
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 const APP_HOMEPAGE: &str = env!("CARGO_PKG_HOMEPAGE");
-pub const TOUR_SAMPLE_FILE_NAME: &str = "welcome-to-open-as-html-with-mdo.md";
-pub const TOUR_SAMPLE_MARKDOWN: &str = "\
+pub const SETUP_SAMPLE_FILE_NAME: &str = "welcome-to-open-as-html-with-mdo.md";
+pub const SETUP_SAMPLE_MARKDOWN: &str = "\
 # Welcome to the world of Open as HTML with mdo
 
 If you are reading this in your browser, mdo rendered Markdown as HTML and
@@ -650,9 +650,9 @@ fn write_output_file(output: &Path, contents: &str, _private_output: bool) -> io
     fs::write(output, contents)
 }
 
-pub fn open_tour_sample() -> io::Result<()> {
-    let source = tour_sample_input_path()?;
-    fs::write(&source, TOUR_SAMPLE_MARKDOWN)?;
+pub fn open_setup_sample() -> io::Result<()> {
+    let source = setup_sample_input_path()?;
+    fs::write(&source, SETUP_SAMPLE_MARKDOWN)?;
 
     let output = temp_output_for(&source)?;
     if !convert(&source, &output, false, false, true) {
@@ -663,13 +663,13 @@ pub fn open_tour_sample() -> io::Result<()> {
     Ok(())
 }
 
-fn tour_sample_input_path() -> io::Result<PathBuf> {
+fn setup_sample_input_path() -> io::Result<PathBuf> {
     let root = private_temp_root();
     ensure_private_dir(&root)?;
 
-    let dir = root.join("tour");
+    let dir = root.join("setup");
     ensure_private_dir(&dir)?;
-    Ok(dir.join(TOUR_SAMPLE_FILE_NAME))
+    Ok(dir.join(SETUP_SAMPLE_FILE_NAME))
 }
 
 #[cfg(test)]
@@ -783,9 +783,9 @@ mod tests {
     }
 
     #[test]
-    fn tour_sample_contains_welcome_copy() {
-        assert!(TOUR_SAMPLE_MARKDOWN.contains("# Welcome to the world of Open as HTML with mdo"));
-        assert!(TOUR_SAMPLE_MARKDOWN.contains("opened it successfully"));
-        assert_eq!(TOUR_SAMPLE_FILE_NAME, "welcome-to-open-as-html-with-mdo.md");
+    fn setup_sample_contains_welcome_copy() {
+        assert!(SETUP_SAMPLE_MARKDOWN.contains("# Welcome to the world of Open as HTML with mdo"));
+        assert!(SETUP_SAMPLE_MARKDOWN.contains("opened it successfully"));
+        assert_eq!(SETUP_SAMPLE_FILE_NAME, "welcome-to-open-as-html-with-mdo.md");
     }
 }
