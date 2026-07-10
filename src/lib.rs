@@ -358,14 +358,8 @@ fn derive_raw_html_h1_title(markdown: &str) -> Option<String> {
             continue;
         }
 
-        let content_start = match markdown[start..].find('>') {
-            Some(end) => start + end + 1,
-            None => return None,
-        };
-        let content_end = match lower[content_start..].find("</h1>") {
-            Some(end) => content_start + end,
-            None => return None,
-        };
+        let content_start = start + markdown[start..].find('>')? + 1;
+        let content_end = content_start + lower[content_start..].find("</h1>")?;
         let title = strip_html_tags(&markdown[content_start..content_end])
             .split_whitespace()
             .collect::<Vec<_>>()
