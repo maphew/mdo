@@ -88,6 +88,10 @@ done
 echo "mdo installed to ${install_dir}"
 "${install_dir}/mdo" --version
 
+if [ "$os" = "Linux" ]; then
+  "${install_dir}/mdo-setup" --register-launcher-only
+fi
+
 case ":${PATH}:" in
   *":${install_dir}:"*) ;;
   *)

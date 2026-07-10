@@ -107,7 +107,7 @@ Setup explains the render-and-open workflow, the normal convert-once command, an
 
 Running `mdo` with no arguments prints a short **Open Markdown as HTML** landing page and exits successfully; use `mdo --help` for the full CLI reference. Run `mdo --setup` when you want guided setup. On Windows and Linux it can offer to install **Open as HTML** for the current user only. The default answer is **Yes**, but mdo still does not change the default Markdown app. Choose **No** to skip or run setup again later.
 
-After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same guided setup in a fresh Windows Terminal (`wt`) window, falling back to a plain new console if `wt` is unavailable. On Linux, run `mdo-setup` to open guided setup in your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open` runs when launched with no file. Double-clicking the bare binary from a file manager is not reliable on Linux, so prefer `mdo --setup` from a shell.
+After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same guided setup in a fresh Windows Terminal (`wt`) window, falling back to a plain new console if `wt` is unavailable. On Linux, launch **mdo Setup** from your application menu or run `mdo-setup` to open guided setup in your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open` runs when launched with no file. Running it repairs its per-user application-menu entry if needed.
 
 On Windows, launching `mdo-open.exe` directly with no file opens the same guided setup in a fresh Windows Terminal (`wt`) window using the **One Half Light** color scheme, centered on the active display; if `wt` is unavailable, it falls back to a plain new console.
 
@@ -192,6 +192,7 @@ mdo --install-file-manager --set-default
 mdo --uninstall-file-manager
 ```
 
+- The hosted installer registers a visible **mdo Setup** application-menu entry at `~/.local/share/applications/mdo-setup.desktop`; running `mdo-setup` repairs it for Cargo or Homebrew installs. It is separate from the hidden `mdo.desktop` file handler and remains after `mdo --uninstall-file-manager`.
 - `mdo-setup` opens the same first-run setup in a terminal window (your `$TERMINAL` or a known emulator such as `gnome-terminal`, `konsole`, or `xterm`); if none is found it shows a `zenity`/`kdialog`/`yad` notice pointing to `mdo --setup`.
 - Most XDG file managers show **Open With -> Open as HTML** for Markdown files.
 - GNOME Files/Nautilus uses the same Open With entry; no duplicate Scripts item is installed.
