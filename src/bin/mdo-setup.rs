@@ -18,7 +18,7 @@ fn main() -> ExitCode {
         Err(e) => {
             windows_setup::error_dialog(
                 "mdo setup failed",
-                "mdo setup could not start the setup",
+                "mdo setup could not start guided setup",
                 &e.to_string(),
             );
             ExitCode::from(1)
@@ -33,7 +33,7 @@ fn main() -> ExitCode {
         Err(e) => {
             linux_setup::error_dialog(
                 "mdo setup failed",
-                "mdo setup could not start the setup",
+                "mdo setup could not start guided setup",
                 &e.to_string(),
             );
             ExitCode::from(1)
@@ -89,23 +89,23 @@ mod linux_setup {
             ));
         }
 
-        // Already attached to a terminal (e.g. run from a shell): show the setup
+        // Already attached to a terminal (e.g. run from a shell): show guided setup
         // right here instead of spawning a second window. The `?` still
         // propagates a genuine spawn failure (e.g. mdo missing), but a nonzero
-        // setup exit is the setup's own business — it surfaces its own errors, so
-        // we do not re-report it as "could not start the setup".
+        // setup exit is handled by the setup flow, which surfaces its own errors, so
+        // we do not re-report it as "could not start guided setup".
         if io::stdin().is_terminal() && io::stdout().is_terminal() {
             Command::new(&mdo).arg("--setup").status()?;
             return Ok(());
         }
 
-        // Launched from a file manager with no terminal: open one and run the
-        // setup inside it.
+        // Launched from a file manager with no terminal: open one and run
+        // guided setup inside it.
         if spawn_setup_in_terminal(&mdo) {
             return Ok(());
         }
 
-        // No terminal emulator on PATH: point the user at the CLI setup rather
+        // No terminal emulator on PATH: point the user at CLI setup rather
         // than failing invisibly. We report here and return Ok so main() does
         // not pop a second, redundant error dialog.
         error_dialog(
@@ -160,7 +160,7 @@ mod linux_setup {
     }
 
     /// Minimal GUI error reporting for the rare no-terminal case. Onboarding
-    /// itself is the terminal setup, not a dialog chain.
+    /// itself runs in the terminal, not a dialog chain.
     #[derive(Clone, Copy)]
     enum DialogTool {
         Zenity,
