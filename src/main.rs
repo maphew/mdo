@@ -44,7 +44,13 @@ use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
 
 /// Markdown to HTML converter. Converts once by default; pass --watch to keep watching.
 #[derive(Parser)]
-#[command(name = "mdo", author, version, about)]
+#[command(
+    name = "mdo",
+    author,
+    version,
+    about,
+    arg_required_else_help = true
+)]
 struct Cli {
     /// Input Markdown file
     input: Option<PathBuf>,
@@ -286,14 +292,6 @@ fn main() -> notify::Result<()> {
     let input = match args.input {
         Some(input) => input,
         None => {
-            if tour_is_interactive() {
-                if let Err(e) = run_first_run_tour() {
-                    eprintln!("❌ Tour failed: {e}");
-                    std::process::exit(1);
-                }
-                return Ok(());
-            }
-
             eprintln!("❌ Missing input Markdown file");
             eprintln!("Run `mdo --help` for usage or `mdo --tour` for a first-run guide.");
             std::process::exit(2);
