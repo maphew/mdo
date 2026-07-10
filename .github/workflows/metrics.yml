@@ -21,7 +21,7 @@ jobs:
       # Pinned action SHAs: use Dependabot github-actions PRs or `git ls-remote`
       # to refresh pins, and keep the version comments in sync.
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Install Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
