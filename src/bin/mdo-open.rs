@@ -15,7 +15,7 @@
 //!   2. Spawns it with `--open` and the rest of the args, using
 //!      `CREATE_NO_WINDOW` so the child never gets a console allocated.
 //!   3. If launched directly with no file args, opens onboarding: Windows
-//!      starts the terminal tour in Windows Terminal when available; Linux
+//!      starts the terminal setup in Windows Terminal when available; Linux
 //!      opens `mdo-setup` for native first-run onboarding.
 //!   4. Exits immediately. The child runs detached and pops the browser.
 //!
@@ -23,7 +23,7 @@
 //! association gives a flash-free double-click experience without changing
 //! how the regular CLI behaves in a terminal.
 //!
-//! On Windows, no-file launches open the terminal tour in a fresh `wt` window
+//! On Windows, no-file launches open the terminal setup in a fresh `wt` window
 //! with the One Half Light color scheme and then centers that window on the
 //! active display. If `wt` cannot be started, mdo falls back to a plain new
 //! console. On Linux, no-file launches open the sibling `mdo-setup` desktop
@@ -126,7 +126,7 @@ fn spawn_windows_onboarding(exe_dir: &Path) -> io::Result<()> {
         ));
     }
 
-    mdo_cli::windows_tour::spawn_terminal_tour(&mdo)
+    mdo_cli::windows_setup::spawn_terminal_setup(&mdo)
 }
 
 #[cfg(target_os = "windows")]
