@@ -26,7 +26,7 @@ Public metrics: <https://maphew.github.io/mdo/metrics/>
 - 🔒 Raw Markdown HTML is sanitized by default; use `--unsafe-html` to preserve it for trusted input
 - 👀 `--watch` flag enables auto-rerender on file change (with debouncing)
 - 🌐 `--open` flag renders to a temp dir and launches the system default browser
-- 🧑‍🚀 `--tour` / no-arg interactive first-run guide, plus a Windows/Linux `mdo-setup` launcher that opens it for file-manager users
+- 🧑‍🚀 Explicit `--tour` first-run guide, plus a Windows/Linux `mdo-setup` launcher that opens it for file-manager users
 - 🧭 Built-in `--install-file-manager` / `--uninstall-file-manager` integration (no separate install scripts needed)
 - ⚡ Fast and self-contained — no required runtime assets; `mdo.exe` remains the core CLI
 - 🧩 Built on `pulldown-cmark`, `clap`, and `notify`
@@ -245,14 +245,13 @@ Running `mdo --tour` prints a short new-user path:
 mdo --tour
 ```
 
-When run interactively with no arguments, `mdo` shows the same terminal tour
-and, on Windows and Linux, offers to install the reversible per-user **Open as
-HTML** file-manager integration. The prompt defaults to **Yes**, but it still
-does not change your default Markdown app; choose **No** to skip or run the
-installer again later. After you press Enter to close the tour, mdo renders and
-opens a short welcome sample so you can immediately verify the browser-opening
-flow. In scripts or other non-interactive contexts, no-argument `mdo` still
-exits with a usage error and suggests `mdo --tour`.
+`mdo` with no arguments prints CLI help and exits with a usage error. Run
+`mdo --tour` explicitly to start the interactive guide, which offers to install
+the reversible per-user **Open as HTML** file-manager integration on Windows
+and Linux. The prompt defaults to **Yes**, but it does not change your default
+Markdown app; choose **No** to skip or run the installer again later. After you
+press Enter to close the tour, mdo renders and opens a short welcome sample so
+you can immediately verify the browser-opening flow.
 
 On Windows, double-click `mdo-setup.exe` to open that same terminal tour in a
 fresh Windows Terminal (`wt`) window, falling back to a plain new console if
