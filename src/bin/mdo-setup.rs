@@ -28,7 +28,18 @@ fn main() -> ExitCode {
 
 #[cfg(target_os = "linux")]
 fn main() -> ExitCode {
-    match linux_setup::run() {
+    let register_only = std::env::args_os()
+        .nth(1)
+        .is_some_and(|arg| arg == "--register-launcher-only");
+    let result = if register_only {
+        linux_setup::register_launcher().map(|path| {
+            println!("Installed application launcher: {}", path.display());
+        })
+    } else {
+        linux_setup::run()
+    };
+
+    match result {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             linux_setup::error_dialog(
@@ -81,6 +92,7 @@ mod linux_setup {
     ];
 
     pub fn run() -> io::Result<()> {
+        continue_after_launcher_registration(register_launcher());
         let mdo = sibling_binary("mdo")?;
         if !mdo.exists() {
             return Err(io::Error::new(
@@ -114,6 +126,23 @@ mod linux_setup {
             "Install a terminal emulator (for example gnome-terminal, konsole, or xterm), then run `mdo --setup` to finish onboarding.",
         );
         Ok(())
+    }
+
+    pub fn register_launcher() -> io::Result<PathBuf> {
+        let setup_exe = std::env::current_exe()?;
+        mdo_cli::file_manager::install_linux_setup_launcher_for_exe(&setup_exe)
+    }
+
+    fn continue_after_launcher_registration(result: io::Result<PathBuf>) -> bool {
+        match result {
+            Ok(_) => true,
+            Err(error) => {
+                eprintln!(
+                    "mdo setup warning: could not register the application-menu launcher: {error}"
+                );
+                false
+            }
+        }
     }
 
     fn spawn_setup_in_terminal(mdo: &Path) -> bool {
@@ -276,6 +305,23 @@ mod linux_setup {
                     "{program} must forward the mdo argv unchanged"
                 );
             }
+        }
+
+        #[test]
+        fn normal_onboarding_continues_after_launcher_registration_failure() {
+            let result = Err(io::Error::new(
+                io::ErrorKind::PermissionDenied,
+                "applications directory is read-only",
+            ));
+
+            assert!(!continue_after_launcher_registration(result));
+        }
+
+        #[test]
+        fn normal_onboarding_accepts_successful_launcher_registration() {
+            assert!(continue_after_launcher_registration(Ok(PathBuf::from(
+                "/tmp/applications/mdo-setup.desktop"
+            ))));
         }
     }
 }

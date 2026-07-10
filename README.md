@@ -259,10 +259,11 @@ you can immediately verify the browser-opening flow.
 On Windows, double-click `mdo-setup.exe` to open that same guided setup in a
 fresh Windows Terminal (`wt`) window, falling back to a plain new console if
 `wt` is unavailable — the no-terminal entry point for Explorer users. On
-Linux, run `mdo-setup` to open guided setup in your `$TERMINAL` or a known terminal emulator
-(`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open`
-runs when launched with no file. Double-clicking the bare `mdo-setup` binary from
-a file manager is not reliable on Linux, so prefer `mdo --setup` from a shell.
+Linux, launch **mdo Setup** from your application menu, or run `mdo-setup` to
+open guided setup in your `$TERMINAL` or a known terminal emulator
+(`gnome-terminal`, `konsole`, `xterm`, and others). It is also what `mdo-open`
+runs when launched with no file. Running `mdo-setup` repairs its per-user
+application-menu entry if needed.
 This preserves `mdo` as the normal CLI. On Windows, launching `mdo-open.exe`
 directly with no file opens the same guided setup in a fresh Windows Terminal
 (`wt`) window using the **One Half Light** color scheme, centered on the active
@@ -297,9 +298,15 @@ show an action-oriented entry instead of a tool-name-only entry. Rerunning the
 installer also removes older Nautilus Scripts entries named **Preview with
 mdo** or **Render with mdo**.
 
+The hosted Linux installer also writes the separate, visible
+`~/.local/share/applications/mdo-setup.desktop` launcher. It has no MIME types
+and remains installed if you run `mdo --uninstall-file-manager`; that command
+only removes the hidden **Open as HTML** file-handler integration.
+
 Linux release archives also include `mdo-setup`, which opens the same first-run
-setup in a terminal window. It launches your `$TERMINAL` or a known terminal
-emulator (`gnome-terminal`, `konsole`, `xterm`, and others); if none is found it
+setup in a terminal window and registers itself as **mdo Setup** in Linux
+application menus. It launches your `$TERMINAL` or a known terminal emulator
+(`gnome-terminal`, `konsole`, `xterm`, and others); if none is found it
 shows a `zenity`/`kdialog`/`yad` notice pointing you to `mdo --setup`. If you
 launch `mdo-open` directly with no file, it opens `mdo-setup` when the setup
 helper is present.

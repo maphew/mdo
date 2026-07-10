@@ -7,6 +7,8 @@ use std::process::Stdio;
 const APP_DISPLAY_NAME: &str = "Open as HTML";
 #[cfg(target_os = "linux")]
 const DESKTOP_FILE_NAME: &str = "mdo.desktop";
+#[cfg(target_os = "linux")]
+const SETUP_DESKTOP_FILE_NAME: &str = "mdo-setup.desktop";
 #[cfg(target_os = "windows")]
 const WINDOWS_ICON_BYTES: &[u8] = include_bytes!("../assets/mdo.ico");
 #[cfg(target_os = "linux")]
@@ -107,17 +109,43 @@ pub fn install_linux_for_exe(current_exe: &Path, set_default: bool) -> io::Resul
     Ok(())
 }
 
+/// Install the application-menu entry for the native setup launcher.
+///
+/// This is deliberately separate from [`install_linux_for_exe`]: the latter
+/// owns the hidden Markdown file-handler entry and may be uninstalled without
+/// making setup disappear from the application menu.
+#[cfg(target_os = "linux")]
+pub fn install_linux_setup_launcher_for_exe(setup_exe: &Path) -> io::Result<PathBuf> {
+    let data_home = xdg_data_home()?;
+    let desktop_file = write_linux_setup_launcher(setup_exe, &data_home)?;
+    let desktop_dir = data_home.join("applications");
+
+    run_optional("update-desktop-database", &[desktop_dir.as_os_str()]);
+    Ok(desktop_file)
+}
+
+#[cfg(target_os = "linux")]
+fn write_linux_setup_launcher(setup_exe: &Path, data_home: &Path) -> io::Result<PathBuf> {
+    let desktop_dir = data_home.join("applications");
+    let desktop_file = desktop_dir.join(SETUP_DESKTOP_FILE_NAME);
+
+    fs::create_dir_all(&desktop_dir)?;
+    fs::write(&desktop_file, linux_setup_desktop_entry(setup_exe))?;
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&desktop_file, fs::Permissions::from_mode(0o644))?;
+    }
+
+    Ok(desktop_file)
+}
+
 #[cfg(target_os = "linux")]
 fn uninstall_impl() -> io::Result<()> {
     let data_home = xdg_data_home()?;
     let desktop_dir = data_home.join("applications");
-    let desktop_file = desktop_dir.join(DESKTOP_FILE_NAME);
-    let icon_root = data_home.join("icons").join("hicolor");
-    let icon_file = icon_root.join("scalable").join("apps").join("mdo.svg");
-
-    remove_file_if_present(&desktop_file)?;
-    remove_file_if_present(&icon_file)?;
-    remove_legacy_nautilus_scripts(&data_home)?;
+    remove_linux_handler_files(&data_home)?;
 
     for mimeapps in mimeapps_paths(&data_home) {
         remove_desktop_from_mimeapps(&mimeapps)?;
@@ -127,6 +155,21 @@ fn uninstall_impl() -> io::Result<()> {
 
     println!("Done.");
     Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn remove_linux_handler_files(data_home: &Path) -> io::Result<()> {
+    let desktop_file = data_home.join("applications").join(DESKTOP_FILE_NAME);
+    let icon_file = data_home
+        .join("icons")
+        .join("hicolor")
+        .join("scalable")
+        .join("apps")
+        .join("mdo.svg");
+
+    remove_file_if_present(&desktop_file)?;
+    remove_file_if_present(&icon_file)?;
+    remove_legacy_nautilus_scripts(data_home)
 }
 
 #[cfg(target_os = "windows")]
@@ -254,6 +297,24 @@ fn linux_desktop_entry(exe: &Path) -> String {
          Terminal=false\n\
          NoDisplay=true\n\
          MimeType=text/markdown;text/x-markdown;\n\
+         Categories=Utility;TextTools;\n\
+         StartupNotify=false\n"
+    )
+}
+
+#[cfg(target_os = "linux")]
+fn linux_setup_desktop_entry(setup_exe: &Path) -> String {
+    let quoted_exe = quote_desktop_exec_arg(&setup_exe.to_string_lossy());
+    format!(
+        "[Desktop Entry]\n\
+         Type=Application\n\
+         Name=mdo Setup\n\
+         GenericName=Markdown Opener Setup\n\
+         Comment=Set up mdo and open the first-run tour\n\
+         Exec={quoted_exe}\n\
+         Icon=utilities-terminal\n\
+         Terminal=false\n\
+         NoDisplay=false\n\
          Categories=Utility;TextTools;\n\
          StartupNotify=false\n"
     )
@@ -569,6 +630,52 @@ mod linux_tests {
             quote_desktop_exec_arg(r#"/tmp/a\b"c$d`e/mdo"#),
             r#""/tmp/a\\b\"c\$d\`e/mdo""#
         );
+    }
+
+    #[test]
+    fn setup_launcher_is_visible_and_not_a_file_handler() {
+        let entry = linux_setup_desktop_entry(Path::new(r#"/opt/mdo tools/a\b"c$d`e/mdo-setup"#));
+
+        assert!(entry.contains("Name=mdo Setup\n"));
+        assert!(entry.contains(r#"Exec="/opt/mdo tools/a\\b\"c\$d\`e/mdo-setup""#));
+        assert!(entry.contains("Terminal=false\n"));
+        assert!(entry.contains("NoDisplay=false\n"));
+        assert!(!entry.contains("MimeType="));
+        assert!(!entry.contains("%f"));
+    }
+
+    #[test]
+    fn setup_launcher_has_separate_handler_ownership() {
+        assert_ne!(SETUP_DESKTOP_FILE_NAME, DESKTOP_FILE_NAME);
+        let entry = linux_setup_desktop_entry(Path::new("/usr/bin/mdo-setup"));
+        assert!(!entry.contains("Icon=mdo\n"));
+    }
+
+    #[test]
+    fn handler_uninstall_preserves_setup_launcher() {
+        let data_home = std::env::temp_dir().join(format!(
+            "mdo-setup-launcher-test-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let applications = data_home.join("applications");
+        fs::create_dir_all(&applications).unwrap();
+        fs::write(applications.join(DESKTOP_FILE_NAME), "handler").unwrap();
+
+        let setup_file =
+            write_linux_setup_launcher(Path::new("/opt/mdo/bin/mdo-setup"), &data_home).unwrap();
+        // Registration is idempotent and rewrites stale content.
+        fs::write(&setup_file, "stale").unwrap();
+        write_linux_setup_launcher(Path::new("/opt/mdo/bin/mdo-setup"), &data_home).unwrap();
+
+        remove_linux_handler_files(&data_home).unwrap();
+
+        assert!(!applications.join(DESKTOP_FILE_NAME).exists());
+        assert!(setup_file.exists());
+        assert!(fs::read_to_string(&setup_file)
+            .unwrap()
+            .contains("Exec=\"/opt/mdo/bin/mdo-setup\"\n"));
+        fs::remove_dir_all(data_home).unwrap();
     }
 
     #[test]
