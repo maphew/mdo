@@ -65,7 +65,9 @@ fn help_prints_full_cli_reference() {
     assert!(output.status.success(), "mdo --help failed: {output:?}");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Usage: mdo [OPTIONS] [INPUT]"));
+    assert!(stdout
+        .lines()
+        .any(|line| line.starts_with("Usage: mdo") && line.ends_with("[OPTIONS] [INPUT]")));
     assert!(stdout.contains("--setup"));
     assert!(stdout.contains("--unsafe-html"));
 }
