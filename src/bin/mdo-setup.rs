@@ -2,8 +2,8 @@
 //!
 //! `mdo` stays the normal CLI. This companion binary gives desktop users a
 //! no-terminal entry point into onboarding: it opens the interactive
-//! `mdo --tour` (a single screen with one Y/N prompt) in a terminal window so
-//! double-clicking from a file manager behaves like running the tour from a
+//! `mdo --setup` (a single screen with one Y/N prompt) in a terminal window so
+//! double-clicking from a file manager behaves like running the setup from a
 //! shell. It deliberately does not reimplement onboarding as a chain of GUI
 //! dialogs.
 
@@ -18,7 +18,7 @@ fn main() -> ExitCode {
         Err(e) => {
             windows_setup::error_dialog(
                 "mdo setup failed",
-                "mdo setup could not start the tour",
+                "mdo setup could not start guided setup",
                 &e.to_string(),
             );
             ExitCode::from(1)
@@ -33,7 +33,7 @@ fn main() -> ExitCode {
         Err(e) => {
             linux_setup::error_dialog(
                 "mdo setup failed",
-                "mdo setup could not start the tour",
+                "mdo setup could not start guided setup",
                 &e.to_string(),
             );
             ExitCode::from(1)
@@ -44,7 +44,7 @@ fn main() -> ExitCode {
 #[cfg(not(any(target_os = "windows", target_os = "linux")))]
 fn main() -> ExitCode {
     eprintln!("mdo-setup is only needed for native Windows and Linux onboarding.");
-    eprintln!("Run `mdo --tour` for the command-line tour on this platform.");
+    eprintln!("Run `mdo --setup` for the command-line setup on this platform.");
     ExitCode::from(2)
 }
 
@@ -65,7 +65,7 @@ mod linux_setup {
     /// known and stable. `x-terminal-emulator` is the Debian "alternatives"
     /// indirection: its `-e` is delegated to whatever it points at (often
     /// gnome-terminal, whose legacy `-e` shell-splits and would orphan
-    /// `--tour`), so it is a best-effort last resort, tried only after the
+    /// `--setup`), so it is a best-effort last resort, tried only after the
     /// terminals we control.
     const TERMINALS: &[(&str, &[&str])] = &[
         ("gnome-terminal", &["--"]),
@@ -89,39 +89,39 @@ mod linux_setup {
             ));
         }
 
-        // Already attached to a terminal (e.g. run from a shell): show the tour
+        // Already attached to a terminal (e.g. run from a shell): show guided setup
         // right here instead of spawning a second window. The `?` still
         // propagates a genuine spawn failure (e.g. mdo missing), but a nonzero
-        // tour exit is the tour's own business — it surfaces its own errors, so
-        // we do not re-report it as "could not start the tour".
+        // setup exit is handled by the setup flow, which surfaces its own errors, so
+        // we do not re-report it as "could not start guided setup".
         if io::stdin().is_terminal() && io::stdout().is_terminal() {
-            Command::new(&mdo).arg("--tour").status()?;
+            Command::new(&mdo).arg("--setup").status()?;
             return Ok(());
         }
 
-        // Launched from a file manager with no terminal: open one and run the
-        // tour inside it.
-        if spawn_tour_in_terminal(&mdo) {
+        // Launched from a file manager with no terminal: open one and run
+        // guided setup inside it.
+        if spawn_setup_in_terminal(&mdo) {
             return Ok(());
         }
 
-        // No terminal emulator on PATH: point the user at the CLI tour rather
+        // No terminal emulator on PATH: point the user at CLI setup rather
         // than failing invisibly. We report here and return Ok so main() does
         // not pop a second, redundant error dialog.
         error_dialog(
             "mdo setup needs a terminal",
             "Could not find a terminal program to open",
-            "Install a terminal emulator (for example gnome-terminal, konsole, or xterm), then run `mdo --tour` to finish onboarding.",
+            "Install a terminal emulator (for example gnome-terminal, konsole, or xterm), then run `mdo --setup` to finish onboarding.",
         );
         Ok(())
     }
 
-    fn spawn_tour_in_terminal(mdo: &Path) -> bool {
+    fn spawn_setup_in_terminal(mdo: &Path) -> bool {
         for (program, lead) in preferred_terminals() {
             if !command_on_path(program) {
                 continue;
             }
-            let args = terminal_tour_args(lead, mdo);
+            let args = terminal_setup_args(lead, mdo);
             if Command::new(program).args(&args).spawn().is_ok() {
                 return true;
             }
@@ -144,10 +144,10 @@ mod linux_setup {
         ordered
     }
 
-    fn terminal_tour_args(lead: &[&str], mdo: &Path) -> Vec<OsString> {
+    fn terminal_setup_args(lead: &[&str], mdo: &Path) -> Vec<OsString> {
         let mut args: Vec<OsString> = lead.iter().map(OsString::from).collect();
         args.push(mdo.as_os_str().to_os_string());
-        args.push(OsString::from("--tour"));
+        args.push(OsString::from("--setup"));
         args
     }
 
@@ -160,7 +160,7 @@ mod linux_setup {
     }
 
     /// Minimal GUI error reporting for the rare no-terminal case. Onboarding
-    /// itself is the terminal tour, not a dialog chain.
+    /// itself runs in the terminal, not a dialog chain.
     #[derive(Clone, Copy)]
     enum DialogTool {
         Zenity,
@@ -236,7 +236,7 @@ mod linux_setup {
         use super::*;
 
         fn rendered(lead: &[&str]) -> Vec<String> {
-            terminal_tour_args(lead, Path::new("/opt/my tools/mdo"))
+            terminal_setup_args(lead, Path::new("/opt/my tools/mdo"))
                 .into_iter()
                 .map(|arg| arg.to_string_lossy().into_owned())
                 .collect()
@@ -244,35 +244,35 @@ mod linux_setup {
 
         #[test]
         fn dash_e_terminals_pass_command_as_argv() {
-            assert_eq!(rendered(&["-e"]), ["-e", "/opt/my tools/mdo", "--tour"]);
+            assert_eq!(rendered(&["-e"]), ["-e", "/opt/my tools/mdo", "--setup"]);
         }
 
         #[test]
         fn double_dash_terminals_pass_command_as_argv() {
-            assert_eq!(rendered(&["--"]), ["--", "/opt/my tools/mdo", "--tour"]);
+            assert_eq!(rendered(&["--"]), ["--", "/opt/my tools/mdo", "--setup"]);
         }
 
         #[test]
         fn positional_terminals_pass_command_as_argv() {
-            assert_eq!(rendered(&[]), ["/opt/my tools/mdo", "--tour"]);
+            assert_eq!(rendered(&[]), ["/opt/my tools/mdo", "--setup"]);
         }
 
         #[test]
         fn multi_arg_lead_is_preserved_in_order() {
             assert_eq!(
                 rendered(&["start", "--"]),
-                ["start", "--", "/opt/my tools/mdo", "--tour"]
+                ["start", "--", "/opt/my tools/mdo", "--setup"]
             );
         }
 
         #[test]
         fn terminal_table_only_lists_argv_safe_invocations() {
-            // Every entry must launch `mdo --tour` as a real argv. Bare `-e`
+            // Every entry must launch `mdo --setup` as a real argv. Bare `-e`
             // that takes a single shell string (e.g. tilix) must not creep in.
             for (program, lead) in TERMINALS {
                 let args = rendered(lead);
                 assert!(
-                    args.ends_with(&["/opt/my tools/mdo".to_string(), "--tour".to_string()]),
+                    args.ends_with(&["/opt/my tools/mdo".to_string(), "--setup".to_string()]),
                     "{program} must forward the mdo argv unchanged"
                 );
             }
@@ -304,9 +304,9 @@ mod windows_setup {
         }
 
         // Match the no-file `mdo-open.exe` onboarding path: prefer Windows
-        // Terminal for a styled, centered tour, then fall back to a plain new
+        // Terminal for a styled, centered setup, then fall back to a plain new
         // console if `wt` cannot be started.
-        mdo_cli::windows_tour::spawn_terminal_tour(&mdo)
+        mdo_cli::windows_setup::spawn_terminal_setup(&mdo)
     }
 
     pub fn error_dialog(title: &str, main_instruction: &str, content: &str) {

@@ -21,7 +21,7 @@
 //! - `-b, --bare`           Emit only the HTML fragment (no `<html>`, `<head>`, `<body>`, no CSS)
 //! - `--css <FILE>`         Append custom CSS after mdo's default styling
 //! - `--unsafe-html`        Preserve raw HTML from the Markdown source
-//! - `--tour`               Show a cautious first-run tour
+//! - `--setup`               Show a cautious first-run setup
 //!
 //! Without `--watch`, the tool converts once and exits.
 //!
@@ -37,7 +37,7 @@ use std::time::{Duration, Instant};
 
 use clap::Parser;
 use mdo_cli::{
-    convert_with_css_override, derive_output, file_manager, launch_browser, open_tour_sample,
+    convert_with_css_override, derive_output, file_manager, launch_browser, open_setup_sample,
     temp_output_for,
 };
 use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
@@ -75,9 +75,9 @@ struct Cli {
     #[arg(long)]
     open: bool,
 
-    /// Show a first-run tour with safe next steps for new users.
+    /// Show a first-run setup with safe next steps for new users.
     #[arg(long)]
-    tour: bool,
+    setup: bool,
 
     /// Install per-user file-manager integration for Markdown files.
     ///
@@ -96,11 +96,23 @@ struct Cli {
     set_default: bool,
 }
 
-fn tour_is_interactive() -> bool {
+fn setup_is_interactive() -> bool {
     io::stdin().is_terminal() && io::stdout().is_terminal()
 }
 
-fn print_first_run_tour(can_install_file_manager: bool) {
+fn print_landing_page() {
+    println!(
+        "\
+Open Markdown as HTML.
+
+  mdo FILE.md          create FILE.html
+  mdo --open FILE.md   open rendered HTML in your browser
+  mdo --setup          set up file-manager integration
+  mdo --help           show all options"
+    );
+}
+
+fn print_first_run_setup(can_install_file_manager: bool) {
     println!(
         "\
 Welcome to mdo.
@@ -143,11 +155,11 @@ recipes.
     }
 }
 
-fn run_first_run_tour() -> io::Result<()> {
-    let interactive = tour_is_interactive();
+fn run_first_run_setup() -> io::Result<()> {
+    let interactive = setup_is_interactive();
     let can_install_file_manager = cfg!(any(target_os = "linux", target_os = "windows"));
 
-    print_first_run_tour(can_install_file_manager);
+    print_first_run_setup(can_install_file_manager);
 
     if !interactive {
         return Ok(());
@@ -172,7 +184,7 @@ fn run_first_run_tour() -> io::Result<()> {
                         Err(e) => {
                             eprintln!("Could not install file-manager integration: {e}");
                             println!("No default app was changed by mdo.");
-                            wait_for_tour_close()?;
+                            wait_for_setup_close()?;
                             return Err(e);
                         }
                     }
@@ -195,17 +207,17 @@ fn run_first_run_tour() -> io::Result<()> {
         }
     }
 
-    wait_for_tour_close()?;
+    wait_for_setup_close()?;
     println!("Opening a welcome sample in your browser...");
-    match open_tour_sample() {
+    match open_setup_sample() {
         Ok(()) => println!("🌐 Opened welcome sample in default browser"),
         Err(e) => eprintln!("⚠️  Failed to open welcome sample: {e}"),
     }
     Ok(())
 }
 
-fn wait_for_tour_close() -> io::Result<()> {
-    println!("Press Enter to close this tour.");
+fn wait_for_setup_close() -> io::Result<()> {
+    println!("Press Enter to close this setup.");
     let mut ignored = String::new();
     io::stdin().read_line(&mut ignored)?;
     Ok(())
@@ -214,12 +226,19 @@ fn wait_for_tour_close() -> io::Result<()> {
 fn main() -> notify::Result<()> {
     let args = Cli::parse();
 
+    // Parse first so Clap retains ownership of --help, --version, and errors.
+    // Only the truly argument-free invocation gets the short landing page.
+    if std::env::args_os().len() == 1 {
+        print_landing_page();
+        return Ok(());
+    }
+
     if args.install_file_manager && args.uninstall_file_manager {
         eprintln!("❌ Choose only one of --install-file-manager or --uninstall-file-manager");
         std::process::exit(2);
     }
 
-    if args.tour {
+    if args.setup {
         if args.input.is_some()
             || args.output.is_some()
             || args.watch
@@ -231,12 +250,12 @@ fn main() -> notify::Result<()> {
             || args.uninstall_file_manager
             || args.set_default
         {
-            eprintln!("❌ --tour cannot be combined with render or integration options");
+            eprintln!("❌ --setup cannot be combined with render or integration options");
             std::process::exit(2);
         }
 
-        if let Err(e) = run_first_run_tour() {
-            eprintln!("❌ Tour failed: {e}");
+        if let Err(e) = run_first_run_setup() {
+            eprintln!("❌ Setup failed: {e}");
             std::process::exit(1);
         }
 
@@ -261,7 +280,7 @@ fn main() -> notify::Result<()> {
             || args.css.is_some()
             || args.unsafe_html
             || args.open
-            || args.tour
+            || args.setup
         {
             eprintln!(
                 "❌ File-manager integration commands cannot be combined with render options"
@@ -286,16 +305,8 @@ fn main() -> notify::Result<()> {
     let input = match args.input {
         Some(input) => input,
         None => {
-            if tour_is_interactive() {
-                if let Err(e) = run_first_run_tour() {
-                    eprintln!("❌ Tour failed: {e}");
-                    std::process::exit(1);
-                }
-                return Ok(());
-            }
-
             eprintln!("❌ Missing input Markdown file");
-            eprintln!("Run `mdo --help` for usage or `mdo --tour` for a first-run guide.");
+            eprintln!("Run `mdo --help` for usage or `mdo --setup` for a first-run guide.");
             std::process::exit(2);
         }
     };

@@ -1544,7 +1544,7 @@ Publish the first independent release</li>
 <h3>Windows PowerShell</h3>
 <pre><code class="language-powershell">irm https://maphew.github.io/mdo/install.ps1 | iex
 </code></pre>
-<p>Installs to <code>%LOCALAPPDATA%\mdo\bin</code> by default and adds that directory to your user <code>PATH</code> when needed.</p>
+<p>Installs to <code>%LOCALAPPDATA%\mdo\bin</code> by default and adds that directory to your user <code>PATH</code> when needed. After installation, double-click <code>mdo-setup.exe</code> for guided first-time configuration.</p>
 <h3>Cargo for Rust developers</h3>
 <pre><code class="language-bash">cargo install mdo-cli
 mdo --version
@@ -1552,22 +1552,22 @@ mdo --version
 <p>Cargo builds from source, so native downloads are usually simpler for non-Rust users.</p>
 <h3>Manual archives</h3>
 <p>Release archives and <code>SHA256SUMS</code> are available from <a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">GitHub Releases</a>. Linux and Windows archives include the setup helper for guided file-manager integration.</p>
-<h2>New User Tour</h2>
+<h2>First-time Setup</h2>
 <p>The cautious path is built in: learn what mdo will do before changing any file-manager setting.</p>
 <h3>Explore first</h3>
-<pre><code class="language-bash">mdo --tour
+<pre><code class="language-bash">mdo --setup
 mdo --help
 mdo --open notes.md
 </code></pre>
-<p>The tour explains the render-and-open workflow, the normal convert-once command, and the reversible integration commands.</p>
+<p>Setup explains the render-and-open workflow, the normal convert-once command, and the reversible integration commands.</p>
 <h3>Opt in when ready</h3>
-<p>Running <code>mdo</code> with no arguments in an interactive terminal shows the same tour. On Windows and Linux it can offer to install <strong>Open as HTML</strong> for the current user only. The default answer is <strong>Yes</strong>, but mdo still does not change the default Markdown app. Choose <strong>No</strong> to skip or run the installer again later.</p>
-<p>After you press Enter to close the tour, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click <code>mdo-setup.exe</code> to open that same terminal tour in a fresh Windows Terminal (<code>wt</code>) window, falling back to a plain new console if <code>wt</code> is unavailable. On Linux, run <code>mdo-setup</code> to get the tour in your <code>$TERMINAL</code> or a known terminal emulator (<code>gnome-terminal</code>, <code>konsole</code>, <code>xterm</code>, and others); it is also what <code>mdo-open</code> runs when launched with no file. Double-clicking the bare binary from a file manager is not reliable on Linux, so prefer <code>mdo --tour</code> from a shell.</p>
-<p>On Windows, launching <code>mdo-open.exe</code> directly with no file opens the same terminal tour in a fresh Windows Terminal (<code>wt</code>) window using the <strong>One Half Light</strong> color scheme, centered on the active display; if <code>wt</code> is unavailable, it falls back to a plain new console.</p>
+<p>Running <code>mdo</code> with no arguments prints a short <strong>Open Markdown as HTML</strong> landing page and exits successfully; use <code>mdo --help</code> for the full CLI reference. Run <code>mdo --setup</code> when you want guided setup. On Windows and Linux it can offer to install <strong>Open as HTML</strong> for the current user only. The default answer is <strong>Yes</strong>, but mdo still does not change the default Markdown app. Choose <strong>No</strong> to skip or run setup again later.</p>
+<p>After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click <code>mdo-setup.exe</code> to open that same guided setup in a fresh Windows Terminal (<code>wt</code>) window, falling back to a plain new console if <code>wt</code> is unavailable. On Linux, run <code>mdo-setup</code> to open guided setup in your <code>$TERMINAL</code> or a known terminal emulator (<code>gnome-terminal</code>, <code>konsole</code>, <code>xterm</code>, and others); it is also what <code>mdo-open</code> runs when launched with no file. Double-clicking the bare binary from a file manager is not reliable on Linux, so prefer <code>mdo --setup</code> from a shell.</p>
+<p>On Windows, launching <code>mdo-open.exe</code> directly with no file opens the same guided setup in a fresh Windows Terminal (<code>wt</code>) window using the <strong>One Half Light</strong> color scheme, centered on the active display; if <code>wt</code> is unavailable, it falls back to a plain new console.</p>
 <h2>Usage</h2>
 <p>By default, <code>mdo</code> writes a styled HTML file beside the source Markdown file. Use <code>--open</code> to render into a stable temp path and launch the default browser.</p>
 <h3>Common commands</h3>
-<pre><code class="language-bash">mdo --tour
+<pre><code class="language-bash">mdo --setup
 mdo notes.md
 mdo notes.md -o public/notes.html
 mdo --css my-overrides.css notes.md
@@ -1616,7 +1616,7 @@ mdo.exe --uninstall-file-manager
 <li><strong>Open with</strong> offers <strong>Open as HTML</strong>.</li>
 <li>If <strong>Open as HTML</strong> is made the default handler, double-click opens the browser.</li>
 <li>If <code>mdo-open.exe</code> is next to <code>mdo.exe</code>, it is used for flash-free Explorer launches; otherwise the single <code>mdo.exe</code> binary still works.</li>
-<li><code>mdo-setup.exe</code> and no-file <code>mdo-open.exe</code> open the terminal tour in a fresh <code>wt</code> window with the <strong>One Half Light</strong> color scheme and center it on the active display, falling back to a plain new console when <code>wt</code> cannot be started.</li>
+<li><code>mdo-setup.exe</code> and no-file <code>mdo-open.exe</code> open the guided setup in a fresh <code>wt</code> window with the <strong>One Half Light</strong> color scheme and center it on the active display, falling back to a plain new console when <code>wt</code> cannot be started.</li>
 <li>Windows Open With should show the friendly name <strong>Open as HTML</strong> with the mdo icon instead of exposing the wrapper file name.</li>
 </ul>
 <h3>Linux File Managers</h3>
@@ -1626,7 +1626,7 @@ mdo --install-file-manager --set-default
 mdo --uninstall-file-manager
 </code></pre>
 <ul>
-<li><code>mdo-setup</code> opens the same first-run tour in a terminal window (your <code>$TERMINAL</code> or a known emulator such as <code>gnome-terminal</code>, <code>konsole</code>, or <code>xterm</code>); if none is found it shows a <code>zenity</code>/<code>kdialog</code>/<code>yad</code> notice pointing to <code>mdo --tour</code>.</li>
+<li><code>mdo-setup</code> opens the same first-run setup in a terminal window (your <code>$TERMINAL</code> or a known emulator such as <code>gnome-terminal</code>, <code>konsole</code>, or <code>xterm</code>); if none is found it shows a <code>zenity</code>/<code>kdialog</code>/<code>yad</code> notice pointing to <code>mdo --setup</code>.</li>
 <li>Most XDG file managers show <strong>Open With -&gt; Open as HTML</strong> for Markdown files.</li>
 <li>GNOME Files/Nautilus uses the same Open With entry; no duplicate Scripts item is installed.</li>
 <li>With <code>--set-default</code>, double-clicking Markdown files launches the browser.</li>

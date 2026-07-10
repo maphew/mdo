@@ -19,9 +19,9 @@ fn fixture_dir(name: &str) -> PathBuf {
 }
 
 #[test]
-fn tour_prints_new_user_path_without_prompt_when_piped() {
+fn setup_prints_new_user_path_without_prompt_when_piped() {
     let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
-        .arg("--tour")
+        .arg("--setup")
         .output()
         .expect("failed to run mdo");
 
@@ -39,17 +39,35 @@ fn tour_prints_new_user_path_without_prompt_when_piped() {
 }
 
 #[test]
-fn no_args_noninteractive_reports_tour_hint() {
+fn no_args_prints_short_landing_page_and_succeeds() {
     let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
         .output()
         .expect("failed to run mdo");
 
-    assert!(!output.status.success(), "mdo unexpectedly succeeded");
-    assert_eq!(output.status.code(), Some(2));
+    assert!(output.status.success(), "mdo failed: {output:?}");
 
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("Missing input Markdown file"));
-    assert!(stderr.contains("mdo --tour"));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Open Markdown as HTML."));
+    assert!(stdout.contains("mdo FILE.md"));
+    assert!(stdout.contains("mdo --setup"));
+    assert!(stdout.contains("mdo --help"));
+    assert!(!stdout.contains("--unsafe-html"));
+    assert!(output.stderr.is_empty());
+}
+
+#[test]
+fn help_prints_full_cli_reference() {
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--help")
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo --help failed: {output:?}");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Usage: mdo [OPTIONS] [INPUT]"));
+    assert!(stdout.contains("--setup"));
+    assert!(stdout.contains("--unsafe-html"));
 }
 
 #[test]

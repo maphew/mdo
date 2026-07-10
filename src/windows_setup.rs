@@ -1,8 +1,8 @@
-//! Windows helpers for opening the first-run terminal tour.
+//! Windows helpers for opening the first-run terminal setup.
 //!
 //! Windows desktop entry points (`mdo-open.exe` and `mdo-setup.exe`) are
-//! windows-subsystem binaries, so they cannot draw the interactive tour in
-//! their own process. Prefer Windows Terminal for a styled, centered tour, and
+//! windows-subsystem binaries, so they cannot draw the interactive setup in
+//! their own process. Prefer Windows Terminal for a styled, centered setup, and
 //! fall back to a plain new console when `wt` is unavailable.
 
 use std::ffi::OsString;
@@ -20,35 +20,35 @@ const WINDOWS_TERMINAL_WINDOW_FIND_DELAY: Duration = Duration::from_millis(100);
 
 // CREATE_NEW_CONSOLE: give the console-subsystem mdo.exe its own visible
 // console window when Windows Terminal is not available. Desktop launchers are
-// GUI-subsystem processes with no console of their own, so without this the tour
+// GUI-subsystem processes with no console of their own, so without this the setup
 // would have nowhere reliable to draw.
 const CREATE_NEW_CONSOLE: u32 = 0x0000_0010;
 
-pub fn spawn_terminal_tour(mdo: &Path) -> io::Result<()> {
+pub fn spawn_terminal_setup(mdo: &Path) -> io::Result<()> {
     let active_display = active_display_work_area();
-    let title = format!("mdo tour {}", std::process::id());
-    let args = windows_terminal_tour_args(mdo, &title, active_display);
+    let title = format!("mdo setup {}", std::process::id());
+    let args = windows_terminal_setup_args(mdo, &title, active_display);
 
     match Command::new(WINDOWS_TERMINAL_BIN).args(args).spawn() {
         Ok(_) => {
             if let Some(work_area) = active_display {
-                center_windows_terminal_tour(&title, work_area);
+                center_windows_terminal_setup(&title, work_area);
             }
             Ok(())
         }
-        Err(_) => spawn_tour_in_new_console(mdo),
+        Err(_) => spawn_setup_in_new_console(mdo),
     }
 }
 
-fn spawn_tour_in_new_console(mdo: &Path) -> io::Result<()> {
+fn spawn_setup_in_new_console(mdo: &Path) -> io::Result<()> {
     Command::new(mdo)
-        .arg("--tour")
+        .arg("--setup")
         .creation_flags(CREATE_NEW_CONSOLE)
         .spawn()
         .map(|_| ())
 }
 
-pub fn windows_terminal_tour_args(
+pub fn windows_terminal_setup_args(
     mdo: &Path,
     title: &str,
     active_display: Option<WorkArea>,
@@ -63,7 +63,7 @@ pub fn windows_terminal_tour_args(
         OsString::from("--colorScheme"),
         OsString::from(WINDOWS_TERMINAL_COLOR_SCHEME),
         mdo.as_os_str().to_os_string(),
-        OsString::from("--tour"),
+        OsString::from("--setup"),
     ];
 
     if let Some(work_area) = active_display {
@@ -129,7 +129,7 @@ fn active_display_work_area() -> Option<WorkArea> {
     }
 }
 
-fn center_windows_terminal_tour(title: &str, work_area: WorkArea) {
+fn center_windows_terminal_setup(title: &str, work_area: WorkArea) {
     for _ in 0..WINDOWS_TERMINAL_WINDOW_FIND_ATTEMPTS {
         if let Some(hwnd) = find_visible_window_by_title(title) {
             center_window_on_display(hwnd, work_area);
@@ -230,10 +230,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn tour_args_use_windows_terminal_with_light_scheme() {
-        let args = windows_terminal_tour_args(
+    fn setup_args_use_windows_terminal_with_light_scheme() {
+        let args = windows_terminal_setup_args(
             Path::new(r"C:\Tools\mdo.exe"),
-            "mdo tour test",
+            "mdo setup test",
             Some(WorkArea {
                 left: 100,
                 top: 50,
@@ -254,26 +254,26 @@ mod tests {
                 "100,50",
                 "new-tab",
                 "--title",
-                "mdo tour test",
+                "mdo setup test",
                 "--suppressApplicationTitle",
                 "--colorScheme",
                 "One Half Light",
                 r"C:\Tools\mdo.exe",
-                "--tour",
+                "--setup",
             ]
         );
     }
 
     #[test]
-    fn tour_args_do_not_force_position_without_active_display() {
+    fn setup_args_do_not_force_position_without_active_display() {
         let args =
-            windows_terminal_tour_args(Path::new(r"C:\Tools\mdo.exe"), "mdo tour test", None)
+            windows_terminal_setup_args(Path::new(r"C:\Tools\mdo.exe"), "mdo setup test", None)
                 .into_iter()
                 .map(|arg| arg.to_string_lossy().into_owned())
                 .collect::<Vec<_>>();
 
         assert!(!args.iter().any(|arg| arg == "--pos"));
         assert!(args.contains(&"One Half Light".to_string()));
-        assert!(args.contains(&"--tour".to_string()));
+        assert!(args.contains(&"--setup".to_string()));
     }
 }
