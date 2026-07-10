@@ -150,7 +150,7 @@ Options:
       --unsafe-html         Preserve raw HTML from the Markdown source instead of sanitizing it
       --open                Render to a temp directory and launch the system default browser.
                             The source folder is left untouched unless --output is given
-      --setup                Show a first-run tour with safe next steps for new users
+      --setup                Show a first-run setup with safe next steps for new users
       --install-file-manager
                             Install per-user file-manager integration for Markdown files
       --uninstall-file-manager
@@ -255,7 +255,7 @@ display; if <code>wt</code> is unavailable it falls back to a plain new console.
 <h2>Linux file manager integration</h2>
 <p><code>mdo</code> can install or remove its own per-user XDG file-manager integration;
 no companion install script is required:</p>
-<pre><code class="language-bash"># Open the first-run tour in a terminal (offers the optional integration install)
+<pre><code class="language-bash"># Open the first-run setup in a terminal (offers the optional integration install)
 mdo-setup
 
 # Add "Open as HTML" as an "Open With" handler for Markdown files
@@ -292,9 +292,9 @@ helper is present.</p>
 <h2>🪟 Windows Explorer integration</h2>
 <p><code>mdo.exe</code> can install or remove its own per-user Explorer integration (no
 admin rights and no HKLM changes). Windows release ZIPs also include
-<code>mdo-setup.exe</code>, which opens the same first-run tour in Windows Terminal
+<code>mdo-setup.exe</code>, which opens the same first-run setup in Windows Terminal
 (<code>wt</code>) when available, falling back to a new console window:</p>
-<pre><code class="language-powershell"># Open the first-run tour (offers the optional Explorer integration install)
+<pre><code class="language-powershell"># Open the first-run setup (offers the optional Explorer integration install)
 .\mdo-setup.exe
 
 # CLI install: add an "Open as HTML" right-click verb and Open With app entry
