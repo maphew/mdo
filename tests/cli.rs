@@ -39,7 +39,7 @@ fn tour_prints_new_user_path_without_prompt_when_piped() {
 }
 
 #[test]
-fn no_args_noninteractive_reports_tour_hint() {
+fn no_args_prints_help() {
     let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
         .output()
         .expect("failed to run mdo");
@@ -48,8 +48,10 @@ fn no_args_noninteractive_reports_tour_hint() {
     assert_eq!(output.status.code(), Some(2));
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("Missing input Markdown file"));
-    assert!(stderr.contains("mdo --tour"));
+    assert!(stderr.contains("Usage: mdo [OPTIONS] [INPUT]"));
+    assert!(stderr.contains("Markdown to HTML converter"));
+    assert!(stderr.contains("--tour"));
+    assert!(!stderr.contains("Welcome to mdo."));
 }
 
 #[test]
