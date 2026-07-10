@@ -253,18 +253,18 @@ and exits successfully. Use `mdo --help` for the full CLI reference. Run
 the reversible per-user **Open as HTML** file-manager integration on Windows
 and Linux. The prompt defaults to **Yes**, but it does not change your default
 Markdown app; choose **No** to skip or run the installer again later. After you
-press Enter to close setup, mdo renders and opens a short welcome sample so
+press Enter to finish setup, mdo renders and opens a short welcome sample so
 you can immediately verify the browser-opening flow.
 
-On Windows, double-click `mdo-setup.exe` to open that same terminal setup in a
+On Windows, double-click `mdo-setup.exe` to open that same guided setup in a
 fresh Windows Terminal (`wt`) window, falling back to a plain new console if
 `wt` is unavailable — the no-terminal entry point for Explorer users. On
-Linux, run `mdo-setup` to get setup in your `$TERMINAL` or a known terminal emulator
+Linux, run `mdo-setup` to open guided setup in your `$TERMINAL` or a known terminal emulator
 (`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open`
 runs when launched with no file. Double-clicking the bare `mdo-setup` binary from
 a file manager is not reliable on Linux, so prefer `mdo --setup` from a shell.
 This preserves `mdo` as the normal CLI. On Windows, launching `mdo-open.exe`
-directly with no file opens the same terminal setup in a fresh Windows Terminal
+directly with no file opens the same guided setup in a fresh Windows Terminal
 (`wt`) window using the **One Half Light** color scheme, centered on the active
 display; if `wt` is unavailable it falls back to a plain new console.
 
@@ -298,7 +298,7 @@ installer also removes older Nautilus Scripts entries named **Preview with
 mdo** or **Render with mdo**.
 
 Linux release archives also include `mdo-setup`, which opens the same first-run
-tour in a terminal window. It launches your `$TERMINAL` or a known terminal
+setup in a terminal window. It launches your `$TERMINAL` or a known terminal
 emulator (`gnome-terminal`, `konsole`, `xterm`, and others); if none is found it
 shows a `zenity`/`kdialog`/`yad` notice pointing you to `mdo --setup`. If you
 launch `mdo-open` directly with no file, it opens `mdo-setup` when the setup
@@ -341,7 +341,7 @@ for file-manager integration. The Windows binaries embed the mdo icon; the
 installer also writes that icon to a per-user path and registers both `mdo.exe`
 and `mdo-open.exe` with the friendly app name **Open as HTML**, so Windows
 "Open with" surfaces do not need to expose the wrapper binary name. If you
-launch `mdo-open.exe` directly with no file, it opens the same terminal setup in a
+launch `mdo-open.exe` directly with no file, it opens the same guided setup in a
 fresh `wt` window with the **One Half Light** color scheme and centers it on the
 active display, falling back to a plain new console when `wt` cannot be started.
 
