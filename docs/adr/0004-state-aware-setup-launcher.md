@@ -107,9 +107,10 @@ The launcher installation vehicle is deliberately layered:
 2. Homebrew installs a launcher template as package data. `mdo-setup` installs
    the per-user launcher when first run, because a formula should not mutate a
    particular user's home directory during package installation.
-3. `cargo install` has no post-install hook. Document
-   `mdo-setup --install-launcher`, and have any successful direct invocation of
-   `mdo-setup` repair/register its launcher as an idempotent fallback.
+3. `cargo install` has no post-install hook. Document that users can run
+   `mdo-setup` once from a shell; successful direct setup invocations
+   idempotently repair/register the launcher. The hosted installer uses the
+   internal `--register-launcher-only` mode after copying the binaries.
 
 The fallback cannot solve first-launch discovery for Cargo/Homebrew users; the
 documentation must say that Linux users initially run `mdo-setup` from a shell
@@ -138,10 +139,11 @@ and [HKCR merge behavior](https://learn.microsoft.com/en-us/windows/win32/sysinf
 Create a per-user Start menu shortcut named “mdo Setup” that targets
 `mdo-setup.exe`. Scoop should declare it with the manifest's `shortcuts` field.
 Other portable install paths, including Cargo and the current WinGet portable
-manifest, use an idempotent `mdo-setup --install-launcher` fallback; a successful
-direct setup launch repairs the shortcut. If WinGet cannot express the shortcut
-for the portable package, retain this fallback rather than changing installer
-technology solely for the launcher.
+manifest, should use an idempotent launcher-registration fallback; a successful
+direct setup launch should repair the shortcut. This is a future Windows
+implementation detail, not a command exposed by the current release. If WinGet
+cannot express the shortcut for the portable package, retain this fallback rather
+than changing installer technology solely for the launcher.
 
 The hosted Windows installer script should register the shortcut after copying
 the binaries, just as the hosted Linux installer registers its desktop entry.
