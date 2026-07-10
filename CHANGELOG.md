@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Restore conventional CLI behavior for no-argument `mdo`: print help and exit with a usage error. The interactive onboarding remains available explicitly through `mdo --tour` and through the double-clickable `mdo-setup` companion.
+
 - Replace the `mdo-setup` multi-dialog onboarding with a launcher for the single-screen `mdo --tour`: Linux opens a terminal emulator (`$TERMINAL` or a known one such as `gnome-terminal`/`konsole`/`xterm`, with a `zenity`/`kdialog`/`yad` fallback notice), and Windows opens the same styled Windows Terminal (`wt`) tour as no-file `mdo-open.exe`, falling back to a new console when `wt` is unavailable. This drops the chain of `[OK]` dialogs in favor of the one-screen, single Y/N tour and avoids the dialog-dismiss and missing-backend failures of the old flow.
 - Exit non-zero from `mdo` when a one-shot render fails (refused symlinked output, temp-dir setup failure, or conversion failure) so scripts and the docs pipeline can detect errors; `--watch` keeps running.
 - Linux: fall back through `gio open` / `gnome-open` / `kde-open` / `wslview` when `xdg-open` is missing, and reap the launcher so it does not linger as a zombie during long `--watch` sessions.
