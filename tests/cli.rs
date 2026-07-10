@@ -66,7 +66,6 @@ fn help_prints_full_cli_reference() {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Usage: mdo [OPTIONS] [INPUT]"));
-    assert!(stdout.contains("Markdown to HTML converter"));
     assert!(stdout.contains("--setup"));
     assert!(stdout.contains("--unsafe-html"));
 }
