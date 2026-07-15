@@ -218,7 +218,14 @@ pub fn launch_browser(path: &Path) -> std::io::Result<()> {
     }
     #[cfg(target_os = "macos")]
     {
-        std::process::Command::new("open").arg(path).spawn()?;
+        // `open` returns promptly once Launch Services accepts the request,
+        // so waiting for it doesn't block on the browser itself — and a
+        // nonzero exit (no handler for the file) must surface as a launch
+        // failure rather than being discarded with the child handle.
+        let status = std::process::Command::new("open").arg(path).status()?;
+        if !status.success() {
+            return Err(io::Error::other(format!("open exited with {status}")));
+        }
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     {
@@ -230,8 +237,16 @@ pub fn launch_browser(path: &Path) -> std::io::Result<()> {
 /// Open `path` with the first available freedesktop opener. Falls back through
 /// common launchers when `xdg-open` (xdg-utils) is not installed, and reaps the
 /// launcher process in a detached thread so it does not linger as a zombie
-/// during long `--watch` sessions. We never wait on the browser itself, so the
-/// call stays effectively fire-and-forget.
+/// during long `--watch` sessions.
+///
+/// Spawning an opener is not the same as launching a browser: `xdg-open` can
+/// exist, start, and then exit nonzero because no browser handler is
+/// configured. We therefore listen for each opener's exit for a short window
+/// — a quick nonzero exit is an honest failure (and we fall through to the
+/// next opener), while an opener still running after the window has almost
+/// certainly handed off (or, in xdg-open's no-desktop fallback, IS the
+/// browser), so we detach and call it success. We never block on the browser
+/// itself beyond that window.
 #[cfg(all(unix, not(target_os = "macos")))]
 fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
     const OPENERS: &[(&str, &[&str])] = &[
@@ -242,24 +257,45 @@ fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
         ("kde-open", &[]),
         ("wslview", &[]),
     ];
+    const LAUNCH_FAILURE_WINDOW: Duration = Duration::from_secs(2);
 
+    let mut last_failure: Option<String> = None;
     for (program, leading) in OPENERS {
         let mut command = std::process::Command::new(program);
         command.args(*leading).arg(path);
-        if let Ok(mut child) = command.spawn() {
-            std::thread::spawn(move || {
-                let _ = child.wait();
-            });
-            return Ok(());
+        let Ok(mut child) = command.spawn() else {
+            continue; // not installed; try the next opener
+        };
+
+        // The waiting thread doubles as the reaper for the detached-success
+        // case: it always waits the child to completion, we just stop
+        // listening for the result after the failure window.
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let _ = tx.send(child.wait());
+        });
+
+        match rx.recv_timeout(LAUNCH_FAILURE_WINDOW) {
+            Ok(Ok(status)) if status.success() => return Ok(()),
+            Ok(Ok(status)) => {
+                last_failure = Some(format!("{program} exited with {status}"));
+            }
+            Ok(Err(e)) => {
+                last_failure = Some(format!("failed waiting on {program}: {e}"));
+            }
+            // Still running after the window: it handed off to (or is) the
+            // browser. The waiting thread reaps it eventually.
+            Err(_) => return Ok(()),
         }
     }
 
-    // Every opener failed to spawn (all absent); the per-attempt errors are all
-    // NotFound, so report the actionable message rather than the last raw error.
-    Err(io::Error::new(
-        io::ErrorKind::NotFound,
-        "no desktop opener found (install xdg-utils)",
-    ))
+    match last_failure {
+        Some(failure) => Err(io::Error::other(failure)),
+        None => Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "no desktop opener found (install xdg-utils)",
+        )),
+    }
 }
 
 fn render_markdown(markdown: &str, unsafe_html: bool) -> String {
@@ -779,6 +815,12 @@ mod tests {
         assert!(!escaped.to_ascii_lowercase().contains("</style><script>"));
     }
 
+    // Unix-rooted paths like `/home/user/...` are NOT absolute on Windows
+    // (no drive or UNC prefix), so `Url::from_directory_path` rejects them
+    // there — every test using such a path must be `#[cfg(unix)]`-gated or
+    // it panics under the Windows CI test job. Windows path forms get their
+    // own `#[cfg(windows)]` tests below.
+    #[cfg(unix)]
     #[test]
     fn dir_to_file_url_adds_trailing_slash() {
         let url =
@@ -787,6 +829,7 @@ mod tests {
         assert_eq!(url, "file:///home/user/docs/");
     }
 
+    #[cfg(unix)]
     #[test]
     fn dir_to_file_url_encodes_spaces() {
         let url = dir_to_file_url(Path::new("/home/user/my docs")).expect("should convert");
@@ -819,12 +862,14 @@ mod tests {
         assert_eq!(url, "file:///home/user/docs%3Fdraft/");
     }
 
+    #[cfg(unix)]
     #[test]
     fn dir_to_file_url_encodes_unicode_accented() {
         let url = dir_to_file_url(Path::new("/home/user/résumé")).expect("should convert");
         assert_eq!(url, "file:///home/user/r%C3%A9sum%C3%A9/");
     }
 
+    #[cfg(unix)]
     #[test]
     fn dir_to_file_url_encodes_unicode_cjk() {
         let url = dir_to_file_url(Path::new("/home/user/日本語")).expect("should convert");

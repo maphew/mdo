@@ -327,6 +327,50 @@ fn main() -> notify::Result<()> {
         (None, false) => (derive_output(&input), false),
     };
 
+    // Register the watch BEFORE the initial render so a save that lands
+    // while that render runs is queued by the watcher rather than silently
+    // lost; the watch loop below drains it and re-renders. Registration
+    // failure aborts before any rendering, which is fine — the user asked
+    // for a watch we cannot deliver.
+    //
+    // Watch the parent DIRECTORY rather than the file itself. Editors that
+    // save atomically (write a temp file, then rename it over the target)
+    // replace the target's inode; a watch on the file itself goes dead the
+    // moment that happens because the inode/handle notify was watching is
+    // gone. Watching the directory survives renames, deletes, and recreates
+    // — we just have to filter directory events down to ones that touch our
+    // target file.
+    //
+    // Resolve the target once, up front. Comparing later events against
+    // this fixed absolute path — rather than re-canonicalizing each event's
+    // path — matters because the target may momentarily not exist
+    // mid-rename, which would make canonicalize fail and misclassify a
+    // perfectly relevant event.
+    //
+    // Known limitation: canonicalizing a symlinked input means we watch the
+    // TARGET's parent, so edits made through the link are seen, but an
+    // editor atomically replacing the symlink itself is not. Watching both
+    // parents isn't worth the complexity until someone actually hits this.
+    let watch_setup = if args.watch {
+        let input_absolute = std::fs::canonicalize(&input).unwrap_or_else(|_| {
+            std::env::current_dir()
+                .map(|cwd| cwd.join(&input))
+                .unwrap_or_else(|_| input.clone())
+        });
+        let watch_dir = input_absolute
+            .parent()
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("."));
+        let target_file_name = input_absolute.file_name().map(|n| n.to_os_string());
+
+        let (tx, rx) = channel();
+        let mut watcher = recommended_watcher(tx)?;
+        watcher.watch(&watch_dir, RecursiveMode::NonRecursive)?;
+        Some((watcher, rx, watch_dir, target_file_name))
+    } else {
+        None
+    };
+
     let converted = convert_with_css_override(
         &input,
         &output,
@@ -370,33 +414,8 @@ fn main() -> notify::Result<()> {
         std::process::exit(1);
     }
 
-    // Watch the parent DIRECTORY rather than the file itself. Editors that
-    // save atomically (write a temp file, then rename it over the target)
-    // replace the target's inode; a watch on the file itself goes dead the
-    // moment that happens because the inode/handle notify was watching is
-    // gone. Watching the directory survives renames, deletes, and recreates
-    // — we just have to filter directory events down to ones that touch our
-    // target file.
-    //
-    // Resolve the target once, up front, while we know it exists (we just
-    // rendered it). Comparing later events against this fixed absolute path
-    // — rather than re-canonicalizing each event's path — matters because
-    // the target may momentarily not exist mid-rename, which would make
-    // canonicalize fail and misclassify a perfectly relevant event.
-    let input_absolute = std::fs::canonicalize(&input).unwrap_or_else(|_| {
-        std::env::current_dir()
-            .map(|cwd| cwd.join(&input))
-            .unwrap_or_else(|_| input.clone())
-    });
-    let watch_dir = input_absolute
-        .parent()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("."));
-    let target_file_name = input_absolute.file_name().map(|n| n.to_os_string());
-
-    let (tx, rx) = channel();
-    let mut watcher = recommended_watcher(tx)?;
-    watcher.watch(&watch_dir, RecursiveMode::NonRecursive)?;
+    let (_watcher, rx, watch_dir, target_file_name) =
+        watch_setup.expect("watch setup was built above whenever --watch is set");
 
     // Still named after the file, not the directory: that's what the user
     // asked to watch, even though the underlying notify watch is scoped one
@@ -435,15 +454,22 @@ fn main() -> notify::Result<()> {
         // target) uniformly: whichever event kinds the editor and platform
         // happen to emit (Create, Modify, Rename-as-Modify(Name), Remove
         // followed by a Create), each just extends the quiet window until
-        // the burst settles.
+        // the burst settles. Only RELEVANT events extend the deadline:
+        // sibling-file noise merely waits out the remaining window, so a
+        // busy directory (a build churning artifacts next to the watched
+        // file) cannot postpone the render indefinitely.
+        let mut deadline = std::time::Instant::now() + DEBOUNCE;
         loop {
-            match rx.recv_timeout(DEBOUNCE) {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            if remaining.is_zero() {
+                break;
+            }
+            match rx.recv_timeout(remaining) {
                 Ok(Ok(event)) => {
                     if is_relevant_event(&event, target_file_name.as_deref(), &watch_dir) {
-                        continue; // still inside the burst; keep absorbing
+                        deadline = std::time::Instant::now() + DEBOUNCE;
                     }
-                    // Sibling-file noise inside the window: ignore it but
-                    // keep waiting out the rest of the quiet period.
+                    // Irrelevant events neither extend nor cut the window.
                 }
                 Ok(Err(e)) => eprintln!("⚠️  Watcher error: {}", e),
                 Err(_) => break, // quiet window elapsed (or channel closed)

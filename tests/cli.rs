@@ -569,6 +569,52 @@ fn open_success_exits_zero() {
     fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
 }
 
+/// An opener that exists and spawns but then reports failure (exits nonzero,
+/// e.g. because no browser handler is configured) must fail `--open` just as
+/// honestly as an opener that is missing entirely — spawning is not opening.
+#[cfg(target_os = "linux")]
+#[test]
+fn open_reports_failure_when_opener_exits_nonzero() {
+    let dir = fixture_dir("open-opener-fails");
+    let input = dir.join("sample.md");
+    fs::write(&input, "# Sample\n\nSome text.\n").expect("failed to write markdown fixture");
+
+    let fake_bin = dir.join("bin");
+    fs::create_dir_all(&fake_bin).expect("failed to create fake bin dir");
+    let fake_xdg_open = fake_bin.join("xdg-open");
+    fs::write(&fake_xdg_open, "#!/bin/sh\nexit 3\n").expect("failed to write fake xdg-open");
+    fs::set_permissions(&fake_xdg_open, fs::Permissions::from_mode(0o700))
+        .expect("failed to chmod fake xdg-open");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--open")
+        .arg(&input)
+        .env("PATH", &fake_bin)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(
+        !output.status.success(),
+        "mdo --open should exit non-zero when the opener runs but fails: {output:?}"
+    );
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Failed to launch browser"),
+        "stderr should report the launch failure: {stderr}"
+    );
+
+    let rendered_path = temp_output_for_test(&input);
+    assert!(
+        rendered_path.exists(),
+        "rendered output should survive an opener failure"
+    );
+
+    fs::remove_dir_all(rendered_path.parent().expect("rendered path has a parent"))
+        .expect("failed to clean up temp render dir");
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
 /// Polls `path` until its contents contain `needle` or `timeout` elapses.
 /// Used by the watch tests instead of a fixed sleep so they stay reliable
 /// under slow/loaded CI without waiting any longer than necessary.
@@ -672,21 +718,31 @@ fn watch_ignores_sibling_changes() {
     );
     let rendered_before =
         fs::read_to_string(&output_path).expect("failed to read initial rendered output");
+    let mtime_before = fs::metadata(&output_path)
+        .and_then(|m| m.modified())
+        .expect("failed to read initial rendered output mtime");
 
     fs::write(&sibling, "# Sibling\n\nUnrelated file.\n")
         .expect("failed to write sibling markdown file");
     std::thread::sleep(Duration::from_secs(1));
 
-    // A sibling-file event must not trigger a re-render: comparing full file
-    // contents (rather than a timestamp/mtime) means any re-render at all —
-    // even one that happens to reproduce identical Markdown-derived output —
-    // would still be caught, since mdo's default template embeds a
-    // generated-at timestamp that changes on every render.
+    // A sibling-file event must not trigger a re-render. Byte-comparing the
+    // output alone is not conclusive — the embedded generated date is
+    // day-granular and fast renders can format to the same duration — so
+    // also require the file's mtime (nanosecond granularity on Linux) to be
+    // untouched: any rewrite, even byte-identical, would bump it.
     let rendered_after = fs::read_to_string(&output_path)
         .expect("failed to read rendered output after sibling change");
+    let mtime_after = fs::metadata(&output_path)
+        .and_then(|m| m.modified())
+        .expect("failed to read rendered output mtime after sibling change");
     assert_eq!(
         rendered_before, rendered_after,
         "watch mode should not re-render sample.html for changes to an unrelated sibling file"
+    );
+    assert_eq!(
+        mtime_before, mtime_after,
+        "sample.html should not have been rewritten (mtime changed) for a sibling-file change"
     );
 
     fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
