@@ -15,6 +15,7 @@ use std::fs::OpenOptions;
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 
 use pulldown_cmark::{html, Options, Parser as MdParser};
+use url::Url;
 
 pub mod file_manager;
 #[cfg(target_os = "windows")]
@@ -181,21 +182,23 @@ fn ensure_private_dir(path: &Path) -> io::Result<()> {
 }
 
 /// Build a `file://` URL for a directory, suitable for use as `<base href>`.
-/// Adds a trailing slash so relative refs resolve correctly. Performs minimal
-/// URL-encoding (just spaces) which is enough for typical filesystem paths.
-fn dir_to_file_url(dir: &Path) -> String {
-    let s = dir.to_string_lossy().replace('\\', "/");
-    // Strip Windows extended-length prefix (`\\?\C:\…` → `C:/…`) that
-    // `fs::canonicalize` produces; browsers don't understand `file:////?/...`.
-    let s = s.strip_prefix("//?/").unwrap_or(&s);
-    let s = s.trim_end_matches('/').replace(' ', "%20");
-    if s.starts_with('/') {
-        // Unix absolute path: /home/x → file:///home/x/
-        format!("file://{s}/")
-    } else {
-        // Windows drive path: A:/dev/x → file:///A:/dev/x/
-        format!("file:///{s}/")
-    }
+///
+/// Delegates to [`Url::from_directory_path`], which correctly
+/// percent-encodes reserved and non-ASCII characters (spaces, `#`, `%`, `?`,
+/// Unicode, …) and handles Windows drive letters, UNC paths, and the
+/// `\\?\`/`\\?\UNC\` extended-length prefixes that `fs::canonicalize`
+/// produces — a hand-rolled string transform got all of this subtly wrong
+/// (e.g. a literal `#` in a directory name would truncate the URL when a
+/// browser parsed it as a fragment). Always includes a trailing slash so
+/// relative refs resolve correctly against the directory.
+///
+/// Returns `None` if `dir` can't be represented as a `file://` URL (notably:
+/// relative paths). Callers should fall back to omitting the `<base href>`
+/// tag entirely rather than emit a broken URL.
+fn dir_to_file_url(dir: &Path) -> Option<String> {
+    Url::from_directory_path(dir)
+        .ok()
+        .map(|url| url.to_string())
 }
 
 /// Launch the platform's default handler for `path` (typically a web browser
@@ -590,7 +593,7 @@ pub fn convert_with_css_override(
                 .and_then(|p| p.parent().map(Path::to_path_buf)),
             output.parent().and_then(|p| fs::canonicalize(p).ok()),
         ) {
-            (Some(in_dir), Some(out_dir)) if in_dir != out_dir => Some(dir_to_file_url(&in_dir)),
+            (Some(in_dir), Some(out_dir)) if in_dir != out_dir => dir_to_file_url(&in_dir),
             _ => None,
         };
 
@@ -774,6 +777,94 @@ mod tests {
 
         assert!(escaped.contains("<\\/style><script>"));
         assert!(!escaped.to_ascii_lowercase().contains("</style><script>"));
+    }
+
+    #[test]
+    fn dir_to_file_url_adds_trailing_slash() {
+        let url =
+            dir_to_file_url(Path::new("/home/user/docs")).expect("absolute path should convert");
+        assert!(url.ends_with('/'));
+        assert_eq!(url, "file:///home/user/docs/");
+    }
+
+    #[test]
+    fn dir_to_file_url_encodes_spaces() {
+        let url = dir_to_file_url(Path::new("/home/user/my docs")).expect("should convert");
+        assert_eq!(url, "file:///home/user/my%20docs/");
+    }
+
+    // `#` is a legal Windows filename character but is not exercised there
+    // because these are pure-path conversions, not filesystem operations —
+    // gating still keeps the Windows suite focused on Windows-specific forms
+    // (drive letters, UNC, `\\?\`) covered below.
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_hash() {
+        let url = dir_to_file_url(Path::new("/home/user/docs#1")).expect("should convert");
+        assert_eq!(url, "file:///home/user/docs%231/");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_percent() {
+        let url = dir_to_file_url(Path::new("/home/user/50%done")).expect("should convert");
+        assert_eq!(url, "file:///home/user/50%25done/");
+    }
+
+    // `?` is invalid in Windows filenames, so this case can't arise there.
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_question_mark() {
+        let url = dir_to_file_url(Path::new("/home/user/docs?draft")).expect("should convert");
+        assert_eq!(url, "file:///home/user/docs%3Fdraft/");
+    }
+
+    #[test]
+    fn dir_to_file_url_encodes_unicode_accented() {
+        let url = dir_to_file_url(Path::new("/home/user/résumé")).expect("should convert");
+        assert_eq!(url, "file:///home/user/r%C3%A9sum%C3%A9/");
+    }
+
+    #[test]
+    fn dir_to_file_url_encodes_unicode_cjk() {
+        let url = dir_to_file_url(Path::new("/home/user/日本語")).expect("should convert");
+        assert_eq!(url, "file:///home/user/%E6%97%A5%E6%9C%AC%E8%AA%9E/");
+    }
+
+    #[test]
+    fn dir_to_file_url_returns_none_for_relative_path() {
+        assert_eq!(dir_to_file_url(Path::new("relative/dir")), None);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn dir_to_file_url_windows_drive_letter() {
+        let url = dir_to_file_url(Path::new(r"C:\foo\bar")).expect("should convert");
+        assert_eq!(url, "file:///C:/foo/bar/");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn dir_to_file_url_windows_drive_letter_with_space() {
+        let url = dir_to_file_url(Path::new(r"C:\Program Files\mdo")).expect("should convert");
+        assert_eq!(url, "file:///C:/Program%20Files/mdo/");
+    }
+
+    // `fs::canonicalize` on Windows produces the `\\?\` extended-length
+    // prefix; browsers don't understand `file:////?/C:/...`, so this must
+    // normalize to the same form as the plain drive-letter case.
+    #[cfg(windows)]
+    #[test]
+    fn dir_to_file_url_windows_extended_length_prefix() {
+        let url = dir_to_file_url(Path::new(r"\\?\C:\foo\bar")).expect("should convert");
+        assert_eq!(url, "file:///C:/foo/bar/");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn dir_to_file_url_windows_unc_path() {
+        let url = dir_to_file_url(Path::new(r"\\server\share\dir")).expect("should convert");
+        assert_eq!(url, "file://server/share/dir/");
     }
 
     #[test]
