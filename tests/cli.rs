@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 #[cfg(target_os = "linux")]
 use std::hash::{Hash, Hasher};
@@ -470,4 +470,224 @@ fn temp_output_for_test(input: &std::path::Path) -> PathBuf {
         .join(format!("mdo-{}", unsafe { libc::geteuid() }))
         .join(format!("{hash:016x}"))
         .join(format!("{stem}.html"))
+}
+
+/// An empty directory suitable for use as `PATH` when a test needs to make
+/// sure no desktop opener (xdg-open, gio, ...) can be found on it.
+#[cfg(target_os = "linux")]
+fn empty_path_dir(dir: &std::path::Path) -> PathBuf {
+    let empty = dir.join("empty-path");
+    fs::create_dir_all(&empty).expect("failed to create empty PATH dir");
+    empty
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn open_launch_failure_exits_nonzero_and_reports_path() {
+    let dir = fixture_dir("open-launch-failure");
+    let input = dir.join("sample.md");
+    fs::write(&input, "# Sample\n\nSome text.\n").expect("failed to write markdown fixture");
+
+    // PATH points at an empty directory, so every opener `launch_browser`
+    // tries (xdg-open, gio, gnome-open, kde-open5, kde-open, wslview) fails
+    // to spawn and the launch itself fails with "no desktop opener found".
+    let empty_path = empty_path_dir(&dir);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--open")
+        .arg(&input)
+        .env("PATH", &empty_path)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(
+        !output.status.success(),
+        "mdo --open should exit non-zero when the browser launch fails: {output:?}"
+    );
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Failed to launch browser"),
+        "stderr should report the launch failure: {stderr}"
+    );
+
+    let rendered_path = temp_output_for_test(&input);
+    assert!(
+        stderr.contains(
+            rendered_path
+                .to_str()
+                .expect("rendered path should be valid UTF-8")
+        ),
+        "stderr should point at the rendered output path {rendered_path:?}: {stderr}"
+    );
+
+    // The render itself succeeded and nothing should have deleted it just
+    // because the browser could not be launched.
+    assert!(
+        rendered_path.exists(),
+        "rendered output should still exist at {rendered_path:?} after a launch failure"
+    );
+    let html = fs::read_to_string(&rendered_path).expect("failed to read rendered output");
+    assert!(html.contains("<h1>Sample</h1>"));
+
+    fs::remove_dir_all(rendered_path.parent().expect("rendered path has a parent"))
+        .expect("failed to clean up temp render dir");
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn open_success_exits_zero() {
+    let dir = fixture_dir("open-launch-success");
+    let input = dir.join("sample.md");
+    fs::write(&input, "# Sample\n\nSome text.\n").expect("failed to write markdown fixture");
+
+    let fake_bin = dir.join("bin");
+    fs::create_dir_all(&fake_bin).expect("failed to create fake bin dir");
+    let fake_xdg_open = fake_bin.join("xdg-open");
+    fs::write(&fake_xdg_open, "#!/bin/sh\nexit 0\n").expect("failed to write fake xdg-open");
+    fs::set_permissions(&fake_xdg_open, fs::Permissions::from_mode(0o700))
+        .expect("failed to chmod fake xdg-open");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--open")
+        .arg(&input)
+        .env("PATH", &fake_bin)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(
+        output.status.success(),
+        "mdo --open should exit zero when render and launch both succeed: {output:?}"
+    );
+
+    let rendered_path = temp_output_for_test(&input);
+    assert!(rendered_path.exists());
+
+    fs::remove_dir_all(rendered_path.parent().expect("rendered path has a parent"))
+        .expect("failed to clean up temp render dir");
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+/// Polls `path` until its contents contain `needle` or `timeout` elapses.
+/// Used by the watch tests instead of a fixed sleep so they stay reliable
+/// under slow/loaded CI without waiting any longer than necessary.
+#[cfg(unix)]
+fn wait_for_file_containing(path: &std::path::Path, needle: &str, timeout: Duration) -> bool {
+    let start = Instant::now();
+    loop {
+        if let Ok(contents) = fs::read_to_string(path) {
+            if contents.contains(needle) {
+                return true;
+            }
+        }
+        if start.elapsed() >= timeout {
+            return false;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+}
+
+/// Kills the wrapped `--watch` child on drop so a failing assertion (or an
+/// early return) never leaves a background `mdo --watch` process running
+/// past the end of the test.
+#[cfg(unix)]
+struct WatchGuard(std::process::Child);
+
+#[cfg(unix)]
+impl Drop for WatchGuard {
+    fn drop(&mut self) {
+        let _ = self.0.kill();
+        let _ = self.0.wait();
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn watch_survives_atomic_rename() {
+    use std::process::Stdio;
+
+    let dir = fixture_dir("watch-atomic-rename");
+    let input = dir.join("sample.md");
+    let output_path = dir.join("sample.html");
+    let tmp = dir.join("sample.md.tmp");
+    fs::write(&input, "# Initial\n").expect("failed to write markdown fixture");
+
+    let child = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--watch")
+        .arg(&input)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("failed to spawn mdo --watch");
+    let _guard = WatchGuard(child);
+
+    assert!(
+        wait_for_file_containing(&output_path, "Initial", Duration::from_secs(10)),
+        "initial render should appear within the timeout"
+    );
+
+    // Simulate an editor's atomic save: write the new content to a sibling
+    // temp file, then rename it over the target. This replaces the target's
+    // inode, which is exactly the case a file-level watch goes dead on.
+    // Repeating it three times checks that watch mode keeps recovering
+    // rather than surviving only the first rename by luck.
+    for i in 0..3 {
+        let marker = format!("Rewrite marker {i}");
+        fs::write(&tmp, format!("# {marker}\n")).expect("failed to write rewrite temp file");
+        fs::rename(&tmp, &input).expect("failed to atomically rename over the target");
+
+        assert!(
+            wait_for_file_containing(&output_path, &marker, Duration::from_secs(10)),
+            "rewrite {i} should be re-rendered within the timeout"
+        );
+    }
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[cfg(unix)]
+#[test]
+fn watch_ignores_sibling_changes() {
+    use std::process::Stdio;
+
+    let dir = fixture_dir("watch-sibling-changes");
+    let input = dir.join("sample.md");
+    let output_path = dir.join("sample.html");
+    let sibling = dir.join("other.md");
+    fs::write(&input, "# Initial\n").expect("failed to write markdown fixture");
+
+    let child = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--watch")
+        .arg(&input)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("failed to spawn mdo --watch");
+    let _guard = WatchGuard(child);
+
+    assert!(
+        wait_for_file_containing(&output_path, "Initial", Duration::from_secs(10)),
+        "initial render should appear within the timeout"
+    );
+    let rendered_before =
+        fs::read_to_string(&output_path).expect("failed to read initial rendered output");
+
+    fs::write(&sibling, "# Sibling\n\nUnrelated file.\n")
+        .expect("failed to write sibling markdown file");
+    std::thread::sleep(Duration::from_secs(1));
+
+    // A sibling-file event must not trigger a re-render: comparing full file
+    // contents (rather than a timestamp/mtime) means any re-render at all —
+    // even one that happens to reproduce identical Markdown-derived output —
+    // would still be caught, since mdo's default template embeds a
+    // generated-at timestamp that changes on every render.
+    let rendered_after = fs::read_to_string(&output_path)
+        .expect("failed to read rendered output after sibling change");
+    assert_eq!(
+        rendered_before, rendered_after,
+        "watch mode should not re-render sample.html for changes to an unrelated sibling file"
+    );
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
 }
