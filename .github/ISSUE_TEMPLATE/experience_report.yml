@@ -1,0 +1,41 @@
+name: Experience report
+description: "Tell us how mdo worked out for you — good, bad, or 'why does this exist?'"
+labels: [feedback]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the feedback we want most. mdo was built for one person's
+        workflow; we're trying to find out whether it's useful outside it.
+        Nothing here is required except the first box — answer as much or as
+        little as you like. Blunt honesty is welcome, including "you should
+        abandon this because X does it better."
+  - type: textarea
+    id: verdict
+    attributes:
+      label: The short version
+      description: >
+        A sentence or two. "Installed, worked, I'll keep it" and "gave up at
+        the setup step" are both genuinely useful.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Your context
+      description: >
+        OS, how you found mdo, what you wanted it for, and what you use today
+        for reading Markdown (VS Code preview? grip? your browser + an
+        extension? nothing?).
+  - type: textarea
+    id: friction
+    attributes:
+      label: Where it fought you
+      description: >
+        Anything confusing, surprising, or annoying — install, setup wording,
+        the rendered page, defaults you'd change.
+  - type: textarea
+    id: keeper
+    attributes:
+      label: Would you keep using it?
+      description: If not, what would it take — or is the whole premise not for you?
