@@ -186,31 +186,19 @@ pub fn install_windows_for_exe(current_exe: &Path, _set_default: bool) -> io::Re
     let icon_ref = format!("\"{}\",0", icon_file.display());
     let current_exe_command = windows_registry_command(current_exe, false);
 
-    register_windows_application("mdo.exe", &current_exe_command, &icon_ref)?;
-    if handler.is_wrapper {
-        register_windows_application("mdo-open.exe", &command, &icon_ref)?;
-    }
-
-    reg_add_value(r"HKCU\Software\Classes\.md\OpenWithProgids", "mdo.md", "")?;
-
-    reg_add_default(
-        r"HKCU\Software\Classes\mdo.md",
-        "Markdown document (Open as HTML)",
-    )?;
-    reg_add_default(r"HKCU\Software\Classes\mdo.md\shell\open\command", &command)?;
-    reg_add_default(r"HKCU\Software\Classes\mdo.md\DefaultIcon", &icon_ref)?;
-
-    for old_verb in [
-        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo",
-        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo",
-    ] {
-        let _ = reg_delete_key(old_verb);
-    }
-
-    let verb = r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Open as HTML";
-    reg_add_default(verb, APP_DISPLAY_NAME)?;
-    reg_add_default(&format!(r"{verb}\command"), &command)?;
-    reg_add_value(verb, "Icon", &icon_ref)?;
+    // Registry mutation is split into a pure planning step (`install_windows_plan`,
+    // unit-tested below without touching the registry) and a thin executor
+    // (`apply_registry_plan`) that shells out to `reg.exe`. This keeps the
+    // "which keys/values would be written, in what order, with which
+    // failure semantics" logic testable in CI without mutating the real
+    // registry on the CI machine.
+    let plan = install_windows_plan(
+        handler.is_wrapper,
+        &command,
+        &current_exe_command,
+        &icon_ref,
+    );
+    apply_registry_plan(&plan)?;
 
     println!("Using handler: {}", handler.path.display());
     println!("Using icon: {}", icon_file.display());
@@ -227,22 +215,10 @@ pub fn install_windows_for_exe(current_exe: &Path, _set_default: bool) -> io::Re
 
 #[cfg(target_os = "windows")]
 fn uninstall_impl() -> io::Result<()> {
-    for key in [
-        r"HKCU\Software\Classes\Applications\mdo.exe",
-        r"HKCU\Software\Classes\Applications\mdo-open.exe",
-        r"HKCU\Software\Classes\mdo.md",
-        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Open as HTML",
-        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo",
-        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo",
-        r"HKCU\Software\Classes\Applications\md2htmlx.exe",
-        r"HKCU\Software\Classes\md2htmlx.md",
-        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with md2htmlx",
-    ] {
-        let _ = reg_delete_key(key);
-    }
-
-    let _ = reg_delete_value(r"HKCU\Software\Classes\.md\OpenWithProgids", "mdo.md");
-    let _ = reg_delete_value(r"HKCU\Software\Classes\.md\OpenWithProgids", "md2htmlx.md");
+    // Uninstall was already best-effort (every op ignores failures), so this
+    // reduces to applying the plan; `apply_registry_plan` returns `Ok(())`
+    // whenever every op in the plan is best-effort, which is always true here.
+    apply_registry_plan(&uninstall_windows_plan())?;
     let _ = remove_windows_icon();
 
     println!("Done.");
@@ -492,17 +468,218 @@ fn windows_registry_command(handler: &Path, is_wrapper: bool) -> String {
     }
 }
 
+/// A single registry write/delete, described data-first so installation
+/// logic can be composed and unit-tested without shelling out to `reg.exe`.
+///
+/// `best_effort` mirrors the original inline `let _ = reg_delete_key(...)`
+/// pattern: some ops (e.g. clearing legacy verbs that may not exist) should
+/// not abort the rest of the plan if they fail.
 #[cfg(target_os = "windows")]
-fn register_windows_application(exe_name: &str, command: &str, icon_ref: &str) -> io::Result<()> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct RegistryOp {
+    action: RegistryAction,
+    best_effort: bool,
+}
+
+#[cfg(target_os = "windows")]
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum RegistryAction {
+    SetDefault {
+        key: String,
+        value: String,
+    },
+    SetValue {
+        key: String,
+        name: String,
+        value: String,
+    },
+    DeleteKey {
+        key: String,
+    },
+    DeleteValue {
+        key: String,
+        name: String,
+    },
+}
+
+#[cfg(target_os = "windows")]
+impl RegistryOp {
+    fn required(action: RegistryAction) -> Self {
+        Self {
+            action,
+            best_effort: false,
+        }
+    }
+
+    fn best_effort(action: RegistryAction) -> Self {
+        Self {
+            action,
+            best_effort: true,
+        }
+    }
+}
+
+/// Registry ops that register `exe_name` as an "Applications" handler for
+/// Open With, mirroring the shape `register_windows_application` used to
+/// write directly. Pure: takes already-computed strings and returns a plan.
+#[cfg(target_os = "windows")]
+fn application_registration_ops(exe_name: &str, command: &str, icon_ref: &str) -> Vec<RegistryOp> {
     let key = format!(r"HKCU\Software\Classes\Applications\{exe_name}");
 
-    reg_add_value(&key, "FriendlyAppName", APP_DISPLAY_NAME)?;
-    reg_add_value(&key, "ApplicationName", APP_DISPLAY_NAME)?;
-    reg_add_default(&format!(r"{key}\DefaultIcon"), icon_ref)?;
-    reg_add_default(&format!(r"{key}\shell\open\command"), command)?;
-    reg_add_value(&format!(r"{key}\SupportedTypes"), ".md", "")?;
+    vec![
+        RegistryOp::required(RegistryAction::SetValue {
+            key: key.clone(),
+            name: "FriendlyAppName".to_string(),
+            value: APP_DISPLAY_NAME.to_string(),
+        }),
+        RegistryOp::required(RegistryAction::SetValue {
+            key: key.clone(),
+            name: "ApplicationName".to_string(),
+            value: APP_DISPLAY_NAME.to_string(),
+        }),
+        RegistryOp::required(RegistryAction::SetDefault {
+            key: format!(r"{key}\DefaultIcon"),
+            value: icon_ref.to_string(),
+        }),
+        RegistryOp::required(RegistryAction::SetDefault {
+            key: format!(r"{key}\shell\open\command"),
+            value: command.to_string(),
+        }),
+        RegistryOp::required(RegistryAction::SetValue {
+            key: format!(r"{key}\SupportedTypes"),
+            name: ".md".to_string(),
+            value: String::new(),
+        }),
+    ]
+}
 
+/// Pure planning step for [`install_windows_for_exe`]: given the already
+/// pure-computed handler command, current-exe command, and icon reference,
+/// produce the ordered list of registry writes install would perform.
+/// Unit-tested directly (see `windows_tests`) so the composition — which
+/// keys, which values, wrapper-vs-direct branching, best-effort cleanup of
+/// legacy verbs — is covered without mutating the real registry.
+#[cfg(target_os = "windows")]
+fn install_windows_plan(
+    is_wrapper: bool,
+    command: &str,
+    current_exe_command: &str,
+    icon_ref: &str,
+) -> Vec<RegistryOp> {
+    let mut ops = application_registration_ops("mdo.exe", current_exe_command, icon_ref);
+    if is_wrapper {
+        ops.extend(application_registration_ops(
+            "mdo-open.exe",
+            command,
+            icon_ref,
+        ));
+    }
+
+    ops.push(RegistryOp::required(RegistryAction::SetValue {
+        key: r"HKCU\Software\Classes\.md\OpenWithProgids".to_string(),
+        name: "mdo.md".to_string(),
+        value: String::new(),
+    }));
+
+    ops.push(RegistryOp::required(RegistryAction::SetDefault {
+        key: r"HKCU\Software\Classes\mdo.md".to_string(),
+        value: "Markdown document (Open as HTML)".to_string(),
+    }));
+    ops.push(RegistryOp::required(RegistryAction::SetDefault {
+        key: r"HKCU\Software\Classes\mdo.md\shell\open\command".to_string(),
+        value: command.to_string(),
+    }));
+    ops.push(RegistryOp::required(RegistryAction::SetDefault {
+        key: r"HKCU\Software\Classes\mdo.md\DefaultIcon".to_string(),
+        value: icon_ref.to_string(),
+    }));
+
+    for old_verb in [
+        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo",
+        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo",
+    ] {
+        ops.push(RegistryOp::best_effort(RegistryAction::DeleteKey {
+            key: old_verb.to_string(),
+        }));
+    }
+
+    let verb = r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Open as HTML";
+    ops.push(RegistryOp::required(RegistryAction::SetDefault {
+        key: verb.to_string(),
+        value: APP_DISPLAY_NAME.to_string(),
+    }));
+    ops.push(RegistryOp::required(RegistryAction::SetDefault {
+        key: format!(r"{verb}\command"),
+        value: command.to_string(),
+    }));
+    ops.push(RegistryOp::required(RegistryAction::SetValue {
+        key: verb.to_string(),
+        name: "Icon".to_string(),
+        value: icon_ref.to_string(),
+    }));
+
+    ops
+}
+
+/// Pure planning step for [`uninstall_impl`]: every op here is best-effort,
+/// matching the original `let _ = reg_delete_*(...)` calls — uninstall
+/// should remove everything it can rather than stop at the first missing
+/// key.
+#[cfg(target_os = "windows")]
+fn uninstall_windows_plan() -> Vec<RegistryOp> {
+    let mut ops = Vec::new();
+
+    for key in [
+        r"HKCU\Software\Classes\Applications\mdo.exe",
+        r"HKCU\Software\Classes\Applications\mdo-open.exe",
+        r"HKCU\Software\Classes\mdo.md",
+        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Open as HTML",
+        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo",
+        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo",
+        r"HKCU\Software\Classes\Applications\md2htmlx.exe",
+        r"HKCU\Software\Classes\md2htmlx.md",
+        r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with md2htmlx",
+    ] {
+        ops.push(RegistryOp::best_effort(RegistryAction::DeleteKey {
+            key: key.to_string(),
+        }));
+    }
+
+    ops.push(RegistryOp::best_effort(RegistryAction::DeleteValue {
+        key: r"HKCU\Software\Classes\.md\OpenWithProgids".to_string(),
+        name: "mdo.md".to_string(),
+    }));
+    ops.push(RegistryOp::best_effort(RegistryAction::DeleteValue {
+        key: r"HKCU\Software\Classes\.md\OpenWithProgids".to_string(),
+        name: "md2htmlx.md".to_string(),
+    }));
+
+    ops
+}
+
+/// The only impure step of the install/uninstall registry seam: apply an
+/// already-built plan by shelling out to `reg.exe` for each op, propagating
+/// the first failure among the `required` ops and swallowing failures on
+/// `best_effort` ops (mirroring the original `let _ = ...` cleanup calls).
+#[cfg(target_os = "windows")]
+fn apply_registry_plan(ops: &[RegistryOp]) -> io::Result<()> {
+    for op in ops {
+        let result = apply_registry_action(&op.action);
+        if !op.best_effort {
+            result?;
+        }
+    }
     Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn apply_registry_action(action: &RegistryAction) -> io::Result<()> {
+    match action {
+        RegistryAction::SetDefault { key, value } => reg_add_default(key, value),
+        RegistryAction::SetValue { key, name, value } => reg_add_value(key, name, value),
+        RegistryAction::DeleteKey { key } => reg_delete_key(key),
+        RegistryAction::DeleteValue { key, name } => reg_delete_value(key, name),
+    }
 }
 
 #[cfg(target_os = "windows")]
@@ -717,5 +894,127 @@ mod windows_tests {
     fn registry_command_omits_open_flag_for_wrapper() {
         let command = windows_registry_command(Path::new(r"C:\Tools\mdo-open.exe"), true);
         assert_eq!(command, r#""C:\Tools\mdo-open.exe" "%1""#);
+    }
+
+    // The exe path is only ever wrapped in quotes, never parsed or
+    // re-escaped, so spaces and cmd.exe metacharacters (& ^ ( ) ...), which
+    // are all legal in Windows filenames, must survive unmodified inside the
+    // quoted segment. Quoting (rather than sanitizing) is what neutralizes
+    // them for the shell that later reads the registry value.
+    #[test]
+    fn registry_command_preserves_spaces_in_exe_path() {
+        let command =
+            windows_registry_command(Path::new(r"C:\Program Files\mdo tools\mdo.exe"), false);
+        assert_eq!(
+            command,
+            r#""C:\Program Files\mdo tools\mdo.exe" --open "%1""#
+        );
+    }
+
+    #[test]
+    fn registry_command_preserves_cmd_metacharacters_in_exe_path() {
+        let command =
+            windows_registry_command(Path::new(r"C:\Program Files (x86)\mdo & co^\mdo.exe"), true);
+        assert_eq!(
+            command,
+            r#""C:\Program Files (x86)\mdo & co^\mdo.exe" "%1""#
+        );
+    }
+
+    #[test]
+    fn install_plan_registers_wrapper_and_direct_targets_when_wrapper_present() {
+        let handler_command =
+            windows_registry_command(Path::new(r"C:\Program Files\mdo & co\mdo-open.exe"), true);
+        let current_exe_command =
+            windows_registry_command(Path::new(r"C:\Program Files\mdo & co\mdo.exe"), false);
+        let icon_ref = r#""C:\Users\me\AppData\Local\mdo\mdo.ico",0"#;
+
+        let plan = install_windows_plan(true, &handler_command, &current_exe_command, icon_ref);
+
+        // mdo.exe is always registered as an Applications handler using the
+        // *direct* (--open) command, even when a wrapper exists, because
+        // some surfaces (e.g. "Open With" listing before mdo-open exists)
+        // may still reference mdo.exe directly.
+        assert!(
+            plan.contains(&RegistryOp::required(RegistryAction::SetDefault {
+                key: r"HKCU\Software\Classes\Applications\mdo.exe\shell\open\command".to_string(),
+                value: current_exe_command.clone(),
+            }))
+        );
+
+        // The wrapper is also registered as its own Applications handler,
+        // using the wrapper (no --open) command.
+        assert!(
+            plan.contains(&RegistryOp::required(RegistryAction::SetDefault {
+                key: r"HKCU\Software\Classes\Applications\mdo-open.exe\shell\open\command"
+                    .to_string(),
+                value: handler_command.clone(),
+            }))
+        );
+
+        // The .md ProgID's own open command must point at the *handler*
+        // command (wrapper, if present) so double-click uses it.
+        assert!(
+            plan.contains(&RegistryOp::required(RegistryAction::SetDefault {
+                key: r"HKCU\Software\Classes\mdo.md\shell\open\command".to_string(),
+                value: handler_command.clone(),
+            }))
+        );
+
+        // Legacy verb cleanup must be best-effort so a first-time install
+        // (where those keys never existed) does not fail the whole plan.
+        assert!(
+            plan.contains(&RegistryOp::best_effort(RegistryAction::DeleteKey {
+                key: r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Preview with mdo"
+                    .to_string(),
+            }))
+        );
+        assert!(
+            plan.contains(&RegistryOp::best_effort(RegistryAction::DeleteKey {
+                key: r"HKCU\Software\Classes\SystemFileAssociations\.md\shell\Render with mdo"
+                    .to_string(),
+            }))
+        );
+
+        // Every op besides the two legacy-verb deletes must be required
+        // (install should fail loudly on a real registry error).
+        let best_effort_count = plan.iter().filter(|op| op.best_effort).count();
+        assert_eq!(best_effort_count, 2);
+    }
+
+    #[test]
+    fn install_plan_skips_wrapper_registration_without_wrapper() {
+        let command = windows_registry_command(Path::new(r"C:\Tools\mdo.exe"), false);
+        let icon_ref = r#""C:\Tools\mdo.ico",0"#;
+
+        let plan = install_windows_plan(false, &command, &command, icon_ref);
+
+        assert!(!plan.iter().any(|op| matches!(
+            &op.action,
+            RegistryAction::SetDefault { key, .. } | RegistryAction::SetValue { key, .. }
+                if key.contains("mdo-open.exe")
+        )));
+    }
+
+    #[test]
+    fn uninstall_plan_is_entirely_best_effort() {
+        let plan = uninstall_windows_plan();
+
+        assert!(!plan.is_empty());
+        assert!(plan.iter().all(|op| op.best_effort));
+
+        // Legacy md2htmlx keys (an earlier project name) must still be
+        // cleaned up so upgrading users do not keep a stale handler.
+        assert!(
+            plan.contains(&RegistryOp::best_effort(RegistryAction::DeleteKey {
+                key: r"HKCU\Software\Classes\Applications\md2htmlx.exe".to_string(),
+            }))
+        );
+        assert!(
+            plan.contains(&RegistryOp::best_effort(RegistryAction::DeleteValue {
+                key: r"HKCU\Software\Classes\.md\OpenWithProgids".to_string(),
+                name: "md2htmlx.md".to_string(),
+            }))
+        );
     }
 }

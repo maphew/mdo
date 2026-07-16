@@ -15,6 +15,7 @@ use std::fs::OpenOptions;
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 
 use pulldown_cmark::{html, Options, Parser as MdParser};
+use url::Url;
 
 pub mod file_manager;
 #[cfg(target_os = "windows")]
@@ -181,21 +182,23 @@ fn ensure_private_dir(path: &Path) -> io::Result<()> {
 }
 
 /// Build a `file://` URL for a directory, suitable for use as `<base href>`.
-/// Adds a trailing slash so relative refs resolve correctly. Performs minimal
-/// URL-encoding (just spaces) which is enough for typical filesystem paths.
-fn dir_to_file_url(dir: &Path) -> String {
-    let s = dir.to_string_lossy().replace('\\', "/");
-    // Strip Windows extended-length prefix (`\\?\C:\…` → `C:/…`) that
-    // `fs::canonicalize` produces; browsers don't understand `file:////?/...`.
-    let s = s.strip_prefix("//?/").unwrap_or(&s);
-    let s = s.trim_end_matches('/').replace(' ', "%20");
-    if s.starts_with('/') {
-        // Unix absolute path: /home/x → file:///home/x/
-        format!("file://{s}/")
-    } else {
-        // Windows drive path: A:/dev/x → file:///A:/dev/x/
-        format!("file:///{s}/")
-    }
+///
+/// Delegates to [`Url::from_directory_path`], which correctly
+/// percent-encodes reserved and non-ASCII characters (spaces, `#`, `%`, `?`,
+/// Unicode, …) and handles Windows drive letters, UNC paths, and the
+/// `\\?\`/`\\?\UNC\` extended-length prefixes that `fs::canonicalize`
+/// produces — a hand-rolled string transform got all of this subtly wrong
+/// (e.g. a literal `#` in a directory name would truncate the URL when a
+/// browser parsed it as a fragment). Always includes a trailing slash so
+/// relative refs resolve correctly against the directory.
+///
+/// Returns `None` if `dir` can't be represented as a `file://` URL (notably:
+/// relative paths). Callers should fall back to omitting the `<base href>`
+/// tag entirely rather than emit a broken URL.
+fn dir_to_file_url(dir: &Path) -> Option<String> {
+    Url::from_directory_path(dir)
+        .ok()
+        .map(|url| url.to_string())
 }
 
 /// Launch the platform's default handler for `path` (typically a web browser
@@ -215,7 +218,14 @@ pub fn launch_browser(path: &Path) -> std::io::Result<()> {
     }
     #[cfg(target_os = "macos")]
     {
-        std::process::Command::new("open").arg(path).spawn()?;
+        // `open` returns promptly once Launch Services accepts the request,
+        // so waiting for it doesn't block on the browser itself — and a
+        // nonzero exit (no handler for the file) must surface as a launch
+        // failure rather than being discarded with the child handle.
+        let status = std::process::Command::new("open").arg(path).status()?;
+        if !status.success() {
+            return Err(io::Error::other(format!("open exited with {status}")));
+        }
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     {
@@ -227,8 +237,16 @@ pub fn launch_browser(path: &Path) -> std::io::Result<()> {
 /// Open `path` with the first available freedesktop opener. Falls back through
 /// common launchers when `xdg-open` (xdg-utils) is not installed, and reaps the
 /// launcher process in a detached thread so it does not linger as a zombie
-/// during long `--watch` sessions. We never wait on the browser itself, so the
-/// call stays effectively fire-and-forget.
+/// during long `--watch` sessions.
+///
+/// Spawning an opener is not the same as launching a browser: `xdg-open` can
+/// exist, start, and then exit nonzero because no browser handler is
+/// configured. We therefore listen for each opener's exit for a short window
+/// — a quick nonzero exit is an honest failure (and we fall through to the
+/// next opener), while an opener still running after the window has almost
+/// certainly handed off (or, in xdg-open's no-desktop fallback, IS the
+/// browser), so we detach and call it success. We never block on the browser
+/// itself beyond that window.
 #[cfg(all(unix, not(target_os = "macos")))]
 fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
     const OPENERS: &[(&str, &[&str])] = &[
@@ -239,24 +257,45 @@ fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
         ("kde-open", &[]),
         ("wslview", &[]),
     ];
+    const LAUNCH_FAILURE_WINDOW: Duration = Duration::from_secs(2);
 
+    let mut last_failure: Option<String> = None;
     for (program, leading) in OPENERS {
         let mut command = std::process::Command::new(program);
         command.args(*leading).arg(path);
-        if let Ok(mut child) = command.spawn() {
-            std::thread::spawn(move || {
-                let _ = child.wait();
-            });
-            return Ok(());
+        let Ok(mut child) = command.spawn() else {
+            continue; // not installed; try the next opener
+        };
+
+        // The waiting thread doubles as the reaper for the detached-success
+        // case: it always waits the child to completion, we just stop
+        // listening for the result after the failure window.
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let _ = tx.send(child.wait());
+        });
+
+        match rx.recv_timeout(LAUNCH_FAILURE_WINDOW) {
+            Ok(Ok(status)) if status.success() => return Ok(()),
+            Ok(Ok(status)) => {
+                last_failure = Some(format!("{program} exited with {status}"));
+            }
+            Ok(Err(e)) => {
+                last_failure = Some(format!("failed waiting on {program}: {e}"));
+            }
+            // Still running after the window: it handed off to (or is) the
+            // browser. The waiting thread reaps it eventually.
+            Err(_) => return Ok(()),
         }
     }
 
-    // Every opener failed to spawn (all absent); the per-attempt errors are all
-    // NotFound, so report the actionable message rather than the last raw error.
-    Err(io::Error::new(
-        io::ErrorKind::NotFound,
-        "no desktop opener found (install xdg-utils)",
-    ))
+    match last_failure {
+        Some(failure) => Err(io::Error::other(failure)),
+        None => Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "no desktop opener found (install xdg-utils)",
+        )),
+    }
 }
 
 fn render_markdown(markdown: &str, unsafe_html: bool) -> String {
@@ -590,7 +629,7 @@ pub fn convert_with_css_override(
                 .and_then(|p| p.parent().map(Path::to_path_buf)),
             output.parent().and_then(|p| fs::canonicalize(p).ok()),
         ) {
-            (Some(in_dir), Some(out_dir)) if in_dir != out_dir => Some(dir_to_file_url(&in_dir)),
+            (Some(in_dir), Some(out_dir)) if in_dir != out_dir => dir_to_file_url(&in_dir),
             _ => None,
         };
 
@@ -774,6 +813,103 @@ mod tests {
 
         assert!(escaped.contains("<\\/style><script>"));
         assert!(!escaped.to_ascii_lowercase().contains("</style><script>"));
+    }
+
+    // Unix-rooted paths like `/home/user/...` are NOT absolute on Windows
+    // (no drive or UNC prefix), so `Url::from_directory_path` rejects them
+    // there — every test using such a path must be `#[cfg(unix)]`-gated or
+    // it panics under the Windows CI test job. Windows path forms get their
+    // own `#[cfg(windows)]` tests below.
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_adds_trailing_slash() {
+        let url =
+            dir_to_file_url(Path::new("/home/user/docs")).expect("absolute path should convert");
+        assert!(url.ends_with('/'));
+        assert_eq!(url, "file:///home/user/docs/");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_spaces() {
+        let url = dir_to_file_url(Path::new("/home/user/my docs")).expect("should convert");
+        assert_eq!(url, "file:///home/user/my%20docs/");
+    }
+
+    // `#` is a legal Windows filename character but is not exercised there
+    // because these are pure-path conversions, not filesystem operations —
+    // gating still keeps the Windows suite focused on Windows-specific forms
+    // (drive letters, UNC, `\\?\`) covered below.
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_hash() {
+        let url = dir_to_file_url(Path::new("/home/user/docs#1")).expect("should convert");
+        assert_eq!(url, "file:///home/user/docs%231/");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_percent() {
+        let url = dir_to_file_url(Path::new("/home/user/50%done")).expect("should convert");
+        assert_eq!(url, "file:///home/user/50%25done/");
+    }
+
+    // `?` is invalid in Windows filenames, so this case can't arise there.
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_question_mark() {
+        let url = dir_to_file_url(Path::new("/home/user/docs?draft")).expect("should convert");
+        assert_eq!(url, "file:///home/user/docs%3Fdraft/");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_unicode_accented() {
+        let url = dir_to_file_url(Path::new("/home/user/résumé")).expect("should convert");
+        assert_eq!(url, "file:///home/user/r%C3%A9sum%C3%A9/");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn dir_to_file_url_encodes_unicode_cjk() {
+        let url = dir_to_file_url(Path::new("/home/user/日本語")).expect("should convert");
+        assert_eq!(url, "file:///home/user/%E6%97%A5%E6%9C%AC%E8%AA%9E/");
+    }
+
+    #[test]
+    fn dir_to_file_url_returns_none_for_relative_path() {
+        assert_eq!(dir_to_file_url(Path::new("relative/dir")), None);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn dir_to_file_url_windows_drive_letter() {
+        let url = dir_to_file_url(Path::new(r"C:\foo\bar")).expect("should convert");
+        assert_eq!(url, "file:///C:/foo/bar/");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn dir_to_file_url_windows_drive_letter_with_space() {
+        let url = dir_to_file_url(Path::new(r"C:\Program Files\mdo")).expect("should convert");
+        assert_eq!(url, "file:///C:/Program%20Files/mdo/");
+    }
+
+    // `fs::canonicalize` on Windows produces the `\\?\` extended-length
+    // prefix; browsers don't understand `file:////?/C:/...`, so this must
+    // normalize to the same form as the plain drive-letter case.
+    #[cfg(windows)]
+    #[test]
+    fn dir_to_file_url_windows_extended_length_prefix() {
+        let url = dir_to_file_url(Path::new(r"\\?\C:\foo\bar")).expect("should convert");
+        assert_eq!(url, "file:///C:/foo/bar/");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn dir_to_file_url_windows_unc_path() {
+        let url = dir_to_file_url(Path::new(r"\\server\share\dir")).expect("should convert");
+        assert_eq!(url, "file://server/share/dir/");
     }
 
     #[test]

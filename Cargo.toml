@@ -51,6 +51,7 @@ libc = "0.2"
 pulldown-cmark = "0.10"
 clap = { version = "4", features = ["derive"] }
 notify = "6"
+url = "2.5"
 
 [build-dependencies]
 winresource = "0.1.31"

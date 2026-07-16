@@ -276,4 +276,35 @@ mod tests {
         assert!(args.contains(&"One Half Light".to_string()));
         assert!(args.contains(&"--setup".to_string()));
     }
+
+    // `Command::args` passes each element as its own argv entry (no shell
+    // ever tokenizes it), so a path with spaces and cmd.exe metacharacters
+    // must arrive at `wt` as a single, unmodified argument rather than being
+    // split or requiring escaping here.
+    #[test]
+    fn setup_args_keep_spacey_metacharacter_exe_path_as_single_argument() {
+        let mdo_path = r"C:\Program Files (x86)\mdo & co\mdo.exe";
+        let args = windows_terminal_setup_args(Path::new(mdo_path), "mdo setup test", None)
+            .into_iter()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect::<Vec<_>>();
+
+        let mdo_args: Vec<&String> = args.iter().filter(|arg| arg.contains("mdo.exe")).collect();
+        assert_eq!(mdo_args, vec![mdo_path]);
+    }
+
+    #[test]
+    fn setup_args_keep_spacey_title_as_single_argument() {
+        let title = "mdo setup 1234 & co";
+        let args = windows_terminal_setup_args(Path::new(r"C:\Tools\mdo.exe"), title, None)
+            .into_iter()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect::<Vec<_>>();
+
+        let title_index = args
+            .iter()
+            .position(|arg| arg == "--title")
+            .expect("--title flag should be present");
+        assert_eq!(args[title_index + 1], title);
+    }
 }
