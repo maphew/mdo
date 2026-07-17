@@ -436,9 +436,14 @@ The default (non-`--bare`) output is a complete HTML5 document:
 - `restore-simple-css.css` in release archives, which can be passed with `--css`
   to restore the vendored simple.css typography scale
 - A small floating ☀/☾ button (top-right) for manually overriding the theme;
-  the choice is remembered in `localStorage`
+  it is keyboard accessible with a state-aware `aria-label`, follows OS theme
+  changes until a manual choice is made, and remembers that choice in
+  `localStorage` when available (it still works on `file://` pages where
+  storage is blocked); custom `--css` can restyle or hide it via `#theme-toggle`
 - Body content wrapped in `<main>`
-- A tiny footer showing the mdo version, render duration, and UTC generation date
+- A restrained footer showing the source file's modification time
+  (`Source modified: …`) with a machine-readable `<time datetime>`; it is
+  omitted when the timestamp is unavailable
 
 Markdown extensions enabled: tables, footnotes, task lists, strikethrough.
 Rendered Markdown HTML is sanitized by default to remove active content such as
@@ -464,8 +469,8 @@ This fork adds:
   default browser (with auto-injected `<base href>` so relative refs resolve)
 - Light/dark theme toggle button overlaid on the rendered page
 - Title auto-derived from the first heading
-- Passive generated-page attribution via generator metadata and a tiny
-  dated footer; no network calls or identifiers are added
+- Passive generated-page attribution via `<meta name="generator">` only —
+  no visible branding, network calls, or identifiers are added
 - Debounced file-change events (no more duplicate renders per save)
 - Surfaced watcher errors instead of swallowing them
 - Markdown extensions: tables, footnotes, task lists (in addition to strikethrough)
