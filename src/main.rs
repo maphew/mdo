@@ -107,6 +107,43 @@ fn setup_is_interactive() -> bool {
     io::stdin().is_terminal() && io::stdout().is_terminal()
 }
 
+/// What the single setup decision resolved to. Setup stays one clear choice
+/// per run: install (or reinstall) the integration, or leave things unchanged.
+#[derive(Debug, PartialEq, Eq)]
+enum SetupIntegrationChoice {
+    Install,
+    LeaveUnchanged,
+    Help,
+    Invalid,
+}
+
+/// The prompt adapts to the cheap owned-state check: an already-configured
+/// user is offered leave-unchanged (default) or reinstall, instead of being
+/// greeted like a first-time installer.
+fn setup_integration_prompt(already_installed: bool) -> &'static str {
+    if already_installed {
+        "Reinstall Open as HTML file-manager integration? [y/N] "
+    } else {
+        "Install Open as HTML file-manager integration now? [Y/n] "
+    }
+}
+
+fn setup_integration_choice(answer: &str, already_installed: bool) -> SetupIntegrationChoice {
+    match answer.trim().to_ascii_lowercase().as_str() {
+        "" => {
+            if already_installed {
+                SetupIntegrationChoice::LeaveUnchanged
+            } else {
+                SetupIntegrationChoice::Install
+            }
+        }
+        "y" | "yes" => SetupIntegrationChoice::Install,
+        "n" | "no" => SetupIntegrationChoice::LeaveUnchanged,
+        "?" | "h" | "help" => SetupIntegrationChoice::Help,
+        _ => SetupIntegrationChoice::Invalid,
+    }
+}
+
 fn print_landing_page() {
     println!(
         "\
@@ -173,8 +210,12 @@ fn run_first_run_setup() -> io::Result<()> {
     }
 
     if can_install_file_manager {
+        let already_installed = file_manager::integration_installed();
+        if already_installed {
+            println!("Open as HTML file-manager integration is already installed for this user.");
+        }
         loop {
-            print!("Install Open as HTML file-manager integration now? [Y/n] ");
+            print!("{}", setup_integration_prompt(already_installed));
             io::stdout().flush()?;
 
             let mut answer = String::new();
@@ -182,11 +223,19 @@ fn run_first_run_setup() -> io::Result<()> {
                 return Ok(());
             }
 
-            match answer.trim().to_ascii_lowercase().as_str() {
-                "" | "y" | "yes" => {
+            match setup_integration_choice(&answer, already_installed) {
+                SetupIntegrationChoice::Install => {
                     match file_manager::install(false) {
                         Ok(()) => {
-                            println!("Integration installed. No default app was changed by mdo.");
+                            if already_installed {
+                                println!(
+                                    "Integration reinstalled. No default app was changed by mdo."
+                                );
+                            } else {
+                                println!(
+                                    "Integration installed. No default app was changed by mdo."
+                                );
+                            }
                         }
                         Err(e) => {
                             eprintln!("Could not install file-manager integration: {e}");
@@ -197,19 +246,32 @@ fn run_first_run_setup() -> io::Result<()> {
                     }
                     break;
                 }
-                "n" | "no" => {
-                    println!(
-                        "No changes made. Run `mdo --install-file-manager` whenever you are ready."
-                    );
+                SetupIntegrationChoice::LeaveUnchanged => {
+                    if already_installed {
+                        println!(
+                            "Left unchanged. Run `mdo --uninstall-file-manager` if you ever want to remove it."
+                        );
+                    } else {
+                        println!(
+                            "No changes made. Run `mdo --install-file-manager` whenever you are ready."
+                        );
+                    }
                     break;
                 }
-                "?" | "h" | "help" => {
-                    println!(
-                        "This adds an \"Open as HTML\" action for Markdown files in your file manager. \
-                         It is reversible with `mdo --uninstall-file-manager`."
-                    );
+                SetupIntegrationChoice::Help => {
+                    if already_installed {
+                        println!(
+                            "Reinstalling rewrites mdo's own per-user registration in place. \
+                             It is reversible with `mdo --uninstall-file-manager`."
+                        );
+                    } else {
+                        println!(
+                            "This adds an \"Open as HTML\" action for Markdown files in your file manager. \
+                             It is reversible with `mdo --uninstall-file-manager`."
+                        );
+                    }
                 }
-                _ => println!("Please answer y or n."),
+                SetupIntegrationChoice::Invalid => println!("Please answer y or n."),
             }
         }
     }
@@ -543,4 +605,67 @@ fn is_relevant_event(
                 None => true,
             }
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn first_time_setup_defaults_to_install() {
+        assert_eq!(
+            setup_integration_choice("", false),
+            SetupIntegrationChoice::Install
+        );
+        assert_eq!(
+            setup_integration_choice("y\n", false),
+            SetupIntegrationChoice::Install
+        );
+        assert_eq!(
+            setup_integration_choice("no", false),
+            SetupIntegrationChoice::LeaveUnchanged
+        );
+    }
+
+    #[test]
+    fn already_installed_setup_defaults_to_leave_unchanged() {
+        assert_eq!(
+            setup_integration_choice("", true),
+            SetupIntegrationChoice::LeaveUnchanged
+        );
+        assert_eq!(
+            setup_integration_choice("n\n", true),
+            SetupIntegrationChoice::LeaveUnchanged
+        );
+        assert_eq!(
+            setup_integration_choice("YES", true),
+            SetupIntegrationChoice::Install
+        );
+    }
+
+    #[test]
+    fn setup_answers_share_help_and_invalid_handling() {
+        for already_installed in [false, true] {
+            assert_eq!(
+                setup_integration_choice("?", already_installed),
+                SetupIntegrationChoice::Help
+            );
+            assert_eq!(
+                setup_integration_choice("help", already_installed),
+                SetupIntegrationChoice::Help
+            );
+            assert_eq!(
+                setup_integration_choice("maybe", already_installed),
+                SetupIntegrationChoice::Invalid
+            );
+        }
+    }
+
+    #[test]
+    fn setup_prompt_matches_detected_state() {
+        assert!(setup_integration_prompt(false).starts_with("Install "));
+        assert!(setup_integration_prompt(false).contains("[Y/n]"));
+        assert!(setup_integration_prompt(true).starts_with("Reinstall "));
+        assert!(setup_integration_prompt(true).contains("[y/N]"));
+    }
 }
