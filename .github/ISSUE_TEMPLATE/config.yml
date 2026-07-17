@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Discussions — questions, ideas, general feedback
+    url: https://github.com/maphew/mdo/discussions
+    about: The lowest-friction place to say anything about mdo. No template, no labels.
+  - name: Security report (private)
+    url: https://github.com/maphew/mdo/security/advisories/new
+    about: Report vulnerabilities privately instead of in a public issue.

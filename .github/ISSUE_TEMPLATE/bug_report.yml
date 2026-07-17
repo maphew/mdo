@@ -1,0 +1,58 @@
+name: Bug report
+description: Something broke, rendered wrong, or behaved unexpectedly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Partial reports are fine — a vague bug
+        report beats no report.
+  - type: input
+    id: version
+    attributes:
+      label: mdo version
+      description: Output of `mdo --version`
+      placeholder: mdo 0.5.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Other / multiple
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install mdo?
+      options:
+        - Hosted install script (install.sh / install.ps1)
+        - GitHub Release archive (manual download)
+        - cargo install mdo-cli
+        - Built from source
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: >
+        The exact command you ran (or file-manager action, e.g. "right-click →
+        Open as HTML"), what you expected, and what actually happened. Paste
+        any error output verbatim.
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample Markdown (if rendering-related)
+      description: >
+        The smallest Markdown snippet that shows the problem, if the bug is
+        about output. Skip this for setup/integration bugs.
+      render: markdown

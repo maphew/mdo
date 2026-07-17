@@ -39,6 +39,27 @@ I could not find a simple, fast, and self-contained solution. Everything I looke
 
 Mdo + file-manager integration creates html pages so quickly they are throw-away friendly. I don't have to create an HTML file for every long Markdown file I want to read, or add a "make this an html report" to an agent workflow, regularly saving thousands of tokens. 
 
+### Project status — feedback wanted
+
+mdo is young and honest about it: v0.5 is released, v0.6 is in progress. It
+does its core job — double-click a `.md` file, get a rendered page — every day
+on the author's Windows and Linux machines. macOS binaries are built and
+released but are the least exercised, and the Finder integration is still a
+manual recipe.
+
+What we don't know yet is whether mdo is useful to anyone who isn't the
+author. That's the question this phase of the project exists to answer, and
+you can help:
+
+- **Tried it?** [Tell us how it went](https://github.com/maphew/mdo/issues/new?template=experience_report.yml)
+  — "worked, keeping it" and "gave up during setup" are equally valuable.
+- **Something broke?** [File a bug](https://github.com/maphew/mdo/issues/new?template=bug_report.yml).
+- **Just want to talk?** [Discussions](https://github.com/maphew/mdo/discussions) are open.
+
+Critique is welcome at full strength, including "this shouldn't exist because
+X already does it better." See [CONTRIBUTING.md](CONTRIBUTING.md) for more,
+including a candid note on how this project is built.
+
 ---
 
 ## 📦 Installation
