@@ -1,9 +1,38 @@
 # ADR 0004: State-aware desktop setup launcher
 
-- **Status**: Proposed
+- **Status**: Deferred (2026-07-17; originally Proposed 2026-07-10)
 - **Date**: 2026-07-10
 - **Deciders**: Matt
-- **Related issues**: `mdo-u79`, `mdo-gfw`
+- **Related issues**: `mdo-u79`, `mdo-gfw`, `mdo-bs3.4`
+
+## Deferral (v0.6)
+
+Full integration-state management is deferred. v0.6 ships only a cheap
+owned-registration check; the full manager described below would add
+cross-platform lifecycle complexity without evidence that it solves a common
+user problem.
+
+What v0.6 actually ships (see `mdo-bs3.4.1`):
+
+- Setup asks one question of the platform: is mdo's *own* handler
+  registration present? On Windows that is the mdo-owned `mdo.md` ProgID open
+  command under `HKCU`; on Linux it is the mdo-owned `mdo.desktop` entry in
+  the XDG applications directory.
+- When it is present, setup says the integration is already installed and
+  offers exactly two outcomes: leave it unchanged, or reinstall (an
+  idempotent rewrite of mdo-owned resources).
+- The check does not infer partial, stale, system-wide, or effective-default
+  states, and a failed query is treated as "not detected", falling back to
+  the ordinary first-time flow.
+
+Everything else in this document — the `IntegrationReport` state model,
+handler-health classification, repair flows, launcher lifecycle status,
+effective-default queries, binary-removal guidance, and the associated test
+matrix — is the deferred full manager. It is retained below as design
+reference for a future decision, not as an approved plan. In particular, this
+ADR does not authorize comprehensive partial-state recovery: the minimal v0.6
+check must not grow repair or remnant-cleanup behavior without a new decision
+reopening this ADR.
 
 ## Context
 
