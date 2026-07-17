@@ -6,7 +6,7 @@ great for writing and diffing, but calmer to *read* as rich text. Pages
 include embedded [simple.css](https://simplecss.org/) styling and automatic
 light/dark mode with a manual toggle, and mdo makes no network calls at
 runtime. With the optional file-manager integration, opening a `.md` file as
-rendered HTML is as fast as opening it in a text editor. Runs on Linux, macOS, 
+rendered HTML is as fast as opening it in a text editor. Runs on Linux, macOS,
 and Windows.
 
 Project site: <https://maphew.github.io/mdo/> ·
@@ -76,17 +76,17 @@ Everything is per-user, quiet, and reversible. Platform details:
 ## Security
 
 Raw HTML inside Markdown is **sanitized by default** (scripts and
-event-handler attributes removed); `--unsafe-html` disables sanitization, 
+event-handler attributes removed); `--unsafe-html` disables sanitization,
 use for trusted input only. mdo makes no network calls at runtime, and the
 file-manager integration is strictly per-user. Details and reporting:
 [SECURITY.md](SECURITY.md).
 
 ## Project status - feedback wanted
 
-mdo is young, only halfway to a v1.0 release. However it does the core job of 
-double-clicking an `.md` file and seeing a rendered page in a second every 
+mdo is young, only halfway to a v1.0 release. However it does the core job of
+double-clicking an `.md` file and seeing a rendered page in a second every
 day on my Windows and Linux machines and I wonder how I ever lived without it.
-macOS binaries are built and released but are the least exercised, and the 
+macOS binaries are built and released but are the least exercised, and the
 Finder integration is still a manual recipe.
 
 What we don't know yet is whether mdo is useful to anyone who isn't me.
@@ -113,7 +113,7 @@ including how this project is built.
 
 ## Credits and license
 
-This project started as a fork of Hafiz Ali Raza's Markdown-to-HTML CLI. 
+This project started as a fork of Hafiz Ali Raza's Markdown-to-HTML CLI.
 We wouldn't be here without his work.
 The bundled [simple.css](https://simplecss.org/) is © 2020
 [Kev Quirk](https://kevquirk.com/), MIT License - see
