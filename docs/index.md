@@ -196,7 +196,7 @@ Each path below is stable for the source file, so reopening the same Markdown ov
 ```text
 Windows  %TEMP%\mdo\{hash}\notes.html
 Linux    /tmp/mdo-{uid}/{hash}/notes.html
-macOS    $TMPDIR/mdo/{hash}/notes.html
+macOS    $TMPDIR/mdo-{uid}/{hash}/notes.html
 ```
 
 ## Project Links

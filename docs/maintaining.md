@@ -20,11 +20,18 @@ Release checklist:
 
 1. Update `CHANGELOG.md`: move **Unreleased** items under the new version
    heading with the release date.
-2. Bump `version` in `Cargo.toml` (and let `Cargo.lock` update).
-3. Verify the crate payload: `cargo publish --locked --dry-run`.
-4. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-5. Publish the crate from that clean release commit: `cargo publish --locked`.
-6. After the workflow publishes assets, refresh the package manifests
+2. Bump `version` in `Cargo.toml` (and let `Cargo.lock` update by building,
+   e.g. `cargo check`).
+3. Run the quality gates (`cargo test`, `cargo clippy`) and confirm
+   `Cargo.toml`'s `version` matches the `vX.Y.Z` tag you're about to create.
+4. Verify the crate payload: `cargo publish --locked --dry-run`.
+5. Commit the release changes (`CHANGELOG.md`, `Cargo.toml`, `Cargo.lock`)
+   and push the commit, confirming `git status` is clean before tagging — a
+   tag records whatever commit `HEAD` points to, so uncommitted or unpushed
+   edits are silently left out of the release.
+6. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+7. Publish the crate from that clean release commit: `cargo publish --locked`.
+8. After the workflow publishes assets, refresh the package manifests
    (below) with the new version, URLs, and `SHA256SUMS` hashes.
 
 The crates.io package is `mdo-cli` (the `mdo` crate name was taken); the
@@ -60,7 +67,9 @@ python scripts/build-docs.py
 ```
 
 `README.html` at the repository root is a plain `mdo README.md` render kept
-as an example of default output; regenerate it when the README changes.
+as an example of default output; `scripts/build-docs.py` does not touch it.
+Regenerate it separately when the README changes, e.g.
+`cargo run --quiet -- README.md`.
 
 ## Architecture decision records
 
