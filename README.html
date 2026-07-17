@@ -104,8 +104,9 @@ Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener no
 mdo --open FILE.md   # render to a temp page and open it in your browser
 mdo --watch FILE.md  # re-render automatically on every save
 </code></pre>
-<p><code>mdo --open</code> never leaves <code>.html</code> files beside your Markdown — output goes
-to a stable per-file temp path, and relative images and links still resolve.
+<p><code>mdo --open</code> never leaves <code>.html</code> files beside your Markdown (unless you pass
+<code>--output</code> to redirect it there yourself) — output goes to a stable per-file
+temp path, and relative images and links still resolve.
 Running <code>mdo</code> with no arguments prints a short landing page; <code>mdo --help</code>
 shows the full reference.</p>
 <p>Full CLI reference, output details, and examples: <a href="docs/usage.md" rel="noopener noreferrer">docs/usage.md</a>.</p>
@@ -172,7 +173,7 @@ upstream. The bundled <a href="https://simplecss.org/" rel="noopener noreferrer"
 upstream project.</p>
 
 </main>
-<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-17T17:56:50Z">July 17, 2026, 5:56 PM UTC</time></footer>
+<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-17T22:49:46Z">July 17, 2026, 10:49 PM UTC</time></footer>
 <script>
 (function(){var t=document.querySelector('.mdo-source-meta time');if(!t)return;var d=new Date(t.getAttribute('datetime'));if(isNaN(d))return;try{t.textContent=d.toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){}})();
 </script>

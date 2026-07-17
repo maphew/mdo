@@ -11,8 +11,10 @@ Linux    /tmp/mdo-<uid>/<hash>/<name>.html
 macOS    $TMPDIR/mdo-<uid>/<hash>/<name>.html
 ```
 
-Everything the installer does is per-user and reversible with
-`mdo --uninstall-file-manager`.
+The file-handler registration is per-user and reversible with
+`mdo --uninstall-file-manager`. (On Linux, the separate **mdo Setup**
+application-menu launcher and the installed binaries are untouched by that
+command; see the implementation details below.)
 
 ## Windows Explorer
 

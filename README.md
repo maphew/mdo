@@ -44,8 +44,9 @@ mdo --open FILE.md   # render to a temp page and open it in your browser
 mdo --watch FILE.md  # re-render automatically on every save
 ```
 
-`mdo --open` never leaves `.html` files beside your Markdown — output goes
-to a stable per-file temp path, and relative images and links still resolve.
+`mdo --open` never leaves `.html` files beside your Markdown (unless you pass
+`--output` to redirect it there yourself) — output goes to a stable per-file
+temp path, and relative images and links still resolve.
 Running `mdo` with no arguments prints a short landing page; `mdo --help`
 shows the full reference.
 
