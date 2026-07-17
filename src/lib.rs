@@ -56,6 +56,12 @@ const MDO_DEFAULT_TYPOGRAPHY_CSS: &str = include_str!("../assets/mdo-default-typ
 // - localStorage can throw on file:// pages in some browsers/configurations,
 //   so every access is wrapped \u2014 the toggle still works for the current page
 //   even when persistence is unavailable.
+// - An in-memory `manual` flag (not the localStorage read) is the source of
+//   truth for "the user made an explicit choice". It is initialized from the
+//   saved value and set on every toggle click regardless of whether
+//   localStorage.setItem succeeds, so a later prefers-color-scheme change
+//   can never clobber an explicit choice just because persistence failed
+//   (e.g. on file:// pages).
 // - The button is a real <button> (keyboard focusable/activatable) with a
 //   state-aware aria-label.
 // - This <style> block is emitted before the --css override block, so custom
@@ -74,7 +80,9 @@ const THEME_TOGGLE: &str = r#"<style id="mdo-theme-toggle">
   var read=function(){try{return localStorage.getItem('theme')}catch(e){return null}};
   var apply=function(t){document.documentElement.dataset.theme=t;};
   var mq=matchMedia('(prefers-color-scheme: dark)');
-  apply(read()||(mq.matches?'dark':'light'));
+  var saved=read();
+  var manual=saved!==null;
+  apply(saved||(mq.matches?'dark':'light'));
   document.addEventListener('DOMContentLoaded',function(){
     var b=document.createElement('button');
     b.id='theme-toggle';b.type='button';
@@ -88,12 +96,13 @@ const THEME_TOGGLE: &str = r#"<style id="mdo-theme-toggle">
     b.onclick=function(){
       var next=document.documentElement.dataset.theme==='dark'?'light':'dark';
       apply(next);
+      manual=true;
       try{localStorage.setItem('theme',next)}catch(e){}
       sync();
     };
     if(mq.addEventListener){
       mq.addEventListener('change',function(e){
-        if(!read()){apply(e.matches?'dark':'light');sync();}
+        if(!manual){apply(e.matches?'dark':'light');sync();}
       });
     }
     document.body.appendChild(b);

@@ -130,6 +130,66 @@ fn converts_markdown_to_styled_html5_document() {
 }
 
 #[test]
+fn theme_toggle_manual_flag_survives_storage_write_failure() {
+    // Regression test for a review finding on the theme toggle: the script
+    // must track "the user made an explicit choice" with an in-memory flag,
+    // not solely by re-reading localStorage. Otherwise, on pages where
+    // localStorage.setItem throws (e.g. file:// pages in some browsers), a
+    // later prefers-color-scheme change would silently overwrite the user's
+    // manual click.
+    let dir = fixture_dir("theme-manual-flag");
+    let input = dir.join("sample.md");
+    fs::write(&input, "# Sample Title\n\nBody text.\n").expect("failed to write markdown fixture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(output.status.success(), "mdo failed: {output:?}");
+
+    let html = fs::read_to_string(dir.join("sample.html"))
+        .expect("failed to read html output")
+        .replace("\r\n", "\n");
+
+    let manual_init_pos = html
+        .find("var manual=saved!==null;")
+        .expect("script should initialize an in-memory manual-choice flag from saved state");
+
+    let click_set_pos = html
+        .find("manual=true;")
+        .expect("click handler should set the manual flag unconditionally");
+    let click_try_pos = html
+        .find("try{localStorage.setItem('theme',next)}catch(e){}")
+        .expect("click handler should still attempt to persist the choice");
+    assert!(
+        click_set_pos < click_try_pos,
+        "manual flag must be set before the (possibly failing) localStorage write, so a \
+         persistence failure can never suppress the in-memory record of an explicit choice"
+    );
+
+    let mq_change_pos = html
+        .find("mq.addEventListener('change'")
+        .expect("script should still track OS theme changes live");
+    assert!(
+        mq_change_pos > manual_init_pos,
+        "manual flag should be declared before it is referenced by the media-query handler"
+    );
+    assert!(
+        html[mq_change_pos..].contains("if(!manual){"),
+        "prefers-color-scheme handler must gate on the in-memory manual flag, not a fresh \
+         localStorage read, so a failed setItem() can't cause it to override an explicit choice"
+    );
+    assert!(
+        !html[mq_change_pos..].contains("if(!read())"),
+        "prefers-color-scheme handler should not fall back to re-reading localStorage to decide \
+         whether the user already made a manual choice"
+    );
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[test]
 fn css_override_is_embedded_after_default_styles() {
     let dir = fixture_dir("css-override");
     let input = dir.join("sample.md");
