@@ -22,7 +22,9 @@
   var read=function(){try{return localStorage.getItem('theme')}catch(e){return null}};
   var apply=function(t){document.documentElement.dataset.theme=t;};
   var mq=matchMedia('(prefers-color-scheme: dark)');
-  apply(read()||(mq.matches?'dark':'light'));
+  var saved=read();
+  var manual=saved!==null;
+  apply(saved||(mq.matches?'dark':'light'));
   document.addEventListener('DOMContentLoaded',function(){
     var b=document.createElement('button');
     b.id='theme-toggle';b.type='button';
@@ -36,12 +38,13 @@
     b.onclick=function(){
       var next=document.documentElement.dataset.theme==='dark'?'light':'dark';
       apply(next);
+      manual=true;
       try{localStorage.setItem('theme',next)}catch(e){}
       sync();
     };
     if(mq.addEventListener){
       mq.addEventListener('change',function(e){
-        if(!read()){apply(e.matches?'dark':'light');sync();}
+        if(!manual){apply(e.matches?'dark':'light');sync();}
       });
     }
     document.body.appendChild(b);

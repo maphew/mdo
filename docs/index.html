@@ -22,7 +22,9 @@
   var read=function(){try{return localStorage.getItem('theme')}catch(e){return null}};
   var apply=function(t){document.documentElement.dataset.theme=t;};
   var mq=matchMedia('(prefers-color-scheme: dark)');
-  apply(read()||(mq.matches?'dark':'light'));
+  var saved=read();
+  var manual=saved!==null;
+  apply(saved||(mq.matches?'dark':'light'));
   document.addEventListener('DOMContentLoaded',function(){
     var b=document.createElement('button');
     b.id='theme-toggle';b.type='button';
@@ -36,12 +38,13 @@
     b.onclick=function(){
       var next=document.documentElement.dataset.theme==='dark'?'light':'dark';
       apply(next);
+      manual=true;
       try{localStorage.setItem('theme',next)}catch(e){}
       sync();
     };
     if(mq.addEventListener){
       mq.addEventListener('change',function(e){
-        if(!read()){apply(e.matches?'dark':'light');sync();}
+        if(!manual){apply(e.matches?'dark':'light');sync();}
       });
     }
     document.body.appendChild(b);
@@ -1665,7 +1668,7 @@ macOS    $TMPDIR/mdo-{uid}/{hash}/notes.html
 <p>mdo is dual-licensed under MIT or Apache-2.0 and forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.</p>
 
 </main>
-<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-17T22:49:43Z">July 17, 2026, 10:49 PM UTC</time></footer>
+<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-17T22:54:22Z">July 17, 2026, 10:54 PM UTC</time></footer>
 <script>
 (function(){var t=document.querySelector('.mdo-source-meta time');if(!t)return;var d=new Date(t.getAttribute('datetime'));if(isNaN(d))return;try{t.textContent=d.toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){}})();
 </script>
