@@ -1,11 +1,11 @@
 # Contributing to mdo
 
 Thanks for looking under the hood. Right now the most valuable contribution
-is not code — it's **honest feedback from someone who isn't the author**.
+is **honest feedback from someone who isn't the author**.
 
 ## The contribution we want most: your experience
 
-mdo was built to scratch one person's daily itch (reading many Markdown files
+mdo was built to scratch my own daily itch (reading many Markdown files
 as rendered HTML). The open question is whether it's useful to anyone else.
 You can answer that question better than any amount of code can.
 
@@ -26,11 +26,10 @@ file-manager action — those three answer most questions up front.
 
 ## Code contributions
 
-PRs are welcome, but for anything beyond a small fix please open an issue or
-discussion first so we don't waste your effort on something out of scope.
-Current scope and non-goals live in the v0.6 planning notes; in short: mdo
-wants to stay a small, fast, self-contained reader's tool. No GUI, no embedded
-web server, no template marketplace.
+PRs are welcome, for anything beyond a small fix please open an issue or
+discussion first. Current scope and non-goals live in the v0.6 planning notes; 
+in short: mdo wants to stay a small, fast, self-contained reader's tool. No GUI, 
+no embedded, web server, no template marketplace (this last one is a bit squishy).
 
 ### Build and test
 
@@ -63,10 +62,10 @@ accepted work into the internal tracker ourselves.
 ## A note on how this project is built
 
 Much of mdo's code is written with AI coding agents, directed and reviewed by
-the maintainer, with cross-model reviews on substantial changes (details in PR
-descriptions). If that affects your willingness to use or contribute to the
-project, that's a fair position — we mention it so you can make that call with
-full information rather than discover it in the commit log.
+the maintainer (currently Matt Wilkie), with cross-model reviews on substantial 
+changes (details in PR descriptions). If that affects your willingness to use or 
+contribute to the project, that's a fair position — I mention it so you can 
+make that call with full information rather than discover it in the commit log.
 
 ## License
 
