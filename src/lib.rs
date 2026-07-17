@@ -7,9 +7,7 @@ use std::io;
 #[cfg(unix)]
 use std::io::Write;
 use std::path::{Path, PathBuf};
-#[cfg(all(unix, not(target_os = "macos")))]
-use std::time::Duration;
-use std::time::UNIX_EPOCH;
+use std::time::{Duration, Instant, UNIX_EPOCH};
 
 #[cfg(unix)]
 use std::fs::OpenOptions;
@@ -325,7 +323,7 @@ fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
     }
 }
 
-fn render_markdown(markdown: &str, unsafe_html: bool) -> String {
+fn markdown_to_html(markdown: &str) -> String {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
     options.insert(Options::ENABLE_TABLES);
@@ -335,12 +333,7 @@ fn render_markdown(markdown: &str, unsafe_html: bool) -> String {
     let parser = MdParser::new_ext(markdown, options);
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
-
-    if unsafe_html {
-        return html_output;
-    }
-
-    sanitize_html(&html_output)
+    html_output
 }
 
 fn sanitize_html(html: &str) -> String {
@@ -642,6 +635,33 @@ fn html_escape(s: &str) -> String {
         .replace('"', "&quot;")
 }
 
+/// Wall-clock time spent in each stage of one render workflow, reported to
+/// stderr by `--verbose`. Stages that do not run for a given invocation
+/// (`sanitize` under `--unsafe-html`, `assemble` under `--bare`) report zero.
+#[derive(Default)]
+struct StageTimings {
+    read: Duration,
+    markdown: Duration,
+    sanitize: Duration,
+    assemble: Duration,
+    write: Duration,
+}
+
+/// Print per-stage and total timings for a completed render to STDERR only.
+/// Performance diagnostics belong in the terminal: they never touch stdout
+/// or the generated HTML (v0.6 quiet output). `total` is the wall-clock time
+/// of the whole workflow, so it is always at least the sum of the stages.
+fn report_render_timings(input: &Path, timings: &StageTimings, total: Duration) {
+    let ms = |d: Duration| d.as_secs_f64() * 1000.0;
+    eprintln!("⏱  Render workflow for {:?}:", input);
+    eprintln!("   read     {:>10.3} ms", ms(timings.read));
+    eprintln!("   markdown {:>10.3} ms", ms(timings.markdown));
+    eprintln!("   sanitize {:>10.3} ms", ms(timings.sanitize));
+    eprintln!("   assemble {:>10.3} ms", ms(timings.assemble));
+    eprintln!("   write    {:>10.3} ms", ms(timings.write));
+    eprintln!("   total    {:>10.3} ms", ms(total));
+}
+
 pub fn convert(
     input: &Path,
     output: &Path,
@@ -660,6 +680,35 @@ pub fn convert_with_css_override(
     private_output: bool,
     css_override: Option<&Path>,
 ) -> bool {
+    convert_with_diagnostics(
+        input,
+        output,
+        bare,
+        unsafe_html,
+        private_output,
+        css_override,
+        false,
+    )
+}
+
+/// Full render workflow with optional `--verbose` timing diagnostics.
+///
+/// The generated HTML is byte-identical whether or not `verbose` is set:
+/// timings are measured around the existing stages and reported to stderr
+/// only after a fully successful render.
+pub fn convert_with_diagnostics(
+    input: &Path,
+    output: &Path,
+    bare: bool,
+    unsafe_html: bool,
+    private_output: bool,
+    css_override: Option<&Path>,
+    verbose: bool,
+) -> bool {
+    let workflow_start = Instant::now();
+    let mut timings = StageTimings::default();
+
+    let stage_start = Instant::now();
     let markdown = match fs::read_to_string(input) {
         Ok(s) => s,
         Err(e) => {
@@ -667,26 +716,45 @@ pub fn convert_with_css_override(
             return false;
         }
     };
+    timings.read = stage_start.elapsed();
 
     let css_override = if bare {
         None
     } else {
         match css_override {
-            Some(path) => match fs::read_to_string(path) {
-                Ok(css) => Some(css),
-                Err(e) => {
-                    eprintln!("❌ Failed to read CSS override {:?}: {}", path, e);
-                    return false;
+            Some(path) => {
+                let stage_start = Instant::now();
+                let css = fs::read_to_string(path);
+                timings.read += stage_start.elapsed();
+                match css {
+                    Ok(css) => Some(css),
+                    Err(e) => {
+                        eprintln!("❌ Failed to read CSS override {:?}: {}", path, e);
+                        return false;
+                    }
                 }
-            },
+            }
             None => None,
         }
     };
 
-    let body = render_markdown(&markdown, unsafe_html);
+    let stage_start = Instant::now();
+    let raw_body = markdown_to_html(&markdown);
+    timings.markdown = stage_start.elapsed();
+
+    let body = if unsafe_html {
+        raw_body
+    } else {
+        let stage_start = Instant::now();
+        let sanitized = sanitize_html(&raw_body);
+        timings.sanitize = stage_start.elapsed();
+        sanitized
+    };
+
     let final_html = if bare {
         body
     } else {
+        let stage_start = Instant::now();
         let fallback = input
             .file_stem()
             .and_then(|s| s.to_str())
@@ -706,15 +774,18 @@ pub fn convert_with_css_override(
             _ => None,
         };
 
-        wrap_html5(
+        let wrapped = wrap_html5(
             &body,
             &title,
             base_href.as_deref(),
             css_override.as_deref(),
             source_modified_unix_secs(input),
-        )
+        );
+        timings.assemble = stage_start.elapsed();
+        wrapped
     };
 
+    let stage_start = Instant::now();
     if let Some(parent) = output.parent() {
         if !parent.as_os_str().is_empty() {
             if let Err(e) = fs::create_dir_all(parent) {
@@ -728,7 +799,11 @@ pub fn convert_with_css_override(
         eprintln!("❌ Failed to write to {:?}: {}", output, e);
         false
     } else {
+        timings.write = stage_start.elapsed();
         println!("✅ Converted {:?} → {:?}", input, output);
+        if verbose {
+            report_render_timings(input, &timings, workflow_start.elapsed());
+        }
         true
     }
 }

@@ -382,6 +382,91 @@ fn sanitizer_keeps_markdown_footnote_links() {
     fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
 }
 
+#[test]
+fn verbose_html_is_byte_identical_and_diagnostics_go_to_stderr() {
+    let dir = fixture_dir("verbose");
+    let input = dir.join("sample.md");
+    let quiet_out = dir.join("quiet.html");
+    let verbose_out = dir.join("verbose.html");
+    fs::write(
+        &input,
+        "# Sample Title\n\nA paragraph with **strong** text.\n\n- [ ] a task\n",
+    )
+    .expect("failed to write markdown fixture");
+
+    let quiet = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--output")
+        .arg(&quiet_out)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+    assert!(quiet.status.success(), "mdo failed: {quiet:?}");
+    assert!(
+        quiet.stderr.is_empty(),
+        "a successful non-verbose run should write nothing to stderr: {quiet:?}"
+    );
+
+    let verbose = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .arg("--verbose")
+        .arg("--output")
+        .arg(&verbose_out)
+        .arg(&input)
+        .output()
+        .expect("failed to run mdo");
+    assert!(
+        verbose.status.success(),
+        "mdo --verbose failed: {verbose:?}"
+    );
+
+    // The generated HTML must be byte-identical with and without --verbose:
+    // timing diagnostics may never leak into the document.
+    let quiet_html = fs::read(&quiet_out).expect("failed to read quiet html output");
+    let verbose_html = fs::read(&verbose_out).expect("failed to read verbose html output");
+    assert_eq!(
+        quiet_html, verbose_html,
+        "--verbose must not change the generated HTML"
+    );
+    assert!(!String::from_utf8_lossy(&verbose_html).contains("Render workflow"));
+
+    // Diagnostics go to stderr, covering the whole workflow stage by stage.
+    let stderr = String::from_utf8_lossy(&verbose.stderr);
+    assert!(
+        stderr.contains("Render workflow"),
+        "stderr should carry the timing report: {stderr}"
+    );
+    for stage in ["read", "markdown", "sanitize", "assemble", "write", "total"] {
+        assert!(
+            stderr.contains(stage),
+            "stderr should report the {stage} stage: {stderr}"
+        );
+    }
+    assert!(stderr.contains(" ms"), "timings should be in ms: {stderr}");
+
+    // Stdout stays brief: the usual success line, no timing report.
+    let stdout = String::from_utf8_lossy(&verbose.stdout);
+    assert!(stdout.contains("Converted"));
+    assert!(
+        !stdout.contains("Render workflow") && !stdout.contains("total"),
+        "timing diagnostics must not appear on stdout: {stdout}"
+    );
+
+    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
+}
+
+#[test]
+fn verbose_cannot_be_combined_with_setup() {
+    let output = Command::new(env!("CARGO_BIN_EXE_mdo"))
+        .args(["--setup", "--verbose"])
+        .output()
+        .expect("failed to run mdo");
+
+    assert!(!output.status.success(), "mdo unexpectedly succeeded");
+    assert_eq!(output.status.code(), Some(2));
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("--setup cannot be combined"));
+}
+
 #[cfg(target_os = "linux")]
 #[test]
 fn normal_output_respects_umask_for_new_files() {

@@ -141,6 +141,8 @@ Options:
   -b, --bare                Emit only the HTML fragment (no <html>, <head>, <body>, no CSS)
       --css <FILE>          Append a custom CSS file after mdo's default styling
       --unsafe-html         Preserve raw HTML from the Markdown source instead of sanitizing it
+  -v, --verbose             Report timing diagnostics for the render workflow (read, markdown,
+                            sanitize, assemble, write, total) on stderr. The generated HTML is unchanged
       --open                Render to a temp directory and launch the system default browser.
                             The source folder is left untouched unless --output is given
       --setup                Show a first-run setup with safe next steps for new users
