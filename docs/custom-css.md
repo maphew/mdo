@@ -54,12 +54,19 @@ The docs CSS override recognizes that generated shape and styles the
 blockquote as a faux browser window floating over the image:
 
 ```css
-main > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"]) + blockquote {
-  margin-top: -460px;
-  background: white;
+body:has(> footer.mdo-source-meta)
+  > main
+  > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
+  + blockquote {
+  margin: -460px 0 88px clamp(24px, 36%, 430px);
+  background: #fff;
   box-shadow: 0 16px 36px rgba(7, 18, 24, 0.3);
 }
 ```
+
+(The `footer.mdo-source-meta` gate matches the restrained footer mdo adds to
+generated pages, keeping the enhancement away from the hand-written pages that
+share the stylesheet.)
 
 That trick keeps the content portable and readable as Markdown while using
 `--css` to create a richer static page. It is a good example of how `mdo` can

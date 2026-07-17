@@ -1238,21 +1238,21 @@ a {
    These selectors enhance mdo-generated pages while leaving the hand-written
    metrics pages on their class-based layout. */
 
-body:has(> footer.mdo-generated) > main {
+body:has(> footer.mdo-source-meta) > main {
   width: min(1120px, calc(100% - 32px));
   max-width: 1120px;
   margin: 0 auto;
   padding: 36px 0 18px;
 }
 
-body:has(> footer.mdo-generated) > main > h1:first-child {
+body:has(> footer.mdo-source-meta) > main > h1:first-child {
   max-width: 11ch;
   margin: 0;
   font-size: clamp(44px, 8vw, 76px);
   line-height: 1.05;
 }
 
-body:has(> footer.mdo-generated) > main > h1:first-child + p {
+body:has(> footer.mdo-source-meta) > main > h1:first-child + p {
   margin: 0 0 12px;
   color: var(--accent);
   font-size: 13px;
@@ -1261,14 +1261,14 @@ body:has(> footer.mdo-generated) > main > h1:first-child + p {
   text-transform: uppercase;
 }
 
-body:has(> footer.mdo-generated) > main > h1:first-child + p + p {
+body:has(> footer.mdo-source-meta) > main > h1:first-child + p + p {
   max-width: 760px;
   margin: 18px 0 24px;
   color: var(--muted);
   font-size: clamp(1.08rem, 2.4vw, 1.28rem);
 }
 
-body:has(> footer.mdo-generated) > main > table:first-of-type {
+body:has(> footer.mdo-source-meta) > main > table:first-of-type {
   width: 100%;
   margin: 24px 0;
   overflow: hidden;
@@ -1278,12 +1278,12 @@ body:has(> footer.mdo-generated) > main > table:first-of-type {
   box-shadow: 0 12px 36px rgba(28, 36, 40, 0.08);
 }
 
-body:has(> footer.mdo-generated) > main > table:first-of-type th,
-body:has(> footer.mdo-generated) > main > table:first-of-type td {
+body:has(> footer.mdo-source-meta) > main > table:first-of-type th,
+body:has(> footer.mdo-source-meta) > main > table:first-of-type td {
   text-align: center;
 }
 
-body:has(> footer.mdo-generated) > main img {
+body:has(> footer.mdo-source-meta) > main img {
   display: block;
   width: 100%;
   max-height: 520px;
@@ -1293,14 +1293,14 @@ body:has(> footer.mdo-generated) > main img {
   box-shadow: 0 18px 50px rgba(28, 36, 40, 0.12);
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"]) {
   position: relative;
   margin: 32px 0 0;
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   img {
@@ -1308,7 +1308,7 @@ body:has(> footer.mdo-generated)
   object-position: center top;
 }
 
-body:has(> footer.mdo-generated) > main > blockquote {
+body:has(> footer.mdo-source-meta) > main > blockquote {
   margin: 24px 0 0;
   border-color: var(--accent);
   border-radius: 8px;
@@ -1316,7 +1316,7 @@ body:has(> footer.mdo-generated) > main > blockquote {
   color: var(--text);
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote {
@@ -1336,7 +1336,7 @@ body:has(> footer.mdo-generated)
   font-style: normal;
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote::after {
@@ -1350,7 +1350,7 @@ body:has(> footer.mdo-generated)
   background: rgba(37, 48, 55, 0.38);
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
@@ -1368,7 +1368,7 @@ body:has(> footer.mdo-generated)
   line-height: 1.2;
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
@@ -1388,7 +1388,7 @@ body:has(> footer.mdo-generated)
   white-space: pre;
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
@@ -1396,7 +1396,7 @@ body:has(> footer.mdo-generated)
   max-width: none;
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
@@ -1407,7 +1407,7 @@ body:has(> footer.mdo-generated)
   line-height: 1.12;
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
@@ -1417,12 +1417,12 @@ body:has(> footer.mdo-generated)
   font-size: clamp(1.5rem, 3.5vw, 2.1rem);
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
   p,
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
@@ -1432,7 +1432,7 @@ body:has(> footer.mdo-generated)
   line-height: 1.45;
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
@@ -1441,7 +1441,7 @@ body:has(> footer.mdo-generated)
   font-size: 0.82rem;
 }
 
-body:has(> footer.mdo-generated)
+body:has(> footer.mdo-source-meta)
   > main
   > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
   + blockquote
@@ -1450,31 +1450,31 @@ body:has(> footer.mdo-generated)
   font-size: 0.88rem;
 }
 
-body:has(> footer.mdo-generated) > main > h2 {
+body:has(> footer.mdo-source-meta) > main > h2 {
   margin-top: 3rem;
   padding-top: 2.4rem;
   border-top: 1px solid var(--line);
   font-size: clamp(1.75rem, 3vw, 2.25rem);
 }
 
-body:has(> footer.mdo-generated) > main > h3 {
+body:has(> footer.mdo-source-meta) > main > h3 {
   margin-top: 1.8rem;
 }
 
-body:has(> footer.mdo-generated) > main > p,
-body:has(> footer.mdo-generated) > main > ul,
-body:has(> footer.mdo-generated) > main > ol {
+body:has(> footer.mdo-source-meta) > main > p,
+body:has(> footer.mdo-source-meta) > main > ul,
+body:has(> footer.mdo-source-meta) > main > ol {
   max-width: 820px;
 }
 
-body:has(> footer.mdo-generated) > main pre {
+body:has(> footer.mdo-source-meta) > main pre {
   border: 1px solid var(--code-border);
   border-radius: 8px;
   background: var(--code-bg);
   color: var(--code-text);
 }
 
-body:has(> footer.mdo-generated) > main :not(pre) > code {
+body:has(> footer.mdo-source-meta) > main :not(pre) > code {
   border-radius: 5px;
   background: var(--inline-code-bg);
   color: var(--inline-code-text);
@@ -1483,14 +1483,14 @@ body:has(> footer.mdo-generated) > main :not(pre) > code {
 }
 
 @media (max-width: 760px) {
-  body:has(> footer.mdo-generated)
+  body:has(> footer.mdo-source-meta)
     > main
     > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
     img {
     min-height: 390px;
   }
 
-  body:has(> footer.mdo-generated)
+  body:has(> footer.mdo-source-meta)
     > main
     > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"])
     + blockquote {

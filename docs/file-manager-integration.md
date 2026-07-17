@@ -8,7 +8,7 @@ source — output goes to a stable per-file temp path:
 ```text
 Windows  %TEMP%\mdo\<hash>\<name>.html
 Linux    /tmp/mdo-<uid>/<hash>/<name>.html
-macOS    $TMPDIR/mdo/<hash>/<name>.html
+macOS    $TMPDIR/mdo-<uid>/<hash>/<name>.html
 ```
 
 Everything the installer does is per-user and reversible with

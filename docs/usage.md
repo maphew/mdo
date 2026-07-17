@@ -28,9 +28,9 @@ Options:
                             Install per-user file-manager integration for Markdown files
       --uninstall-file-manager
                             Remove per-user file-manager integration installed by mdo
-      --set-default         With --install-file-manager on Linux, make Open as HTML the default
-                            Markdown handler. Windows default selection remains interactive
-  -h, --help                Print help
+      --set-default         When installing on Linux, make Open as HTML the default Markdown
+                            handler. Windows still requires choosing the default app interactively
+  -h, --help                Print help (see more with '--help')
   -V, --version             Print version
 ```
 
@@ -51,7 +51,7 @@ location under your OS temp directory so the source folder stays clean:
 ```text
 Windows  %TEMP%\mdo\<hash>\<name>.html
 Linux    /tmp/mdo-<uid>/<hash>/<name>.html
-macOS    $TMPDIR/mdo/<hash>/<name>.html
+macOS    $TMPDIR/mdo-<uid>/<hash>/<name>.html
 ```
 
 Re-opening the same file overwrites the same temp output. A
