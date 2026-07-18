@@ -1,18 +1,18 @@
 class Mdo < Formula
   desc "Convert Markdown to standalone HTML5 documents"
   homepage "https://maphew.github.io/mdo/"
-  version "0.5.0"
+  version "0.6.0"
   license any_of: ["MIT", "Apache-2.0"]
 
   on_macos do
-    url "https://github.com/maphew/mdo/releases/download/v0.5.0/mdo-universal-apple-darwin.tar.gz"
-    sha256 "3c9f4bd72e67b43abe9a4c597d9fedcd08174a52385e61f6cff2c9c0cfe25b1d"
+    url "https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-universal-apple-darwin.tar.gz"
+    sha256 "45bdb4788084bee02390a37aa2d28030a7fb73a1c679f024a1c15bf48a39fb61"
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/maphew/mdo/releases/download/v0.5.0/mdo-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "b9292b3a98dca7dac401f100c02100101f8c738fa457bf4f774b67a8e5a3c4e7"
+      url "https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "563458a5680c1ba473fa29ddc6d935805a0eb9bcdecbdde57a16d00b25f939ca"
     end
   end
 

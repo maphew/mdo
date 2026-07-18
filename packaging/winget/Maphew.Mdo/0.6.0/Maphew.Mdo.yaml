@@ -1,0 +1,6 @@
+# Created with release asset data from https://github.com/maphew/mdo/releases/tag/v0.6.0
+PackageIdentifier: Maphew.Mdo
+PackageVersion: 0.6.0
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.10.0

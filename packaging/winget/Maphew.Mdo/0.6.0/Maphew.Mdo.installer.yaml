@@ -1,0 +1,17 @@
+PackageIdentifier: Maphew.Mdo
+PackageVersion: 0.6.0
+InstallerType: zip
+Installers:
+  - Architecture: x64
+    NestedInstallerType: portable
+    NestedInstallerFiles:
+      - RelativeFilePath: mdo-x86_64-pc-windows-msvc\mdo.exe
+        PortableCommandAlias: mdo
+      - RelativeFilePath: mdo-x86_64-pc-windows-msvc\mdo-open.exe
+        PortableCommandAlias: mdo-open
+      - RelativeFilePath: mdo-x86_64-pc-windows-msvc\mdo-setup.exe
+        PortableCommandAlias: mdo-setup
+    InstallerUrl: https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-x86_64-pc-windows-msvc.zip
+    InstallerSha256: F723B6A1967445A26CAB7F3530B383CB9C6B508E0FF02AED1132D88BF665F08F
+ManifestType: installer
+ManifestVersion: 1.10.0
