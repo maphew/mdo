@@ -107,9 +107,7 @@ Setup explains the render-and-open workflow, the normal convert-once command, an
 
 Running `mdo` with no arguments prints a short **Open Markdown as HTML** landing page and exits successfully; use `mdo --help` for the full CLI reference. Run `mdo --setup` when you want guided setup. On Windows and Linux it can offer to install **Open as HTML** for the current user only. The default answer is **Yes**, but mdo still does not change the default Markdown app. Choose **No** to skip or run setup again later.
 
-After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same guided setup in a fresh Windows Terminal (`wt`) window, falling back to a plain new console if `wt` is unavailable. On Linux, launch **mdo Setup** from your application menu or run `mdo-setup` to open guided setup in your `$TERMINAL` or a known terminal emulator (`gnome-terminal`, `konsole`, `xterm`, and others); it is also what `mdo-open` runs when launched with no file. Running it repairs its per-user application-menu entry if needed.
-
-On Windows, launching `mdo-open.exe` directly with no file opens the same guided setup in a fresh Windows Terminal (`wt`) window using the **One Half Light** color scheme, centered on the active display; if `wt` is unavailable, it falls back to a plain new console.
+After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same guided setup without a terminal already open; on Linux, launch **mdo Setup** from your application menu or run `mdo-setup`. Launcher details are in the [file-manager integration guide](https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md).
 
 ## Usage
 
@@ -140,33 +138,11 @@ mdo --open notes.md
 
 ## Imaginative Markdown + CSS
 
-The project site dogfoods `mdo` by building a visual preview without raw HTML embeds or iframes. The source is only normal Markdown:
-
-```markdown
-![Desktop background](assets/mammoth-bluefinhero-1024x695.jpg)
-
-> sample.md rendered by mdo
->
-> # Release Notes Draft
->
-> `mdo` turns Markdown into a standalone HTML5 document.
-```
-
-The docs CSS override recognizes that generated shape and styles the blockquote as a faux browser window floating over the image:
-
-```css
-main > p:has(> img[src$="mammoth-bluefinhero-1024x695.jpg"]) + blockquote {
-  margin-top: -460px;
-  background: white;
-  box-shadow: 0 16px 36px rgba(7, 18, 24, 0.3);
-}
-```
-
-That trick keeps the content portable and readable as Markdown while using `--css` to create a richer static page. It is a good example of how `mdo` can be used imaginatively: write semantic Markdown first, then layer presentation on top when the rendered page needs to tell a visual story.
+This page — including the faux browser window floating over the hero image above — is normal Markdown rendered by `mdo`, with the visual story layered on through `--css`. See [Custom CSS](https://github.com/maphew/mdo/blob/main/docs/custom-css.md) for how it works and how to style your own pages.
 
 ## File Manager Integration
 
-Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same `mdo --open` render-and-open path.
+Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same `mdo --open` render-and-open path. Platform implementation details live in the [file-manager integration guide](https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md).
 
 ### Windows Explorer
 
@@ -220,7 +196,7 @@ Each path below is stable for the source file, so reopening the same Markdown ov
 ```text
 Windows  %TEMP%\mdo\{hash}\notes.html
 Linux    /tmp/mdo-{uid}/{hash}/notes.html
-macOS    $TMPDIR/mdo/{hash}/notes.html
+macOS    $TMPDIR/mdo-{uid}/{hash}/notes.html
 ```
 
 ## Project Links
@@ -232,6 +208,10 @@ Release notes, architecture decisions, source code, and package metadata are all
 | GitHub Releases | [github.com/maphew/mdo/releases](https://github.com/maphew/mdo/releases) |
 | Public Metrics | [metrics/](metrics/) |
 | Changelog | [CHANGELOG.md](https://github.com/maphew/mdo/blob/main/CHANGELOG.md) |
+| Usage & CLI reference | [docs/usage.md](https://github.com/maphew/mdo/blob/main/docs/usage.md) |
+| File-manager integration | [docs/file-manager-integration.md](https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md) |
+| Custom CSS | [docs/custom-css.md](https://github.com/maphew/mdo/blob/main/docs/custom-css.md) |
+| Maintaining | [docs/maintaining.md](https://github.com/maphew/mdo/blob/main/docs/maintaining.md) |
 | Distribution ADR | [adr/0002-distribution-strategy.html](adr/0002-distribution-strategy.html) |
 | Tooling ADR | [adr/0003-keep-python-metrics-tooling.html](adr/0003-keep-python-metrics-tooling.html) |
 | docs.rs | [docs.rs/mdo-cli](https://docs.rs/mdo-cli) |

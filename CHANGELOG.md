@@ -14,6 +14,14 @@
   on `file://` pages, reserved padding so the button does not cover content on
   narrow screens, hidden when printing, and restylable/hidable from custom
   `--css` via `#theme-toggle`.
+- Documentation: rewrite the README around **Open Markdown as HTML** and move
+  detailed platform, CSS, and maintainer material into focused pages under
+  `docs/` (`usage.md`, `file-manager-integration.md`, `custom-css.md`,
+  `maintaining.md`).
+- Changelog: restore the missing 0.3.0 section. The 2026-05-29 rename release
+  shipped as tag `v0.3.0` and crates.io `mdo-cli 0.3.0` but was recorded here
+  under a 0.2.0 heading; it is now labeled 0.3.0, and a 0.2.0 section for the
+  pre-rename 2026-05-12 release has been reconstructed from git history.
 
 ## 0.5.0 - 2026-07-10
 
@@ -42,7 +50,11 @@
 - Harden Windows browser launches, temporary output paths, and generated HTML handling.
 - Add package-manager starter manifests and public project metrics pages.
 
-## 0.2.0 - 2026-05-29
+## 0.3.0 - 2026-05-29
+
+Released as tag `v0.3.0` and crates.io `mdo-cli 0.3.0` (0.2.0 was already
+taken by the pre-rename release below); this section was previously
+mislabeled 0.2.0.
 
 - Rename the project from `md2htmlx` to `mdo`.
 - Rename the Rust binary from `md2htmlx` to `mdo`.
@@ -58,3 +70,18 @@
 - Add a GitHub Pages site under `docs/` with install instructions, usage examples, and migration notes.
 - Add GitHub Pages deployment automation for the static `docs/` site.
 - Set `mdo` as the default binary for `cargo run`.
+
+## 0.2.0 - 2026-05-12
+
+Released as tag `v0.2.0`, before the rename, while the project was still
+named `md2htmlx`. Reconstructed from git history.
+
+- Rename the fork to `md2htmlx`.
+- Produce standalone HTML5 documents styled with embedded
+  [simple.css](https://simplecss.org/) by default.
+- Make convert-and-exit the default; watch mode becomes opt-in via `--watch`.
+- Add `--bare` for fragment-only output.
+- Add a light/dark mode toggle to non-bare HTML output.
+- Add `--open`: render to a temp directory and launch the system default
+  browser.
+- Add Windows Explorer integration with a no-flash `md2htmlx-open` launcher.

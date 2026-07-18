@@ -4,35 +4,48 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="mdo 0.5.0">
-<title>📝 mdo — Markdown to HTML5 Converter (with optional live watch)</title>
+<title>Open Markdown as HTML</title>
 <style>
 :root{--sans-font:-apple-system,BlinkMacSystemFont,"Avenir Next",Avenir,"Nimbus Sans L",Roboto,"Noto Sans","Segoe UI",Arial,Helvetica,"Helvetica Neue",sans-serif;--mono-font:Consolas,Menlo,Monaco,"Andale Mono","Ubuntu Mono",monospace;--standard-border-radius:5px;--border-width:1px;--bg:#fff;--accent-bg:#f5f7ff;--text:#212121;--text-light:#585858;--border:#898ea4;--accent:#0d47a1;--accent-hover:#1266e2;--accent-text:var(--bg);--code:#d81b60;--preformatted:#444;--marked:#fd3;--disabled:#efefef}@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#212121;--accent-bg:#2b2b2b;--text:#dcdcdc;--text-light:#ababab;--accent:#ffb300;--accent-hover:#ffe099;--accent-text:var(--bg);--code:#f06292;--preformatted:#ccc;--disabled:#111}img,video{opacity:.8}}*,:before,:after{box-sizing:border-box}textarea,select,input,progress{-webkit-appearance:none;-moz-appearance:none;appearance:none}html{font-family:var(--sans-font);scroll-behavior:smooth}body{color:var(--text);background-color:var(--bg);grid-template-columns:1fr min(45rem,90%) 1fr;margin:0;font-size:1.15rem;line-height:1.5;display:grid}body>*{grid-column:2}body>header{background-color:var(--accent-bg);border-bottom:var(--border-width)solid var(--border);text-align:center;grid-column:1/-1;padding:0 .5rem 2rem}body>header>:only-child{margin-block-start:2rem}body>header h1{max-width:1200px;margin:1rem auto}body>header p{max-width:40rem;margin:1rem auto}main{padding-top:1.5rem}body>footer{color:var(--text-light);text-align:center;border-top:var(--border-width)solid var(--border);margin-top:4rem;padding:2rem 1rem 1.5rem;font-size:.9rem}h1{font-size:3rem}h2{margin-top:3rem;font-size:2.6rem}h3{margin-top:3rem;font-size:2rem}h4{font-size:1.44rem}h5{font-size:1.15rem}h6{font-size:.96rem}p{margin:1.5rem 0}p,h1,h2,h3,h4,h5,h6{overflow-wrap:break-word}h1,h2,h3{line-height:1.1}@media only screen and (width<=720px){h1{font-size:2.5rem}h2{font-size:2.1rem}h3{font-size:1.75rem}h4{font-size:1.25rem}}a,a:visited{color:var(--accent)}a:hover{text-decoration:none}button,.button,a.button,input[type=submit],input[type=reset],input[type=button]{border:var(--border-width)solid var(--accent);background-color:var(--accent);color:var(--accent-text);padding:.5rem .9rem;line-height:normal;text-decoration:none}.button[aria-disabled=true],input:disabled,textarea:disabled,select:disabled,button[disabled]{cursor:not-allowed;background-color:var(--disabled);border-color:var(--disabled);color:var(--text-light)}input[type=range]{padding:0}abbr[title]{cursor:help;text-decoration-line:underline;text-decoration-style:dotted}button:enabled:hover,.button:not([aria-disabled=true]):hover,input[type=submit]:enabled:hover,input[type=reset]:enabled:hover,input[type=button]:enabled:hover{background-color:var(--accent-hover);border-color:var(--accent-hover);cursor:pointer}.button:focus-visible,button:focus-visible:where(:enabled),input:enabled:focus-visible:where([type=submit],[type=reset],[type=button]){outline:2px solid var(--accent);outline-offset:1px}header nav{padding:1rem 0 0;font-size:1rem;line-height:2}header nav ul,header nav ol{flex-flow:wrap;place-content:space-around center;align-items:center;margin:0;padding:0;list-style-type:none;display:flex}header nav ul li,header nav ol li{display:inline-block}header nav a,header nav a:visited{border:var(--border-width)solid var(--border);border-radius:var(--standard-border-radius);color:var(--text);margin:0 .5rem 1rem;padding:.1rem 1rem;text-decoration:none;display:inline-block}header nav a:hover,header nav a.current,header nav a[aria-current=page],header nav a[aria-current=true]{border-color:var(--accent);color:var(--accent);cursor:pointer}@media only screen and (width<=720px){header nav a{border:none;padding:0;line-height:1;text-decoration:underline}}aside,details,pre,progress{background-color:var(--accent-bg);border:var(--border-width)solid var(--border);border-radius:var(--standard-border-radius);margin-bottom:1rem}aside{float:right;width:30%;margin-inline-start:15px;padding:0 15px;font-size:1rem}[dir=rtl] aside{float:left}@media only screen and (width<=720px){aside{float:none;width:100%;margin-inline-start:0}}article,fieldset,dialog{border:var(--border-width)solid var(--border);border-radius:var(--standard-border-radius);margin-bottom:1rem;padding:1rem}article h2:first-child,section h2:first-child,article h3:first-child,section h3:first-child{margin-top:1rem}section{border-top:var(--border-width)solid var(--border);border-bottom:var(--border-width)solid var(--border);margin:3rem 0;padding:2rem 1rem}section+section,section:first-child{border-top:0;padding-top:0}section+section{margin-top:0}section:last-child{border-bottom:0;padding-bottom:0}details{padding:.7rem 1rem}summary{cursor:pointer;word-break:break-all;margin:-.7rem -1rem;padding:.7rem 1rem;font-weight:700}details[open]>summary+*{margin-top:0}details[open]>summary{margin-bottom:.5rem}details[open]>:last-child{margin-bottom:0}table{border-collapse:collapse;margin:1.5rem 0}figure>table{width:max-content;margin:0}td,th{border:var(--border-width)solid var(--border);text-align:start;padding:.5rem}th{background-color:var(--accent-bg);font-weight:700}tr:nth-child(2n){background-color:var(--accent-bg)}table caption{margin-bottom:.5rem;font-weight:700}textarea,select,input,button,.button{font-size:inherit;border-radius:var(--standard-border-radius);box-shadow:none;max-width:100%;margin-bottom:.5rem;padding:.5em;font-family:inherit;display:inline-block}textarea,select,input{color:var(--text);background-color:var(--bg);border:var(--border-width)solid var(--border)}label{display:block}textarea:not([cols]){width:100%}select:not([multiple]){background-image:linear-gradient(45deg,transparent 49%,var(--text)51%),linear-gradient(135deg,var(--text)51%,transparent 49%);background-position:calc(100% - 15px),calc(100% - 10px);background-repeat:no-repeat;background-size:5px 5px,5px 5px;padding-inline-end:25px}[dir=rtl] select:not([multiple]){background-position:10px,15px}input[type=checkbox],input[type=radio]{vertical-align:middle;width:min-content;position:relative}input[type=checkbox]+label,input[type=radio]+label{display:inline-block}input[type=radio]{border-radius:100%}input[type=checkbox]:checked,input[type=radio]:checked{background-color:var(--accent)}input[type=checkbox]:checked:after{content:" ";border-right:solid var(--bg).08em;border-bottom:solid var(--bg).08em;background-color:#0000;border-radius:0;width:.2em;height:.4em;font-size:1.8em;position:absolute;top:.04em;left:.18em;transform:rotate(45deg)}input[type=radio]:checked:after{content:" ";background-color:var(--bg);border-radius:100%;width:.3em;height:.3em;font-size:1.8em;position:absolute;top:.125em;left:.125em}@media only screen and (width<=720px){textarea,select,input{width:100%}}input[type=color]{height:2.5rem;padding:.2rem}input[type=file]{border:0}hr{height:var(--border-width);background:var(--border);border:none;margin:1rem auto}mark{border-radius:var(--standard-border-radius);background-color:var(--marked);color:#000;padding:2px 5px}mark a{color:#0d47a1}img,video{border-radius:var(--standard-border-radius);max-width:100%;height:auto}figure{margin:0;display:block;overflow-x:auto}figure>img,figure>picture>img{margin-inline:auto;display:block}figcaption{text-align:center;color:var(--text-light);margin-block:1rem;font-size:.9rem;position:sticky;left:0}blockquote{border-inline-start:.35rem solid var(--accent);color:var(--text-light);margin-block:2rem;margin-inline:2rem 0;padding:.4rem .8rem;font-style:italic}cite{color:var(--text-light);font-size:.9rem;font-style:normal}dt{color:var(--text-light)}code,pre,pre span,kbd,samp{font-family:var(--mono-font);color:var(--code)}kbd{color:var(--preformatted);border:var(--border-width)solid var(--preformatted);border-bottom:3px solid var(--preformatted);border-radius:var(--standard-border-radius);padding:.1rem .4rem}pre{max-width:100%;color:var(--preformatted);padding:1rem 1.4rem;overflow:auto}pre code{color:var(--preformatted);background:0 0;margin:0;padding:0}progress{width:100%}progress:indeterminate{background-color:var(--accent-bg)}progress::-webkit-progress-bar{border-radius:var(--standard-border-radius);background-color:var(--accent-bg)}progress::-webkit-progress-value{border-radius:var(--standard-border-radius);background-color:var(--accent)}progress::-moz-progress-bar{border-radius:var(--standard-border-radius);background-color:var(--accent);transition-property:width;transition-duration:.3s}progress:indeterminate::-moz-progress-bar{background-color:var(--accent-bg)}dialog{background-color:var(--bg);max-width:40rem;margin:auto}dialog::backdrop{background-color:var(--bg);opacity:.8}@media only screen and (width<=720px){dialog{max-width:calc(100vw - 2rem)}}sup,sub{vertical-align:baseline;position:relative}sup{top:-.4em}sub{top:.3em}.notice{background:var(--accent-bg);border:var(--border-width)solid var(--border);border-radius:var(--standard-border-radius);margin:2rem 0;padding:1.5rem}@media print{@page{margin:1cm}body{display:block}body>header{background-color:unset}body>header nav,body>footer{display:none}article{border:none;padding:0}a[href^=http]:after{content:" <" attr(href)">"}abbr[title]:after{content:" (" attr(title)")"}a{text-decoration:none}p{widows:3;orphans:3}hr{border-top:var(--border-width)solid var(--border)}mark{border:var(--border-width)solid var(--border)}pre,table,figure,img,svg{break-inside:avoid}pre code{white-space:pre-wrap}}
-.mdo-generated{margin-top:3rem;border:0;padding:1rem 0 1.5rem;font-size:.8rem;line-height:1.4;color:var(--text-light);text-align:center}
-.mdo-generated a{color:inherit}
+.mdo-source-meta{margin-top:3rem;border:0;padding:1rem 0 1.5rem;font-size:.8rem;line-height:1.4;color:var(--text-light);text-align:center}
 </style>
-<style>
+<style id="mdo-theme-toggle">
 :root[data-theme="light"]{color-scheme:light;--bg:#fff;--accent-bg:#f5f7ff;--text:#212121;--text-light:#585858;--accent:#0d47a1;--accent-hover:#1266e2;--accent-text:var(--bg);--code:#d81b60;--preformatted:#444;--disabled:#efefef}
 :root[data-theme="dark"]{color-scheme:dark;--bg:#212121;--accent-bg:#2b2b2b;--text:#dcdcdc;--text-light:#ababab;--accent:#ffb300;--accent-hover:#ffe099;--accent-text:var(--bg);--code:#f06292;--preformatted:#ccc;--disabled:#111}
 :root[data-theme="dark"] img,:root[data-theme="dark"] video{opacity:.8}
 #theme-toggle{position:fixed;top:.75rem;right:.75rem;z-index:1000;padding:.25rem .6rem;font-size:1rem;line-height:1;cursor:pointer;border-radius:var(--standard-border-radius);border:var(--border-width) solid var(--border);background:var(--accent-bg);color:var(--text)}
+@media (max-width:55rem){body{padding-top:2.75rem}}
+@media print{#theme-toggle{display:none}}
 </style>
 <script>
 (function(){
-  var saved=localStorage.getItem('theme');
-  var sys=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
-  document.documentElement.dataset.theme=saved||sys;
+  var read=function(){try{return localStorage.getItem('theme')}catch(e){return null}};
+  var apply=function(t){document.documentElement.dataset.theme=t;};
+  var mq=matchMedia('(prefers-color-scheme: dark)');
+  apply(read()||(mq.matches?'dark':'light'));
   document.addEventListener('DOMContentLoaded',function(){
     var b=document.createElement('button');
-    b.id='theme-toggle';b.type='button';b.title='Toggle light/dark';
-    var sync=function(){b.textContent=document.documentElement.dataset.theme==='dark'?'\u2600':'\u263E';};
-    sync();
+    b.id='theme-toggle';b.type='button';
+    var sync=function(){
+      var dark=document.documentElement.dataset.theme==='dark';
+      b.textContent=dark?'\u2600':'\u263E';
+      var label=dark?'Switch to light theme':'Switch to dark theme';
+      b.title=label;
+      b.setAttribute('aria-label',label);
+    };
     b.onclick=function(){
       var next=document.documentElement.dataset.theme==='dark'?'light':'dark';
-      document.documentElement.dataset.theme=next;
-      localStorage.setItem('theme',next);
+      apply(next);
+      try{localStorage.setItem('theme',next)}catch(e){}
       sync();
     };
+    if(mq.addEventListener){
+      mq.addEventListener('change',function(e){
+        if(!read()){apply(e.matches?'dark':'light');sync();}
+      });
+    }
     document.body.appendChild(b);
+    sync();
   });
 })();
 </script>
@@ -60,42 +73,71 @@ h3 {
 </head>
 <body>
 <main>
-<h1>📝 mdo — Markdown to HTML5 Converter (with optional live watch)</h1>
-<p><code>mdo</code> is a small, fast, self-contained command-line tool that converts Markdown
-files into HTML on Linux, macOS, and Windows.</p>
-<p>Optional file-manager integration turns 2x-click of any .md file into rendered HTML in default browser with the same speed as opening the .md in a text editor.</p>
-<p>By default it produces a complete, <strong>HTML5-compliant</strong> document styled with
-<a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> (vendored at build time, no network
-access at runtime). An optional <strong>watch mode</strong> keeps re-rendering the output
-whenever the Markdown source is edited.</p>
-<p>Project site: <a href="https://maphew.github.io/mdo/" rel="noopener noreferrer">https://maphew.github.io/mdo/</a><br>
+<h1>Open Markdown as HTML</h1>
+<p><code>mdo</code> is a small, fast, self-contained command-line tool that turns a
+Markdown file into a styled, standalone HTML5 page — because Markdown is
+great for writing and diffing, but calmer to <em>read</em> in a browser. Pages
+include embedded <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> styling and automatic
+light/dark mode with a manual toggle, and mdo makes no network calls at
+runtime. With the optional file-manager integration, opening a <code>.md</code> file as
+rendered HTML is as fast as opening it in a text editor. Linux, macOS, and
+Windows.</p>
+<p>Project site: <a href="https://maphew.github.io/mdo/" rel="noopener noreferrer">https://maphew.github.io/mdo/</a> ·
 Public metrics: <a href="https://maphew.github.io/mdo/metrics/" rel="noopener noreferrer">https://maphew.github.io/mdo/metrics/</a></p>
-<h2>🚀 Features</h2>
+<h2>Install</h2>
+<p>Linux and macOS:</p>
+<pre><code class="language-bash">curl -fsSL https://maphew.github.io/mdo/install.sh | sh
+</code></pre>
+<p>Windows PowerShell:</p>
+<pre><code class="language-powershell">irm https://maphew.github.io/mdo/install.ps1 | iex
+</code></pre>
+<p>The hosted installers fetch the latest
+<a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">GitHub Release</a>, verify it against
+<code>SHA256SUMS</code>, and install into a user-local bin directory
+(<code>$HOME/.local/bin</code>, or <code>%LOCALAPPDATA%\mdo\bin</code> on Windows; set
+<code>MDO_INSTALL_DIR</code> to change). Manual archives are on the Releases page.</p>
+<p>Rust users can build from source instead with <code>cargo install mdo-cli</code>
+(needs a working Rust toolchain, including the MSVC linker on Windows), or
+<code>git clone</code> + <code>cargo build --release</code>.</p>
+<h2>Use</h2>
+<pre><code class="language-bash">mdo FILE.md          # convert once; writes FILE.html next to the source
+mdo --open FILE.md   # render to a temp page and open it in your browser
+mdo --watch FILE.md  # re-render automatically on every save
+</code></pre>
+<p><code>mdo --open</code> never leaves <code>.html</code> files beside your Markdown (unless you pass
+<code>--output</code> to redirect it there yourself) — output goes to a stable per-file
+temp path, and relative images and links still resolve.
+Running <code>mdo</code> with no arguments prints a short landing page; <code>mdo --help</code>
+shows the full reference.</p>
+<p>Full CLI reference, output details, and examples: <a href="docs/usage.md" rel="noopener noreferrer">docs/usage.md</a>.</p>
+<h2>File-manager integration</h2>
+<p>The core convenience: right-click or double-click a <code>.md</code> file and read it as
+HTML immediately, with no generated files left beside the source.</p>
+<pre><code class="language-bash">mdo --setup                    # guided first-run setup (offers the install)
+mdo --install-file-manager     # add "Open as HTML" for Markdown files
+mdo --uninstall-file-manager   # remove everything the installer added
+</code></pre>
 <ul>
-<li>✅ Converts <code>.md</code> files to standalone HTML5 documents</li>
-<li>🎨 Pretty default styling via embedded <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a>
-with a calmer mdo typography layer (<code>body</code> 1rem, <code>h1</code> 2.4rem, <code>h2</code> 2rem, <code>h3</code> 1.4rem)</li>
-<li>🧩 <code>--css</code> flag appends your own CSS overrides after the bundled defaults</li>
-<li>↩️ Release archives include <code>restore-simple-css.css</code> for reverting to the
-vendored simple.css typography</li>
-<li>🌓 Automatic light/dark mode (follows OS) plus a manual toggle button</li>
-<li>📄 <code>--bare</code> flag emits a sanitized HTML fragment (no <code>&lt;html&gt;</code>/<code>&lt;head&gt;</code>/<code>&lt;body&gt;</code>/CSS)</li>
-<li>🔒 Raw Markdown HTML is sanitized by default; use <code>--unsafe-html</code> to preserve it for trusted input</li>
-<li>👀 <code>--watch</code> flag enables auto-rerender on file change (with debouncing)</li>
-<li>🌐 <code>--open</code> flag renders to a temp dir and launches the system default browser</li>
-<li>🧑‍🚀 Explicit <code>--setup</code> first-run guide, plus a Windows/Linux <code>mdo-setup</code> launcher that opens it for file-manager users</li>
-<li>🧭 Built-in <code>--install-file-manager</code> / <code>--uninstall-file-manager</code> integration (no separate install scripts needed)</li>
-<li>⚡ Fast and self-contained — no required runtime assets; <code>mdo.exe</code> remains the core CLI</li>
-<li>🧩 Built on <code>pulldown-cmark</code>, <code>clap</code>, and <code>notify</code></li>
+<li><strong>Windows</strong> — right-click a <code>.md</code> file → <strong>Open as HTML</strong> (per-user
+registry entries only; no admin rights). Release ZIPs include a
+double-clickable <code>mdo-setup.exe</code> for guided setup.</li>
+<li><strong>Linux</strong> — <strong>Open With → Open as HTML</strong> in XDG file managers; add
+<code>--set-default</code> to make it the default Markdown handler. Release archives
+include an <code>mdo-setup</code> launcher.</li>
+<li><strong>macOS</strong> — a short Automator Quick Action recipe (no installer yet).</li>
 </ul>
-<h3>Why?</h3>
-<p>There are countless Markdown-to-HTML converters available, so why make another one, becoming yet another <a href="https://xkcd.com/927/" rel="noopener noreferrer">xkcd:927 joke</a>?</p>
-<p>I could not find a simple, fast, and self-contained solution. Everything I looked at wanted to be a full-featured editor, relied on node or python in PATH, or needed some other runtime dependency. <code>md2htmlx</code> was very close, but did not calm my primary itch: every day I read dozens to hundreds of md files. Markdown is pretty darn good for authoring, awesome for diffs relative to other formats, but they're not very nice for reading. HTML is richer and calmer, and I find I absorb and understand more deeply.</p>
-<p>Mdo + file-manager integration creates html pages so quickly they are throw-away friendly. I don't have to create an HTML file for every long Markdown file I want to read, or add a "make this an html report" to an agent workflow, regularly saving thousands of tokens.</p>
-<h3>Project status — feedback wanted</h3>
+<p>Everything is per-user, quiet, and reversible. Platform details:
+<a href="docs/file-manager-integration.md" rel="noopener noreferrer">docs/file-manager-integration.md</a>.</p>
+<h2>Security</h2>
+<p>Raw HTML inside Markdown is <strong>sanitized by default</strong> (scripts and
+event-handler attributes removed); <code>--unsafe-html</code> disables that for trusted
+input only. mdo makes no network calls at runtime, and the file-manager
+integration is strictly per-user. Details and reporting:
+<a href="SECURITY.md" rel="noopener noreferrer">SECURITY.md</a>.</p>
+<h2>Project status — feedback wanted</h2>
 <p>mdo is young and honest about it: v0.5 is released, v0.6 is in progress. It
-does its core job — double-click a <code>.md</code> file, get a rendered page — every day
-on the author's Windows and Linux machines. macOS binaries are built and
+does its core job — double-click a <code>.md</code> file, get a rendered page — every
+day on the author's Windows and Linux machines. macOS binaries are built and
 released but are the least exercised, and the Finder integration is still a
 manual recipe.</p>
 <p>What we don't know yet is whether mdo is useful to anyone who isn't the
@@ -110,333 +152,30 @@ you can help:</p>
 <p>Critique is welcome at full strength, including "this shouldn't exist because
 X already does it better." See <a href="CONTRIBUTING.md" rel="noopener noreferrer">CONTRIBUTING.md</a> for more,
 including a candid note on how this project is built.</p>
-<hr>
-<h2>📦 Installation</h2>
-<h3>Native downloads</h3>
-<p>Use the hosted installer when you want <code>mdo</code> without installing Rust.</p>
-<p>Linux and macOS:</p>
-<pre><code class="language-bash">curl -fsSL https://maphew.github.io/mdo/install.sh | sh
-</code></pre>
-<p>Windows PowerShell:</p>
-<pre><code class="language-powershell">irm https://maphew.github.io/mdo/install.ps1 | iex
-</code></pre>
-<p>The scripts install the latest GitHub Release into <code>$HOME/.local/bin</code> on Linux
-and macOS, or <code>%LOCALAPPDATA%\mdo\bin</code> on Windows. They verify the release
-archive against <code>SHA256SUMS</code>, install the companion launcher where available,
-and print <code>mdo --version</code> when finished. Set <code>MDO_INSTALL_DIR</code> first to choose a
-different install directory.</p>
-<p>Manual archives remain available on
-<a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">GitHub Releases</a>. On Windows, new users
-can double-click <code>mdo-setup.exe</code> after installing or extracting the archive to
-run the guided file-manager setup.</p>
-<h3>Cargo for Rust developers</h3>
-<pre><code class="language-bash">cargo install mdo-cli
-</code></pre>
-<p><code>cargo install</code> builds from source and therefore needs a working Rust build
-toolchain. On Windows with the default <code>*-pc-windows-msvc</code> Rust target, install
-<strong>Visual Studio Build Tools</strong> with <strong>Desktop development with C++</strong> (or the
-equivalent Visual Studio workload) so <code>link.exe</code> is available. If Cargo reports
-<code>linker link.exe not found</code>, use the GitHub Release ZIP above or install the
-MSVC linker before retrying.</p>
-<h3>Build from source</h3>
-<pre><code class="language-bash">git clone https://github.com/maphew/mdo.git
-cd mdo
-cargo build --release
-./target/release/mdo input.md
-</code></pre>
-<h3>Maintainer releases</h3>
-<p>GitHub releases are published from this fork by <code>.github/workflows/release.yml</code>.
-Push a version tag such as <code>v0.2.0</code> to build Linux, macOS, and Windows archives
-and publish them to a GitHub Release. The workflow can also be run manually with
-an existing tag via <strong>Actions -&gt; Release -&gt; Run workflow</strong>.</p>
-<p>The release workflow keeps repository access read-only for build jobs and grants
-<code>contents: write</code> only to the final release-publishing job. GitHub Actions are
-pinned to commit SHAs, with Dependabot configured to propose updates.</p>
-<hr>
-<h2>📦 Usage</h2>
-<pre><code class="language-text">Usage: mdo [OPTIONS] [INPUT]
-
-Arguments:
-  [INPUT]  Input Markdown file
-
-Options:
-  -o, --output &lt;OUTPUT&gt;     Output HTML file (defaults to &lt;input&gt;.html alongside the input,
-                            or to a temp directory when --open is used). Existing files are overwritten
-  -w, --watch               Watch the input file and re-render on every change
-  -b, --bare                Emit only the HTML fragment (no &lt;html&gt;, &lt;head&gt;, &lt;body&gt;, no CSS)
-      --css &lt;FILE&gt;          Append a custom CSS file after mdo's default styling
-      --unsafe-html         Preserve raw HTML from the Markdown source instead of sanitizing it
-      --open                Render to a temp directory and launch the system default browser.
-                            The source folder is left untouched unless --output is given
-      --setup                Show a first-run setup with safe next steps for new users
-      --install-file-manager
-                            Install per-user file-manager integration for Markdown files
-      --uninstall-file-manager
-                            Remove per-user file-manager integration installed by mdo
-      --set-default         With --install-file-manager on Linux, make Open as HTML the default
-                            Markdown handler. Windows default selection remains interactive
-  -h, --help                Print help
-  -V, --version             Print version
-</code></pre>
-<p>If <code>--output</code> is omitted, the output is written next to the input with the
-extension changed to <code>.html</code> (e.g. <code>foo.md</code> → <code>foo.html</code>). Existing files are
-overwritten without prompting.</p>
-<p>When <code>--open</code> is used without <code>--output</code>, the rendered HTML goes to a stable
-location under your OS temp directory (e.g.
-<code>%TEMP%\mdo\&lt;hash&gt;\&lt;name&gt;.html</code> on Windows, or <code>/tmp/mdo-&lt;uid&gt;/&lt;hash&gt;/&lt;name&gt;.html</code>
-on Unix-like systems) so the source folder stays
-clean. Re-opening the same file overwrites the same temp output. A
-<code>&lt;base href="file:///…"&gt;</code> tag pointing at the source folder is automatically
-injected whenever the output lives elsewhere, so relative images and links in
-the Markdown still resolve correctly.</p>
-<h3>Examples</h3>
-<p>Convert once and exit (default — produces a styled, standalone HTML5 page next to the input). The README.html in this repo is generated like this:</p>
-<pre><code class="language-bash">mdo input.md                    # writes input.html
-mdo input.md -o docs/out.html   # writes docs/out.html
-</code></pre>
-<p>Emit a bare HTML fragment (useful for embedding in another template):</p>
-<pre><code class="language-bash">mdo --bare input.md
-</code></pre>
-<p>Append custom CSS after the built-in styles to tune the default theme:</p>
-<pre><code class="language-bash">mdo --css my-overrides.css input.md
-</code></pre>
-<p>Release archives include <code>restore-simple-css.css</code> for users who prefer the
-unmodified simple.css typography scale:</p>
-<pre><code class="language-bash">mdo --css restore-simple-css.css input.md
-</code></pre>
-<p>Raw HTML from the Markdown source is sanitized by default. Preserve it only
-when the source is trusted:</p>
-<pre><code class="language-bash">mdo --unsafe-html input.md
-</code></pre>
-<p>Regenerate the checked-in project-site pages with the same runtime CSS pipeline
-used by normal mdo output:</p>
-<pre><code class="language-bash">python scripts/build-docs.py
-</code></pre>
-<p>The homepage source is <code>docs/index.md</code>; it uses only Markdown and the <code>--css docs/assets/site.css</code> override so the docs-only presentation is layered after
-mdo's embedded simple.css and typography defaults. The sample preview source is
-<code>docs/assets/sample.md</code>; <code>scripts/build-docs.py</code> renders it with
-<code>docs/assets/sample.css</code> to demonstrate per-page CSS overrides. The GitHub Pages
-workflow applies the same <code>--css docs/assets/site.css</code> override when it
-generates ADR pages.</p>
-<p>Watch for changes and re-render on every save:</p>
-<pre><code class="language-bash">mdo --watch input.md
-</code></pre>
-<p>Render to a temp file and open it in your default browser (does <strong>not</strong>
-write next to the source):</p>
-<pre><code class="language-bash">mdo --open input.md
-</code></pre>
-<p>This same render-to-temp path is what the built-in file-manager integration
-registers, so double-click/right-click opens never leave <code>.html</code> artifacts
-beside the source file.</p>
-<h2>Imaginative Markdown + CSS</h2>
-<p>The project site dogfoods <code>mdo</code> by building a visual preview without raw HTML embeds or iframes. The source is only normal Markdown:</p>
-<pre><code class="language-markdown">![Desktop background](assets/mammoth-bluefinhero-1024x695.jpg)
-
-&gt; sample.md rendered by mdo
-&gt;
-&gt; # Release Notes Draft
-&gt;
-&gt; `mdo` turns Markdown into a standalone HTML5 document.
-</code></pre>
-<p>The docs CSS override recognizes that generated shape and styles the blockquote as a faux browser window floating over the image:</p>
-<pre><code class="language-css">main &gt; p:has(&gt; img[src$="mammoth-bluefinhero-1024x695.jpg"]) + blockquote {
-  margin-top: -460px;
-  background: white;
-  box-shadow: 0 16px 36px rgba(7, 18, 24, 0.3);
-}
-</code></pre>
-<p>That trick keeps the content portable and readable as Markdown while using <code>--css</code> to create a richer static page. It is a good example of how <code>mdo</code> can be used imaginatively: write semantic Markdown first, then layer presentation on top when the rendered page needs to tell a visual story.</p>
-<h3>First-run setup</h3>
-<p>Running <code>mdo --setup</code> prints a short new-user path:</p>
-<pre><code class="language-bash">mdo --setup
-</code></pre>
-<p><code>mdo</code> with no arguments prints a short <strong>Open Markdown as HTML</strong> landing page
-and exits successfully. Use <code>mdo --help</code> for the full CLI reference. Run
-<code>mdo --setup</code> to start the interactive guide, which offers to install
-the reversible per-user <strong>Open as HTML</strong> file-manager integration on Windows
-and Linux. The prompt defaults to <strong>Yes</strong>, but it does not change your default
-Markdown app; choose <strong>No</strong> to skip or run the installer again later. After you
-press Enter to finish setup, mdo renders and opens a short welcome sample so
-you can immediately verify the browser-opening flow.</p>
-<p>On Windows, double-click <code>mdo-setup.exe</code> to open that same guided setup in a
-fresh Windows Terminal (<code>wt</code>) window, falling back to a plain new console if
-<code>wt</code> is unavailable — the no-terminal entry point for Explorer users. On
-Linux, launch <strong>mdo Setup</strong> from your application menu, or run <code>mdo-setup</code> to
-open guided setup in your <code>$TERMINAL</code> or a known terminal emulator
-(<code>gnome-terminal</code>, <code>konsole</code>, <code>xterm</code>, and others). It is also what <code>mdo-open</code>
-runs when launched with no file. Running <code>mdo-setup</code> repairs its per-user
-application-menu entry if needed.
-This preserves <code>mdo</code> as the normal CLI. On Windows, launching <code>mdo-open.exe</code>
-directly with no file opens the same guided setup in a fresh Windows Terminal
-(<code>wt</code>) window using the <strong>One Half Light</strong> color scheme, centered on the active
-display; if <code>wt</code> is unavailable it falls back to a plain new console.</p>
-<hr>
-<h2>Linux file manager integration</h2>
-<p><code>mdo</code> can install or remove its own per-user XDG file-manager integration;
-no companion install script is required:</p>
-<pre><code class="language-bash"># Open the first-run setup in a terminal (offers the optional integration install)
-mdo-setup
-
-# Add "Open as HTML" as an "Open With" handler for Markdown files
-mdo --install-file-manager
-
-# Same, but also make it the default Markdown handler
-mdo --install-file-manager --set-default
-
-# Undo everything the installer did
-mdo --uninstall-file-manager
-</code></pre>
-<p>The installer writes <code>~/.local/share/applications/mdo.desktop</code>, whose
-command is the current binary plus <code>--open %f</code>, and a small <code>Ⓜ</code> SVG icon under
-<code>~/.local/share/icons/hicolor/scalable/apps/mdo.svg</code>. The desktop entry is
-named <strong>Open as HTML</strong>, so GNOME Files/Nautilus and other XDG file managers
-show an action-oriented entry instead of a tool-name-only entry. Rerunning the
-installer also removes older Nautilus Scripts entries named <strong>Preview with
-mdo</strong> or <strong>Render with mdo</strong>.</p>
-<p>The hosted Linux installer also writes the separate, visible
-<code>~/.local/share/applications/mdo-setup.desktop</code> launcher. It has no MIME types
-and remains installed if you run <code>mdo --uninstall-file-manager</code>; that command
-only removes the hidden <strong>Open as HTML</strong> file-handler integration.</p>
-<p>Linux release archives also include <code>mdo-setup</code>, which opens the same first-run
-setup in a terminal window and registers itself as <strong>mdo Setup</strong> in Linux
-application menus. It launches your <code>$TERMINAL</code> or a known terminal emulator
-(<code>gnome-terminal</code>, <code>konsole</code>, <code>xterm</code>, and others); if none is found it
-shows a <code>zenity</code>/<code>kdialog</code>/<code>yad</code> notice pointing you to <code>mdo --setup</code>. If you
-launch <code>mdo-open</code> directly with no file, it opens <code>mdo-setup</code> when the setup
-helper is present.</p>
-<p>Result examples after install:</p>
+<h2>Documentation</h2>
 <ul>
-<li>Most XDG file managers: right-click a <code>.md</code> file → <strong>Open With</strong> →
-<strong>Open as HTML</strong>.</li>
-<li>With <code>--set-default</code>: double-clicking a Markdown file launches <code>mdo --open</code>.</li>
-<li>The rendered page opens in your default browser from a temp path such as
-<code>/tmp/mdo-&lt;uid&gt;/&lt;hash&gt;/&lt;name&gt;.html</code>, and no <code>.html</code> file is left beside the source.</li>
+<li><a href="docs/usage.md" rel="noopener noreferrer">Usage and CLI reference</a></li>
+<li><a href="docs/file-manager-integration.md" rel="noopener noreferrer">File-manager integration</a></li>
+<li><a href="docs/custom-css.md" rel="noopener noreferrer">Custom CSS</a></li>
+<li><a href="docs/maintaining.md" rel="noopener noreferrer">Maintaining</a> — releases, packaging, docs site, metrics</li>
+<li><a href="CHANGELOG.md" rel="noopener noreferrer">Changelog</a></li>
+<li><a href="docs/adr/" rel="noopener noreferrer">Architecture decision records</a></li>
 </ul>
-<hr>
-<h2>🪟 Windows Explorer integration</h2>
-<p><code>mdo.exe</code> can install or remove its own per-user Explorer integration (no
-admin rights and no HKLM changes). Windows release ZIPs also include
-<code>mdo-setup.exe</code>, which opens the same first-run setup in Windows Terminal
-(<code>wt</code>) when available, falling back to a new console window:</p>
-<pre><code class="language-powershell"># Open the first-run setup (offers the optional Explorer integration install)
-.\mdo-setup.exe
-
-# CLI install: add an "Open as HTML" right-click verb and Open With app entry
-.\mdo.exe --install-file-manager
-
-# Undo everything the installer did
-.\mdo.exe --uninstall-file-manager
-</code></pre>
-<p>The installer registers <strong>Open as HTML</strong> for <code>.md</code> files. If <code>mdo-open.exe</code>
-is present next to <code>mdo.exe</code>, it is used as the Explorer handler to avoid the
-brief black console-window flash that Windows shows for normal console
-binaries. If only <code>mdo.exe</code> is present, the installer still works and registers
-<code>mdo.exe --open "%1"</code> directly, so a single downloaded executable is enough
-for file-manager integration. The Windows binaries embed the mdo icon; the
-installer also writes that icon to a per-user path and registers both <code>mdo.exe</code>
-and <code>mdo-open.exe</code> with the friendly app name <strong>Open as HTML</strong>, so Windows
-"Open with" surfaces do not need to expose the wrapper binary name. If you
-launch <code>mdo-open.exe</code> directly with no file, it opens the same guided setup in a
-fresh <code>wt</code> window with the <strong>One Half Light</strong> color scheme and centers it on the
-active display, falling back to a plain new console when <code>wt</code> cannot be started.</p>
-<p>To make <strong>Open as HTML</strong> the <em>default</em> <code>.md</code> handler after running the install
-command, right-click a <code>.md</code> file → <strong>Open with → Choose another app</strong> →
-pick <strong>Open as HTML</strong> → tick <strong>Always use this app</strong>. Windows requires that
-last step to be done interactively.</p>
-<p>Result examples after install:</p>
-<ul>
-<li>Right-click any <code>.md</code> file → <strong>Open as HTML</strong>. On Windows 11, this may
-appear under <strong>Show more options</strong>.</li>
-<li><strong>Open with → Open as HTML</strong> appears as an available app for Markdown files.</li>
-<li>If you make <strong>Open as HTML</strong> the default handler, double-clicking a <code>.md</code>
-file opens the rendered page in your browser.</li>
-<li>The rendered page opens from <code>%TEMP%\mdo\&lt;hash&gt;\&lt;name&gt;.html</code>, and the source
-folder stays unchanged.</li>
-</ul>
-<hr>
-<h2>macOS Finder quick action</h2>
-<p>mdo does not ship a macOS installer script yet, but Finder can run <code>mdo --open</code>
-through a per-user Automator Quick Action. Apple documents Quick Action
-workflows and shell-script actions in the Automator User Guide:</p>
-<ul>
-<li><a href="https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0" rel="noopener noreferrer">https://support.apple.com/en-by/guide/automator/use-quick-action-workflows-aut73234890a/2.10/mac/15.0</a></li>
-<li><a href="https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac" rel="noopener noreferrer">https://support.apple.com/guide/automator/use-scripts-aut4bb6b2b4f/mac</a></li>
-</ul>
-<p>Create a Quick Action in Automator, set it to receive files in Finder, add
-<strong>Run Shell Script</strong>, set <strong>Pass input</strong> to <strong>as arguments</strong>, and use the
-absolute path to <code>mdo</code>:</p>
-<pre><code class="language-bash">for file in "$@"; do
-  /path/to/mdo --open "$file"
-done
-</code></pre>
-<p>Save the workflow as <strong>Open as HTML</strong>. The result is:</p>
-<ul>
-<li>Finder shows <strong>Quick Actions → Open as HTML</strong> for selected Markdown files.</li>
-<li>Running the Quick Action opens the rendered page in your browser.</li>
-<li>The rendered page opens from a temp path under <code>$TMPDIR/mdo/&lt;hash&gt;/&lt;name&gt;.html</code>,
-and no <code>.html</code> file is left beside the source.</li>
-</ul>
-<hr>
-<h2>🎨 Default output</h2>
-<p>The default (non-<code>--bare</code>) output is a complete HTML5 document:</p>
-<ul>
-<li><code>&lt;!DOCTYPE html&gt;</code> + <code>&lt;html lang="en"&gt;</code></li>
-<li>UTF-8 charset and responsive viewport meta</li>
-<li>A <code>&lt;meta name="generator" content="mdo &lt;version&gt;"&gt;</code> marker</li>
-<li><code>&lt;title&gt;</code> derived from the first <code># Heading</code> in the source (falls back to the
-input filename)</li>
-<li>An inlined copy of <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> inside <code>&lt;style&gt;</code>,
-followed by mdo's calmer default typography (<code>body</code> 1rem, <code>h1</code> 2.4rem,
-<code>h2</code> 2rem, <code>h3</code> 1.4rem) sourced from
-<a href="assets/mdo-default-typography.css" rel="noopener noreferrer"><code>assets/mdo-default-typography.css</code></a></li>
-<li>Optional custom CSS from <code>--css &lt;FILE&gt;</code>, appended after the built-in styles
-and mdo defaults so rules such as <code>h1 { font-size: 1.75rem; }</code> can override them</li>
-<li><code>restore-simple-css.css</code> in release archives, which can be passed with <code>--css</code>
-to restore the vendored simple.css typography scale</li>
-<li>A small floating ☀/☾ button (top-right) for manually overriding the theme;
-the choice is remembered in <code>localStorage</code></li>
-<li>Body content wrapped in <code>&lt;main&gt;</code></li>
-<li>A tiny footer showing the mdo version, render duration, and UTC generation date</li>
-</ul>
-<p>Markdown extensions enabled: tables, footnotes, task lists, strikethrough.
-Rendered Markdown HTML is sanitized by default to remove active content such as
-scripts and event-handler attributes.</p>
-<hr>
-<h2>🙏 Credits</h2>
+<h2>Credits and license</h2>
 <p>This project is a grateful fork of Hafiz Ali Raza's original
-Markdown-to-HTML CLI. Hafiz remains credited as an author, and this fork keeps
-that lineage explicit so future improvements can be offered back upstream.</p>
-<p>This fork adds:</p>
-<ul>
-<li>Convert-and-exit as the default; watch mode is now opt-in (<code>--watch</code>)</li>
-<li>Optional <code>--output</code> (defaults to <code>&lt;input&gt;.html</code> next to the source)</li>
-<li>Standalone HTML5 output with embedded <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a></li>
-<li>A <code>--bare</code> flag that preserves the original fragment-only behavior</li>
-<li>Default sanitization for rendered Markdown HTML, with <code>--unsafe-html</code> for
-trusted sources that need raw HTML preserved</li>
-<li>An <code>--open</code> flag that renders to a temp directory and launches the system
-default browser (with auto-injected <code>&lt;base href&gt;</code> so relative refs resolve)</li>
-<li>Light/dark theme toggle button overlaid on the rendered page</li>
-<li>Title auto-derived from the first heading</li>
-<li>Passive generated-page attribution via generator metadata and a tiny
-dated footer; no network calls or identifiers are added</li>
-<li>Debounced file-change events (no more duplicate renders per save)</li>
-<li>Surfaced watcher errors instead of swallowing them</li>
-<li>Markdown extensions: tables, footnotes, task lists (in addition to strikethrough)</li>
-</ul>
-<p>The bundled <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> is © 2020
-<a href="https://kevquirk.com/" rel="noopener noreferrer">Kev Quirk</a> and distributed under the MIT License — see
+Markdown-to-HTML CLI. Hafiz remains credited as an author, and this fork
+keeps that lineage explicit so future improvements can be offered back
+upstream. The bundled <a href="https://simplecss.org/" rel="noopener noreferrer">simple.css</a> is © 2020
+<a href="https://kevquirk.com/" rel="noopener noreferrer">Kev Quirk</a>, MIT License — see
 <a href="assets/simple.css.LICENSE" rel="noopener noreferrer"><code>assets/simple.css.LICENSE</code></a>.</p>
-<hr>
-<h2>📄 License</h2>
-<p>This project is dual-licensed under either of:</p>
-<ul>
-<li>MIT License (<a href="LICENSE-MIT" rel="noopener noreferrer">LICENSE-MIT</a>)</li>
-<li>Apache License, Version 2.0 (<a href="LICENSE-APACHE" rel="noopener noreferrer">LICENSE-APACHE</a>)</li>
-</ul>
-<p>at your option, matching the licensing of the upstream project.</p>
+<p>Dual-licensed under either the <a href="LICENSE-MIT" rel="noopener noreferrer">MIT License</a> or the
+<a href="LICENSE-APACHE" rel="noopener noreferrer">Apache License, Version 2.0</a>, at your option, matching the
+upstream project.</p>
 
 </main>
-<footer class="mdo-generated">Generated by <a href="https://maphew.github.io/mdo/">mdo</a> 0.5.0 in 0.001s on <time datetime="2026-07-16">2026-07-16</time>.</footer>
+<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-17T22:49:46Z">July 17, 2026, 10:49 PM UTC</time></footer>
+<script>
+(function(){var t=document.querySelector('.mdo-source-meta time');if(!t)return;var d=new Date(t.getAttribute('datetime'));if(isNaN(d))return;try{t.textContent=d.toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){}})();
+</script>
 </body>
 </html>
