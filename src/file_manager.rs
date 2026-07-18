@@ -35,6 +35,18 @@ pub fn uninstall() -> io::Result<()> {
     uninstall_impl()
 }
 
+/// Report whether mdo's own handler registration is present for this user.
+///
+/// This is deliberately a cheap owned-state check (ADR 0004 defers the full
+/// integration-state manager): it only asks "did mdo's install step leave its
+/// own registration behind?" and never inspects handler health, partial or
+/// stale remnants, system-wide registrations, or the effective default app.
+/// A query failure reads as "not detected", so setup falls back to the
+/// ordinary first-time flow — which is safe because install is idempotent.
+pub fn integration_installed() -> bool {
+    integration_installed_impl()
+}
+
 #[cfg(target_os = "linux")]
 fn install_impl(set_default: bool) -> io::Result<()> {
     let exe = std::env::current_exe()?;
@@ -142,6 +154,24 @@ fn write_linux_setup_launcher(setup_exe: &Path, data_home: &Path) -> io::Result<
 }
 
 #[cfg(target_os = "linux")]
+fn integration_installed_impl() -> bool {
+    xdg_data_home()
+        .map(|data_home| linux_integration_installed_at(&data_home))
+        .unwrap_or(false)
+}
+
+/// The owned-state check only looks for the mdo-owned handler desktop entry.
+/// The visible `mdo-setup.desktop` launcher has its own lifecycle and does not
+/// count as handler integration.
+#[cfg(target_os = "linux")]
+fn linux_integration_installed_at(data_home: &Path) -> bool {
+    data_home
+        .join("applications")
+        .join(DESKTOP_FILE_NAME)
+        .is_file()
+}
+
+#[cfg(target_os = "linux")]
 fn uninstall_impl() -> io::Result<()> {
     let data_home = xdg_data_home()?;
     let desktop_dir = data_home.join("applications");
@@ -213,6 +243,29 @@ pub fn install_windows_for_exe(current_exe: &Path, _set_default: bool) -> io::Re
     Ok(())
 }
 
+/// The single registry key the owned-state check queries: the open command of
+/// mdo's own `mdo.md` ProgID. Install writes it (see [`install_windows_plan`])
+/// and uninstall deletes its parent ProgID key, so its presence tracks exactly
+/// the registration mdo owns — nothing about defaults or other handlers.
+#[cfg(target_os = "windows")]
+const WINDOWS_OWNED_PROGID_COMMAND_KEY: &str = r"HKCU\Software\Classes\mdo.md\shell\open\command";
+
+#[cfg(target_os = "windows")]
+fn integration_installed_impl() -> bool {
+    reg_key_exists(WINDOWS_OWNED_PROGID_COMMAND_KEY)
+}
+
+#[cfg(target_os = "windows")]
+fn reg_key_exists(key: &str) -> bool {
+    Command::new("reg")
+        .args(["query", key, "/ve"])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
+}
+
 #[cfg(target_os = "windows")]
 fn uninstall_impl() -> io::Result<()> {
     // Uninstall was already best-effort (every op ignores failures), so this
@@ -242,6 +295,11 @@ fn uninstall_impl() -> io::Result<()> {
         io::ErrorKind::Unsupported,
         "built-in file-manager uninstallation is currently supported on Windows and Linux",
     ))
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+fn integration_installed_impl() -> bool {
+    false
 }
 
 #[cfg(target_os = "linux")]
@@ -586,7 +644,7 @@ fn install_windows_plan(
         value: "Markdown document (Open as HTML)".to_string(),
     }));
     ops.push(RegistryOp::required(RegistryAction::SetDefault {
-        key: r"HKCU\Software\Classes\mdo.md\shell\open\command".to_string(),
+        key: WINDOWS_OWNED_PROGID_COMMAND_KEY.to_string(),
         value: command.to_string(),
     }));
     ops.push(RegistryOp::required(RegistryAction::SetDefault {
@@ -856,6 +914,32 @@ mod linux_tests {
     }
 
     #[test]
+    fn owned_state_check_tracks_only_the_handler_desktop_file() {
+        let data_home = std::env::temp_dir().join(format!(
+            "mdo-owned-state-test-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+
+        // Nothing installed yet: not detected.
+        assert!(!linux_integration_installed_at(&data_home));
+
+        // The visible setup launcher alone is not handler integration.
+        write_linux_setup_launcher(Path::new("/usr/bin/mdo-setup"), &data_home).unwrap();
+        assert!(!linux_integration_installed_at(&data_home));
+
+        let applications = data_home.join("applications");
+        fs::write(applications.join(DESKTOP_FILE_NAME), "handler").unwrap();
+        assert!(linux_integration_installed_at(&data_home));
+
+        // Uninstall removes exactly what the check observes.
+        remove_linux_handler_files(&data_home).unwrap();
+        assert!(!linux_integration_installed_at(&data_home));
+
+        fs::remove_dir_all(data_home).unwrap();
+    }
+
+    #[test]
     fn mimeapps_uninstall_removes_only_mdo_entries() {
         let input = "\
 [Default Applications]\n\
@@ -993,6 +1077,29 @@ mod windows_tests {
             &op.action,
             RegistryAction::SetDefault { key, .. } | RegistryAction::SetValue { key, .. }
                 if key.contains("mdo-open.exe")
+        )));
+    }
+
+    // The owned-state check must observe exactly the registration mdo owns:
+    // install writes the queried key, and uninstall deletes an ancestor of it,
+    // so "key present" can only mean "mdo's own install left it behind".
+    #[test]
+    fn owned_state_check_queries_a_key_install_writes_and_uninstall_removes() {
+        let command = windows_registry_command(Path::new(r"C:\Tools\mdo.exe"), false);
+        let plan = install_windows_plan(false, &command, &command, r#""C:\Tools\mdo.ico",0"#);
+
+        assert!(
+            plan.contains(&RegistryOp::required(RegistryAction::SetDefault {
+                key: WINDOWS_OWNED_PROGID_COMMAND_KEY.to_string(),
+                value: command.clone(),
+            }))
+        );
+
+        assert!(uninstall_windows_plan().iter().any(|op| matches!(
+            &op.action,
+            RegistryAction::DeleteKey { key }
+                if key.as_str() == WINDOWS_OWNED_PROGID_COMMAND_KEY
+                    || WINDOWS_OWNED_PROGID_COMMAND_KEY.starts_with(&format!(r"{key}\"))
         )));
     }
 
