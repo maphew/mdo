@@ -14,7 +14,7 @@ curl -fsSL https://maphew.github.io/mdo/install.sh | sh
 irm https://maphew.github.io/mdo/install.ps1 | iex
 ```
 
-No Rust toolchain needed — the installer fetches the latest release binary, verifies it, and puts it on your `PATH`. More options (Cargo, manual archives) in the Install section below.
+No Rust toolchain needed — the installer fetches and verifies the latest release binary. On Windows it updates your user `PATH`; on Linux/macOS it installs to `~/.local/bin` by default and tells you if that directory must be added to `PATH`. More options (Cargo, manual archives) in the Install section below.
 
 | Download | Source | Package | Metrics |
 |---|---|---|---|
