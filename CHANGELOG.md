@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.6.0 - 2026-07-17
+## 0.6.0 - 2026-07-18
 
 - `--open` now fails honestly: when the browser launch fails after a
   successful render, mdo exits non-zero and prints the error plus the
