@@ -5,8 +5,16 @@
 A fast lightweight command-line tool written in Rust that converts Markdown into HTML, with optional file-manager integration for immediate on-the-fly viewing. The CLI supports live watch mode to automatically re-render whenever the Markdown file is edited.
 
 ```bash
-cargo install mdo-cli
+# Linux and macOS
+curl -fsSL https://maphew.github.io/mdo/install.sh | sh
 ```
+
+```powershell
+# Windows
+irm https://maphew.github.io/mdo/install.ps1 | iex
+```
+
+No Rust toolchain needed — the installer fetches and verifies the latest release binary. On Windows it updates your user `PATH`; on Linux/macOS it installs to `~/.local/bin` by default and tells you if that directory must be added to `PATH`. More options (Cargo, manual archives) in the Install section below.
 
 | Download | Source | Package | Metrics |
 |---|---|---|---|
@@ -34,7 +42,7 @@ License: MIT or Apache-2.0
 >
 > | Task | Command |
 > |---|---|
-> | Install | `cargo install mdo-cli` |
+> | Install | Download the release binary |
 > | Convert | `mdo notes.md` |
 > | Open | `mdo --open notes.md` |
 >
