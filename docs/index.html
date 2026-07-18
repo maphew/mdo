@@ -1511,8 +1511,13 @@ body:has(> footer.mdo-source-meta) > main :not(pre) > code {
 <h1>mdo</h1>
 <p><strong>Markdown to HTML5</strong></p>
 <p>A fast lightweight command-line tool written in Rust that converts Markdown into HTML, with optional file-manager integration for immediate on-the-fly viewing. The CLI supports live watch mode to automatically re-render whenever the Markdown file is edited.</p>
-<pre><code class="language-bash">cargo install mdo-cli
+<pre><code class="language-bash"># Linux and macOS
+curl -fsSL https://maphew.github.io/mdo/install.sh | sh
 </code></pre>
+<pre><code class="language-powershell"># Windows
+irm https://maphew.github.io/mdo/install.ps1 | iex
+</code></pre>
+<p>No Rust toolchain needed — the installer fetches the latest release binary, verifies it, and puts it on your <code>PATH</code>. More options (Cargo, manual archives) in the Install section below.</p>
 <table><thead><tr><th>Download</th><th>Source</th><th>Package</th><th>Metrics</th></tr></thead><tbody>
 <tr><td><a href="https://github.com/maphew/mdo/releases" rel="noopener noreferrer">GitHub Releases</a></td><td><a href="https://github.com/maphew/mdo" rel="noopener noreferrer">GitHub</a></td><td><a href="https://crates.io/crates/mdo-cli" rel="noopener noreferrer">crates.io</a></td><td><a href="metrics/" rel="noopener noreferrer">Public metrics</a></td></tr>
 </tbody></table>
@@ -1535,7 +1540,7 @@ Publish the first independent release</li>
 </ul>
 <h2>Commands</h2>
 <table><thead><tr><th>Task</th><th>Command</th></tr></thead><tbody>
-<tr><td>Install</td><td><code>cargo install mdo-cli</code></td></tr>
+<tr><td>Install</td><td>Download the release binary</td></tr>
 <tr><td>Convert</td><td><code>mdo notes.md</code></td></tr>
 <tr><td>Open</td><td><code>mdo --open notes.md</code></td></tr>
 </tbody></table>
@@ -1668,7 +1673,7 @@ macOS    $TMPDIR/mdo-{uid}/{hash}/notes.html
 <p>mdo is dual-licensed under MIT or Apache-2.0 and forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.</p>
 
 </main>
-<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-17T22:54:22Z">July 17, 2026, 10:54 PM UTC</time></footer>
+<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-18T19:27:56Z">July 18, 2026, 7:27 PM UTC</time></footer>
 <script>
 (function(){var t=document.querySelector('.mdo-source-meta time');if(!t)return;var d=new Date(t.getAttribute('datetime'));if(isNaN(d))return;try{t.textContent=d.toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){}})();
 </script>
