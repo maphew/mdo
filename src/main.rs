@@ -21,6 +21,7 @@
 //! - `-b, --bare`           Emit only the HTML fragment (no `<html>`, `<head>`, `<body>`, no CSS)
 //! - `--css <FILE>`         Append custom CSS after mdo's default styling
 //! - `--unsafe-html`        Preserve raw HTML from the Markdown source
+//! - `-v, --verbose`        Report render-workflow timings on stderr
 //! - `--setup`               Show a cautious first-run setup
 //!
 //! Without `--watch`, the tool converts once and exits.
@@ -37,7 +38,7 @@ use std::time::Duration;
 
 use clap::Parser;
 use mdo_cli::{
-    convert_with_css_override, derive_output, file_manager, launch_browser, open_setup_sample,
+    convert_with_diagnostics, derive_output, file_manager, launch_browser, open_setup_sample,
     temp_output_for,
 };
 use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
@@ -69,6 +70,12 @@ struct Cli {
     /// Preserve raw HTML from the Markdown source instead of sanitizing it
     #[arg(long)]
     unsafe_html: bool,
+
+    /// Report timing diagnostics for the render workflow (read, markdown,
+    /// sanitize, assemble, write, total) on stderr. The generated HTML is
+    /// unchanged.
+    #[arg(short, long)]
+    verbose: bool,
 
     /// Render to a temp directory and launch the system default browser.
     /// The source folder is left untouched unless --output is given.
@@ -245,6 +252,7 @@ fn main() -> notify::Result<()> {
             || args.bare
             || args.css.is_some()
             || args.unsafe_html
+            || args.verbose
             || args.open
             || args.install_file_manager
             || args.uninstall_file_manager
@@ -279,6 +287,7 @@ fn main() -> notify::Result<()> {
             || args.bare
             || args.css.is_some()
             || args.unsafe_html
+            || args.verbose
             || args.open
             || args.setup
         {
@@ -371,21 +380,34 @@ fn main() -> notify::Result<()> {
         None
     };
 
-    let converted = convert_with_css_override(
+    let converted = convert_with_diagnostics(
         &input,
         &output,
         args.bare,
         args.unsafe_html,
         private_output,
         args.css.as_deref(),
+        args.verbose,
     );
 
     // Track whether --open promised a browser launch and failed to deliver
     // one, so the one-shot exit code below can be honest about it.
     let mut open_launch_failed = false;
     if args.open && converted {
+        // Browser launch is reported separately from the render workflow:
+        // launch_browser only initiates the launch (fire-and-forget), so
+        // this measures initiation, not the browser starting up.
+        let launch_start = std::time::Instant::now();
         match launch_browser(&output) {
-            Ok(()) => println!("🌐 Opened {:?} in default browser", output),
+            Ok(()) => {
+                if args.verbose {
+                    eprintln!(
+                        "⏱  Browser launch initiated in {:.3} ms",
+                        launch_start.elapsed().as_secs_f64() * 1000.0
+                    );
+                }
+                println!("🌐 Opened {:?} in default browser", output);
+            }
             Err(e) => {
                 // The render already succeeded and nothing removes the
                 // rendered file on a launch failure, so point the user at it
@@ -478,16 +500,17 @@ fn main() -> notify::Result<()> {
 
         println!("🔁 File changed, re-rendering...");
         // A failed render (e.g. convert ran while the file was momentarily
-        // absent mid-rename) must not end watch mode; convert_with_css_override
+        // absent mid-rename) must not end watch mode; convert_with_diagnostics
         // already reports the ❌ error itself, so we just loop and wait for
         // the next event.
-        convert_with_css_override(
+        convert_with_diagnostics(
             &input,
             &output,
             args.bare,
             args.unsafe_html,
             private_output,
             args.css.as_deref(),
+            args.verbose,
         );
     }
 }
