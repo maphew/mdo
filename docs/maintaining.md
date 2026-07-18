@@ -24,16 +24,19 @@ Release checklist:
    e.g. `cargo check`).
 3. Run the quality gates (`cargo test`, `cargo clippy`) and confirm
    `Cargo.toml`'s `version` matches the `vX.Y.Z` tag you're about to create.
-4. Commit the release changes (`CHANGELOG.md`, `Cargo.toml`, `Cargo.lock`)
+4. Verify the crate payload: `cargo publish --locked --dry-run`.
+5. Commit the release changes (`CHANGELOG.md`, `Cargo.toml`, `Cargo.lock`)
    and push the commit, confirming `git status` is clean before tagging — a
    tag records whatever commit `HEAD` points to, so uncommitted or unpushed
    edits are silently left out of the release.
-5. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-6. After the workflow publishes assets, refresh the package manifests
+6. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+7. Publish the crate from that clean release commit: `cargo publish --locked`.
+8. After the workflow publishes assets, refresh the package manifests
    (below) with the new version, URLs, and `SHA256SUMS` hashes.
 
 The crates.io package is `mdo-cli` (the `mdo` crate name was taken); the
-installed binary is `mdo`.
+installed binary is `mdo`. Crates.io publishing is authenticated separately
+and is not performed by the GitHub Release workflow.
 
 ## Package-manager manifests
 
