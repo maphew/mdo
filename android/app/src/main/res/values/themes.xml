@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.Mdo" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:colorAccent">#1E66E2</item>
+        <item name="android:navigationBarColor">#F7F7F7</item>
+        <item name="android:statusBarColor">#1E66E2</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

@@ -53,6 +53,9 @@ clap = { version = "4", features = ["derive"] }
 notify = "6"
 url = "2.5"
 
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"
+
 [build-dependencies]
 winresource = "0.1.31"
 
@@ -63,6 +66,9 @@ winresource = "0.1.31"
 [target.'cfg(windows)'.dependencies]
 opener = "0.8"
 windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging"] }
+
+[lib]
+crate-type = ["rlib", "cdylib"]
 
 [[bin]]
 name = "mdo"

@@ -1,0 +1,35 @@
+# mdo for Android
+
+The Android app opens local Markdown documents and renders them through the
+same Rust library, sanitizer, bundled simple.css, and theme toggle as the mdo
+desktop CLI. It requests no network permission.
+
+## Build a debug APK
+
+Requirements:
+
+- JDK 17
+- Android SDK platform 36 and NDK `28.2.13676358`
+- Rust with the `aarch64-linux-android` target
+- [`cargo-ndk`](https://github.com/bbqsrc/cargo-ndk)
+
+```bash
+rustup target add aarch64-linux-android
+cargo install cargo-ndk --locked
+cd android
+./gradlew assembleDebug
+```
+
+On Windows, use `gradlew.bat assembleDebug`. The APK is written to
+`android/app/build/outputs/apk/debug/app-debug.apk` and supports 64-bit ARM
+devices running Android 6.0 or newer.
+
+## Use it
+
+- Launch **mdo**, tap **Open**, and choose a Markdown document.
+- Or open/share a Markdown document from Android's Files app and select
+  **mdo**.
+
+Documents are read through Android's Storage Access Framework, so the app
+does not request broad storage access. Raw HTML is sanitized. Relative local
+images are not yet resolved through document-provider URIs.

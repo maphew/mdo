@@ -1,4 +1,8 @@
 /target
+/android/.gradle
+/android/build
+/android/local.properties
+/android/app/build
 __pycache__/
 *.pyc
 docs/adr/*.html

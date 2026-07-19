@@ -17,6 +17,8 @@ use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsE
 use pulldown_cmark::{html, Options, Parser as MdParser};
 use url::Url;
 
+#[cfg(target_os = "android")]
+mod android;
 pub mod file_manager;
 #[cfg(target_os = "windows")]
 pub mod windows_setup;
@@ -355,6 +357,21 @@ fn sanitize_html(html: &str) -> String {
         .set_tag_attribute_value("input", "disabled", "")
         .clean(html)
         .to_string()
+}
+
+/// Render Markdown supplied in memory as a complete, self-contained HTML page.
+///
+/// This is the platform-neutral entry point used by the Android application.
+/// Raw HTML is always sanitized, matching the safe default of the desktop CLI.
+/// `fallback_title` is used only when the document has no top-level heading.
+pub fn render_markdown_document(
+    markdown: &str,
+    fallback_title: &str,
+    source_modified_unix_secs: Option<u64>,
+) -> String {
+    let body = sanitize_html(&markdown_to_html(markdown));
+    let title = derive_title(markdown, fallback_title);
+    wrap_html5(&body, &title, None, None, source_modified_unix_secs)
 }
 
 fn derive_title(markdown: &str, fallback: &str) -> String {
@@ -977,6 +994,20 @@ mod tests {
         assert!(html.contains("<main>\n<p>hi</p>\n</main>"));
         assert!(!html.contains("Source modified"));
         assert!(!html.contains("<footer"));
+    }
+
+    #[test]
+    fn in_memory_render_uses_shared_safe_document_pipeline() {
+        let html = render_markdown_document(
+            "# Phone note\n\nHello **Android**.\n\n<script>alert('no')</script>",
+            "fallback.md",
+            None,
+        );
+
+        assert!(html.contains("<title>Phone note</title>"));
+        assert!(html.contains("<strong>Android</strong>"));
+        assert!(html.contains("<meta name=\"generator\" content=\"mdo "));
+        assert!(!html.contains("<script>alert('no')</script>"));
     }
 
     #[test]
