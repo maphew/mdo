@@ -1,0 +1,15 @@
+mdo makes Markdown calmer to read on Android.
+
+Choose a Markdown document from Android's file picker, or open/share a .md file to mdo. The document is rendered as a clean, responsive HTML page with tables, footnotes, task lists, strikethrough, syntax-friendly code blocks, and automatic light/dark styling.
+
+PRIVATE BY DESIGN
+
+• Documents are processed entirely on your device
+• No Internet permission
+• No ads, analytics, telemetry, accounts, or tracking SDKs
+• Raw HTML is sanitized by default
+• No broad storage permission—mdo sees only documents you choose
+
+mdo is free and open source under the MIT or Apache-2.0 license. The Android app uses the same Rust rendering engine and bundled styling as the mdo desktop command-line tool.
+
+Current limitation: relative images and links supplied through some Android document providers may not resolve yet.

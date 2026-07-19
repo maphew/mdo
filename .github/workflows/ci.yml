@@ -113,9 +113,9 @@ jobs:
         with:
           tool: cargo-ndk
 
-      - name: Build and lint debug APK
+      - name: Build debug APK and unsigned release packages
         working-directory: android
-        run: ./gradlew assembleDebug lintDebug --stacktrace
+        run: ./gradlew assembleDebug assembleRelease bundleRelease lintDebug lintRelease --stacktrace
 
       - name: Upload debug APK
         # actions/upload-artifact v4

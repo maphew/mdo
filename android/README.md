@@ -33,3 +33,29 @@ devices running Android 6.0 or newer.
 Documents are read through Android's Storage Access Framework, so the app
 does not request broad storage access. Raw HTML is sanitized. Relative local
 images are not yet resolved through document-provider URIs.
+
+The app's privacy policy is
+[`docs/android-privacy.md`](../docs/android-privacy.md). It has no Internet
+permission, ads, analytics, accounts, or telemetry.
+
+## Release packages
+
+Without signing environment variables, `assembleRelease` and `bundleRelease`
+produce unsigned packages suitable for verification and F-Droid's own signing
+process. To create signed packages, set:
+
+```text
+MDO_ANDROID_KEYSTORE=/absolute/path/to/mdo-upload.jks
+MDO_ANDROID_KEYSTORE_PASSWORD=...
+MDO_ANDROID_KEY_ALIAS=...
+MDO_ANDROID_KEY_PASSWORD=...
+```
+
+Then run:
+
+```bash
+./gradlew assembleRelease bundleRelease
+```
+
+Never commit the keystore or passwords. GitHub release-secret setup is
+documented in [`docs/maintaining.md`](../docs/maintaining.md).

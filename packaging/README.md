@@ -1,7 +1,7 @@
 # Package Manager Manifests
 
-This directory contains starter manifests for OS package managers that install
-the `mdo` executable from GitHub Release assets.
+This directory contains packaging and store-submission material for the
+desktop CLI and Android app.
 
 ## Release Used
 
@@ -29,6 +29,8 @@ workflow published the assets.
 - `homebrew/mdo.rb` - formula for a Homebrew tap
 - `winget/Maphew.Mdo/0.6.0/` - WinGet package manifests
 - `scoop/mdo.json` - Scoop bucket manifest
+- `fdroid/` - proposed F-Droid build metadata and submission notes
+- `google-play/` - Play Console checklist and data-safety answers
 
 When cutting a new release, update the version, URLs, and hashes from that
 release's `SHA256SUMS` asset.

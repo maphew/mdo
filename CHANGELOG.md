@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Add a native Android app that opens Markdown through the system document
+  picker or file/share intents and renders it offline through mdo's existing
+  Rust renderer and sanitizer.
+- Add Android debug, release-APK, App Bundle, and lint coverage to CI, plus
+  optional secret-backed APK/AAB signing and publication in tagged releases.
+- Add upstream store metadata, a no-data-collection privacy policy, and
+  preparation material for F-Droid and Google Play submissions.
+
 ## 0.6.0 - 2026-07-18
 
 - `--open` now fails honestly: when the browser launch fails after a
