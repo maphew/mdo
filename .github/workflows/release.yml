@@ -254,7 +254,8 @@ jobs:
         run: |
           set -euo pipefail
           "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
-          jarsigner -verify -strict android/app/build/outputs/bundle/release/app-release.aab
+          # Android upload keys are self-signed, which jarsigner -strict rejects.
+          jarsigner -verify android/app/build/outputs/bundle/release/app-release.aab
           mkdir -p target/dist
           cp android/app/build/outputs/apk/release/app-release.apk target/dist/mdo-android-arm64.apk
           cp android/app/build/outputs/bundle/release/app-release.aab target/dist/mdo-android-arm64.aab

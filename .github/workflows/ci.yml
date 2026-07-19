@@ -134,7 +134,8 @@ jobs:
             -dname "CN=mdo CI,O=mdo,C=US"
           ./gradlew --no-daemon assembleRelease bundleRelease --stacktrace
           "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
-          jarsigner -verify -strict app/build/outputs/bundle/release/app-release.aab
+          # Android upload keys are self-signed, which jarsigner -strict rejects.
+          jarsigner -verify app/build/outputs/bundle/release/app-release.aab
 
       - name: Upload debug APK
         # actions/upload-artifact v4
