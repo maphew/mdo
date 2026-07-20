@@ -46,6 +46,7 @@ public final class MainActivity extends Activity {
 
         // setIntent() does not survive activity recreation, so a document
         // chosen through the picker is restored from instance state.
+        @SuppressWarnings("deprecation")
         Uri restored = savedInstanceState == null
                 ? null : savedInstanceState.getParcelable(STATE_DOCUMENT_URI);
         if (restored != null) {
