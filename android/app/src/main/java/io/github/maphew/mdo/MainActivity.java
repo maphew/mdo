@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 import android.view.Gravity;
@@ -31,20 +32,27 @@ public final class MainActivity extends Activity {
     private static final int OPEN_DOCUMENT_REQUEST = 1;
     private static final int MAX_DOCUMENT_BYTES = 16 * 1024 * 1024;
     private static final String APP_ORIGIN = "https://mdo.invalid/";
+    private static final String STATE_DOCUMENT_URI = "mdo:document-uri";
 
     private final AtomicInteger loadGeneration = new AtomicInteger();
     private TextView documentTitle;
     private WebView webView;
+    private Uri currentUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         buildInterface();
 
-        Uri uri = documentUri(getIntent());
-        if (uri != null) {
-            loadDocument(uri);
-        } else {
+        // setIntent() does not survive activity recreation, so a document
+        // chosen through the picker is restored from instance state.
+        Uri restored = savedInstanceState == null
+                ? null : savedInstanceState.getParcelable(STATE_DOCUMENT_URI);
+        if (restored != null) {
+            loadDocument(restored);
+            return;
+        }
+        if (!showIntent(getIntent())) {
             showWelcome();
         }
     }
@@ -53,10 +61,31 @@ public final class MainActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        // No fallback here: a contentless relaunch (e.g. tapping the launcher
+        // icon while the activity is on top) keeps the current document.
+        showIntent(intent);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (currentUri != null) {
+            outState.putParcelable(STATE_DOCUMENT_URI, currentUri);
+        }
+    }
+
+    private boolean showIntent(Intent intent) {
         Uri uri = documentUri(intent);
         if (uri != null) {
             loadDocument(uri);
+            return true;
         }
+        String shared = sharedText(intent);
+        if (shared != null) {
+            loadSharedText(shared);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -78,8 +107,6 @@ public final class MainActivity extends Activity {
                 // Some document providers grant access for this activity only.
             }
         }
-        setIntent(new Intent(Intent.ACTION_VIEW, uri)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
         loadDocument(uri);
     }
 
@@ -102,6 +129,10 @@ public final class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(background);
+        // With targetSdk 36 Android 15+ enforces edge-to-edge; pad the layout
+        // by the system-bar insets so the toolbar is not drawn under the
+        // status bar and the WebView not under the gesture navigation bar.
+        root.setFitsSystemWindows(true);
 
         LinearLayout toolbar = new LinearLayout(this);
         toolbar.setOrientation(LinearLayout.HORIZONTAL);
@@ -185,33 +216,66 @@ public final class MainActivity extends Activity {
     }
 
     private void loadDocument(Uri uri) {
+        currentUri = uri;
         int generation = loadGeneration.incrementAndGet();
-        String title = queryDisplayName(uri);
-        documentTitle.setText(getString(R.string.loading_document, title));
+        documentTitle.setText(getString(
+                R.string.loading_document, getString(R.string.untitled_document)));
 
         new Thread(() -> {
             try {
+                // Provider queries stay off the main thread: cloud document
+                // providers can block for seconds and trigger an ANR.
+                String title = queryDisplayName(uri);
                 String markdown = readDocument(uri);
                 long modifiedSeconds = queryModifiedSeconds(uri);
-                String html = NativeRenderer.renderMarkdown(markdown, title, modifiedSeconds);
-                runOnUiThread(() -> {
-                    if (generation != loadGeneration.get() || isDestroyed()) {
-                        return;
-                    }
-                    documentTitle.setText(title);
-                    webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", APP_ORIGIN);
-                });
+                String html = NativeRenderer.renderMarkdown(
+                        markdown, stripExtension(title), modifiedSeconds);
+                showRendered(generation, title, html);
             } catch (Exception | UnsatisfiedLinkError error) {
                 runOnUiThread(() -> showError(generation, error));
             }
         }, "mdo-render").start();
     }
 
+    private void loadSharedText(String markdown) {
+        currentUri = null;
+        int generation = loadGeneration.incrementAndGet();
+        String title = getString(R.string.shared_text);
+        documentTitle.setText(getString(R.string.loading_document, title));
+
+        new Thread(() -> {
+            try {
+                String html = NativeRenderer.renderMarkdown(markdown, title, -1);
+                showRendered(generation, title, html);
+            } catch (Exception | UnsatisfiedLinkError error) {
+                runOnUiThread(() -> showError(generation, error));
+            }
+        }, "mdo-render").start();
+    }
+
+    private void showRendered(int generation, String title, String html) {
+        runOnUiThread(() -> {
+            if (generation != loadGeneration.get() || isDestroyed()) {
+                return;
+            }
+            documentTitle.setText(title);
+            webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", APP_ORIGIN);
+        });
+    }
+
     private void showWelcome() {
-        String markdown = getString(R.string.welcome_markdown);
-        String html = NativeRenderer.renderMarkdown(markdown, getString(R.string.app_name), -1);
-        documentTitle.setText(R.string.app_name);
-        webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", APP_ORIGIN);
+        currentUri = null;
+        int generation = loadGeneration.incrementAndGet();
+        try {
+            String markdown = getString(R.string.welcome_markdown);
+            String html = NativeRenderer.renderMarkdown(markdown, getString(R.string.app_name), -1);
+            documentTitle.setText(R.string.app_name);
+            webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", APP_ORIGIN);
+        } catch (RuntimeException | UnsatisfiedLinkError error) {
+            // A missing or incompatible native library (e.g. a non-ARM64
+            // device) must not crash the app on first launch.
+            showError(generation, error);
+        }
     }
 
     private void showError(int generation, Throwable error) {
@@ -231,11 +295,29 @@ public final class MainActivity extends Activity {
             return intent.getData();
         }
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
+            // MainActivity is exported, so EXTRA_STREAM may hold any
+            // Parcelable a sender chooses; an unchecked cast would let other
+            // apps crash us.
             @SuppressWarnings("deprecation")
-            Uri shared = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-            return shared;
+            Parcelable shared = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            return shared instanceof Uri ? (Uri) shared : null;
         }
         return null;
+    }
+
+    private String sharedText(Intent intent) {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) {
+            return null;
+        }
+        CharSequence text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+        return text == null || text.length() == 0 ? null : text.toString();
+    }
+
+    // Match the desktop CLI's fallback-title contract, which passes the file
+    // stem ("notes"), not the display name ("notes.md").
+    private static String stripExtension(String name) {
+        int dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
     }
 
     private String readDocument(Uri uri) throws IOException {
@@ -279,7 +361,9 @@ public final class MainActivity extends Activity {
                 null)) {
             if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) {
                 long milliseconds = cursor.getLong(0);
-                return milliseconds >= 0 ? milliseconds / 1000 : -1;
+                // Providers report 0 for "unknown" (File.lastModified()
+                // convention); treat it as missing, not the 1970 epoch.
+                return milliseconds > 0 ? milliseconds / 1000 : -1;
             }
         } catch (RuntimeException ignored) {
             // Modified time is optional and must never block rendering.

@@ -176,6 +176,23 @@ jobs:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           persist-credentials: false
 
+      - name: Verify checkout matches release tag
+        if: env.ANDROID_SIGNING_ENABLED == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_commit="$(git rev-parse "${RELEASE_TAG}^{commit}")"
+          head_commit="$(git rev-parse HEAD)"
+          if [ "${head_commit}" != "${tag_commit}" ]; then
+            echo "HEAD ${head_commit} does not match ${RELEASE_TAG} commit ${tag_commit}" >&2
+            exit 1
+          fi
+
+      - name: Validate Gradle wrapper
+        if: env.ANDROID_SIGNING_ENABLED == 'true'
+        # gradle/actions/wrapper-validation v4.4.4
+        uses: gradle/actions/wrapper-validation@da187c8e6ffbd3802e00f2477aa5a822b25f2dda
+
       - name: Install JDK 17
         if: env.ANDROID_SIGNING_ENABLED == 'true'
         # actions/setup-java v4
@@ -254,8 +271,10 @@ jobs:
         run: |
           set -euo pipefail
           "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
-          # Android upload keys are self-signed, which jarsigner -strict rejects.
-          jarsigner -verify android/app/build/outputs/bundle/release/app-release.aab
+          # Android upload keys are self-signed, which jarsigner -strict
+          # rejects. Plain -verify exits 0 even for an unsigned jar, so
+          # assert the "jar verified" verdict explicitly.
+          jarsigner -verify android/app/build/outputs/bundle/release/app-release.aab | tee /dev/stderr | grep -q '^jar verified'
           mkdir -p target/dist
           cp android/app/build/outputs/apk/release/app-release.apk target/dist/mdo-android-arm64.apk
           cp android/app/build/outputs/bundle/release/app-release.aab target/dist/mdo-android-arm64.aab
@@ -276,6 +295,9 @@ jobs:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
     needs: [build, android-build]
+    # An Android failure must not block the desktop archives that released
+    # independently before android-build existed; it fails loudly on its own.
+    if: always() && needs.build.result == 'success'
     permissions:
       contents: write
 

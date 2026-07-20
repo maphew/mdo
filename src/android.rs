@@ -42,16 +42,29 @@ pub extern "system" fn Java_io_github_maphew_mdo_NativeRenderer_renderMarkdown(
         Ok(html) => match env.new_string(html) {
             Ok(value) => value.into_raw(),
             Err(error) => {
-                let _ = env.throw_new(
-                    "java/lang/RuntimeException",
-                    format!("could not return rendered HTML: {error}"),
+                throw_unless_pending(
+                    &mut env,
+                    &format!("could not return rendered HTML: {error}"),
                 );
                 ptr::null_mut()
             }
         },
         Err(message) => {
-            let _ = env.throw_new("java/lang/RuntimeException", message);
+            throw_unless_pending(&mut env, &message);
             ptr::null_mut()
         }
+    }
+}
+
+/// Raise a `RuntimeException` unless a Java exception is already pending.
+///
+/// `throw_new` resolves its class via `FindClass`, and calling `FindClass`
+/// with a pending exception (e.g. the `OutOfMemoryError` behind an
+/// `Error::JavaException` from `new_string`) violates the JNI spec — CheckJNI
+/// aborts the process. Leaving the pending exception in place lets it
+/// propagate to Java naturally.
+fn throw_unless_pending(env: &mut JNIEnv, message: &str) {
+    if !env.exception_check().unwrap_or(true) {
+        let _ = env.throw_new("java/lang/RuntimeException", message);
     }
 }

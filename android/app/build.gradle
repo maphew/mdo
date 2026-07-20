@@ -4,6 +4,14 @@ plugins {
 
 def repositoryRoot = rootProject.projectDir.parentFile
 def rustJniDirectory = file("build/generated/rustJniLibs")
+// Gradle may run without ~/.cargo/bin on PATH (notably on the F-Droid
+// buildserver, where rustup installs during prebuild but scripted PATH
+// changes do not reach the gradle process). Prefer the rustup-installed
+// cargo when it exists; cargo finds its cargo-ndk subcommand beside it.
+def cargoHome = System.getenv("CARGO_HOME") ?: "${System.getProperty('user.home')}/.cargo"
+def cargoName = System.getProperty("os.name").toLowerCase().contains("windows") ? "cargo.exe" : "cargo"
+def cargoInHome = new File("${cargoHome}/bin/${cargoName}")
+def cargoCommand = cargoInHome.canExecute() ? cargoInHome.absolutePath : "cargo"
 def releaseKeystorePath = System.getenv("MDO_ANDROID_KEYSTORE")
 def releaseKeystorePassword = System.getenv("MDO_ANDROID_KEYSTORE_PASSWORD")
 def releaseKeyAlias = System.getenv("MDO_ANDROID_KEY_ALIAS")
@@ -64,7 +72,7 @@ tasks.register("buildRust", Exec) {
     description = "Build the mdo Rust renderer for 64-bit Android devices"
     workingDir repositoryRoot
     environment "CARGO_TARGET_DIR", new File(repositoryRoot, "target/android").absolutePath
-    commandLine "cargo", "ndk", "-t", "arm64-v8a", "-o",
+    commandLine cargoCommand, "ndk", "-t", "arm64-v8a", "-o",
         rustJniDirectory.absolutePath,
         "build", "--release", "--lib", "--locked"
 

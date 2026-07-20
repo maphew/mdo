@@ -1,6 +1,6 @@
 Categories:
   - Reading
-License: Apache-2.0
+License: MIT OR Apache-2.0
 AuthorName: Matt Wilkie
 AuthorEmail: maphew@gmail.com
 WebSite: https://maphew.github.io/mdo/
@@ -21,7 +21,7 @@ Builds:
   - versionName: 0.6.0-preview
     versionCode: 600
     commit: 5b8c6e4291876666273327f48f53efc6ae7bed6b
-    subdir: android
+    subdir: android/app
     gradle:
       - yes
     srclibs:
