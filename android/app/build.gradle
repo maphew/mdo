@@ -1,0 +1,88 @@
+plugins {
+    id "com.android.application"
+}
+
+def repositoryRoot = rootProject.projectDir.parentFile
+def rustJniDirectory = file("build/generated/rustJniLibs")
+// Gradle may run without ~/.cargo/bin on PATH (notably on the F-Droid
+// buildserver, where rustup installs during prebuild but scripted PATH
+// changes do not reach the gradle process). Prefer the rustup-installed
+// cargo when it exists; cargo finds its cargo-ndk subcommand beside it.
+def cargoHome = System.getenv("CARGO_HOME") ?: "${System.getProperty('user.home')}/.cargo"
+def cargoName = System.getProperty("os.name").toLowerCase().contains("windows") ? "cargo.exe" : "cargo"
+def cargoInHome = new File("${cargoHome}/bin/${cargoName}")
+def cargoCommand = cargoInHome.canExecute() ? cargoInHome.absolutePath : "cargo"
+def releaseKeystorePath = System.getenv("MDO_ANDROID_KEYSTORE")
+def releaseKeystorePassword = System.getenv("MDO_ANDROID_KEYSTORE_PASSWORD")
+def releaseKeyAlias = System.getenv("MDO_ANDROID_KEY_ALIAS")
+def releaseKeyPassword = System.getenv("MDO_ANDROID_KEY_PASSWORD")
+def hasReleaseSigning = [
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+].every { value -> value != null && !value.isBlank() }
+
+android {
+    namespace "io.github.maphew.mdo"
+    compileSdk 36
+    ndkVersion "28.2.13676358"
+
+    defaultConfig {
+        applicationId "io.github.maphew.mdo"
+        minSdk 23
+        targetSdk 36
+        versionCode 600
+        versionName "0.6.0-preview"
+    }
+
+    if (hasReleaseSigning) {
+        signingConfigs {
+            release {
+                storeFile file(releaseKeystorePath)
+                storePassword releaseKeystorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main.jniLibs.srcDir(rustJniDirectory)
+    }
+}
+
+tasks.register("buildRust", Exec) {
+    group = "build"
+    description = "Build the mdo Rust renderer for 64-bit Android devices"
+    workingDir repositoryRoot
+    environment "CARGO_TARGET_DIR", new File(repositoryRoot, "target/android").absolutePath
+    commandLine cargoCommand, "ndk", "-t", "arm64-v8a", "-o",
+        rustJniDirectory.absolutePath,
+        "build", "--release", "--lib", "--locked"
+
+    inputs.file(new File(repositoryRoot, "Cargo.toml"))
+    inputs.file(new File(repositoryRoot, "Cargo.lock"))
+    inputs.dir(new File(repositoryRoot, "src"))
+    inputs.dir(new File(repositoryRoot, "assets"))
+    outputs.file(new File(rustJniDirectory, "arm64-v8a/libmdo_cli.so"))
+}
+
+tasks.named("preBuild").configure {
+    dependsOn tasks.named("buildRust")
+}

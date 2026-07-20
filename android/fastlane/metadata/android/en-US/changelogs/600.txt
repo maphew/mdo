@@ -1,0 +1,6 @@
+First Android preview.
+
+• Open Markdown from the system picker, Files, or Share menu
+• Render locally with mdo's Rust engine and sanitizer
+• Responsive light and dark styling
+• No Internet, broad-storage, ads, analytics, or telemetry permissions

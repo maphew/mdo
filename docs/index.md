@@ -215,6 +215,7 @@ Release notes, architecture decisions, source code, and package metadata are all
 |---|---|
 | GitHub Releases | [github.com/maphew/mdo/releases](https://github.com/maphew/mdo/releases) |
 | Public Metrics | [metrics/](metrics/) |
+| Android privacy | [android-privacy.html](android-privacy.html) |
 | Changelog | [CHANGELOG.md](https://github.com/maphew/mdo/blob/main/CHANGELOG.md) |
 | Usage & CLI reference | [docs/usage.md](https://github.com/maphew/mdo/blob/main/docs/usage.md) |
 | File-manager integration | [docs/file-manager-integration.md](https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md) |

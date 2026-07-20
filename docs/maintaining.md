@@ -22,21 +22,51 @@ Release checklist:
    heading with the release date.
 2. Bump `version` in `Cargo.toml` (and let `Cargo.lock` update by building,
    e.g. `cargo check`).
-3. Run the quality gates (`cargo test`, `cargo clippy`) and confirm
-   `Cargo.toml`'s `version` matches the `vX.Y.Z` tag you're about to create.
-4. Verify the crate payload: `cargo publish --locked --dry-run`.
-5. Commit the release changes (`CHANGELOG.md`, `Cargo.toml`, `Cargo.lock`)
+3. Set Android's literal `versionName` and monotonically increasing
+   `versionCode` in `android/app/build.gradle`. Confirm both Cargo and Android
+   versions match the `vX.Y.Z` tag you're about to create.
+4. Run the quality gates (`cargo test`, `cargo clippy`, and
+   `cd android && ./gradlew assembleDebug assembleRelease bundleRelease
+   lintDebug lintRelease`).
+5. Verify the crate payload: `cargo publish --locked --dry-run`.
+6. Commit the release changes (`CHANGELOG.md`, `Cargo.toml`, `Cargo.lock`,
+   `android/app/build.gradle`, and the Android changelog entry)
    and push the commit, confirming `git status` is clean before tagging — a
    tag records whatever commit `HEAD` points to, so uncommitted or unpushed
    edits are silently left out of the release.
-6. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-7. Publish the crate from that clean release commit: `cargo publish --locked`.
-8. After the workflow publishes assets, refresh the package manifests
+7. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+8. Publish the crate from that clean release commit: `cargo publish --locked`.
+9. After the workflow publishes assets, refresh the package manifests
    (below) with the new version, URLs, and `SHA256SUMS` hashes.
 
 The crates.io package is `mdo-cli` (the `mdo` crate name was taken); the
 installed binary is `mdo`. Crates.io publishing is authenticated separately
 and is not performed by the GitHub Release workflow.
+
+### Android release signing
+
+The release workflow can add a signed ARM64 APK and signed Android App Bundle
+to each GitHub Release. It remains safely disabled until these repository
+secrets exist:
+
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+
+After the secrets are configured, set the repository variable
+`ANDROID_RELEASE_SIGNING_ENABLED` to `true`. The workflow reconstructs the
+keystore only in the runner's temporary directory, verifies both signatures,
+and publishes `mdo-android-arm64.apk` and `mdo-android-arm64.aab` alongside
+the desktop archives. Never commit the keystore or its passwords.
+
+Use a long-lived key (at least 25 years), keep an offline backup, and use Play
+App Signing with this key as the upload key. The APK published on GitHub must
+keep using the same signing key for Android to accept in-place updates.
+
+Detailed store preparation and the current human-owned steps are in
+[`packaging/google-play/README.md`](../packaging/google-play/README.md) and
+[`packaging/fdroid/README.md`](../packaging/fdroid/README.md).
 
 ## Package-manager manifests
 

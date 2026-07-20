@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.Mdo" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:colorAccent">#1E66E2</item>
+        <!-- The near-white navigation bar lives in values-v27, where
+             windowLightNavigationBar can darken its buttons; before API 27
+             the buttons are always white, so keep the default dark bar. -->
+        <item name="android:statusBarColor">#1E66E2</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

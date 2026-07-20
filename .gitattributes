@@ -1,0 +1,4 @@
+*.bat text eol=crlf
+# The POSIX wrapper script must stay LF even on core.autocrlf=true clones,
+# or /bin/sh rejects it with "bad interpreter".
+android/gradlew text eol=lf

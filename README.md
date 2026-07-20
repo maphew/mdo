@@ -36,6 +36,13 @@ Rust users can build from source instead with `cargo install mdo-cli`
 (needs a working Rust toolchain, including the MSVC linker on Windows), or
 `git clone` + `cargo build --release`.
 
+### Android preview
+
+The native Android app can open a Markdown document from the system picker or
+handle it from a Files app, then renders it locally through mdo's shared Rust
+engine. Android build and installation details are in
+[`android/README.md`](android/README.md).
+
 ## Use
 
 ```bash

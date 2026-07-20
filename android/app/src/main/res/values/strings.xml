@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">mdo</string>
+    <string name="open_document">Open</string>
+    <string name="loading_document">Loading %1$s…</string>
+    <string name="could_not_open">Could not open document</string>
+    <string name="open_error">Could not open this document: %1$s</string>
+    <string name="no_document_picker">No document picker is available on this device.</string>
+    <string name="no_link_handler">No app can open this link.</string>
+    <string name="untitled_document">Document</string>
+    <string name="shared_text">Shared text</string>
+    <string name="welcome_markdown"># Open Markdown as HTML\n\nmdo is ready on your phone.\n\nTap **Open** and choose a Markdown file, or select **mdo** when opening a `.md` file from Files.</string>
+</resources>

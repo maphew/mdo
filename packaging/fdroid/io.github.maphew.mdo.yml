@@ -1,0 +1,38 @@
+Categories:
+  - Reading
+License: MIT OR Apache-2.0
+AuthorName: Matt Wilkie
+AuthorEmail: maphew@gmail.com
+WebSite: https://maphew.github.io/mdo/
+SourceCode: https://github.com/maphew/mdo
+IssueTracker: https://github.com/maphew/mdo/issues
+Changelog: https://github.com/maphew/mdo/blob/main/CHANGELOG.md
+
+RepoType: git
+Repo: https://github.com/maphew/mdo.git
+
+Disabled: Waiting for the first tagged release that contains the Android app
+MaintainerNotes: |-
+  The preview build proves the Rust/Gradle recipe against the device-tested
+  Android commit. Replace it with the first tagged Android release before
+  opening the upstream fdroiddata merge request.
+
+Builds:
+  - versionName: 0.6.0-preview
+    versionCode: 600
+    commit: 5b8c6e4291876666273327f48f53efc6ae7bed6b
+    subdir: android/app
+    gradle:
+      - yes
+    srclibs:
+      - rustup@1.28.2
+    prebuild:
+      - $$rustup$$/rustup-init.sh -y --default-toolchain 1.97.1 --target aarch64-linux-android
+      - source $HOME/.cargo/env
+      - cargo install cargo-ndk@4.1.2 --locked
+    ndk: 28.2.13676358
+
+AutoUpdateMode: None
+UpdateCheckMode: Tags ^v[0-9.]+$
+CurrentVersion: 0.6.0-preview
+CurrentVersionCode: 600

@@ -36,6 +36,13 @@ def main() -> int:
         "docs/assets/sample.html",
         "docs/assets/sample.md",
     )
+    run_mdo(
+        "--css",
+        "docs/assets/site.css",
+        "--output",
+        "docs/android-privacy.html",
+        "docs/android-privacy.md",
+    )
     return 0
 
 
