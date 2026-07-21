@@ -99,7 +99,7 @@ cd android
 ./gradlew installDebug
 ```
 
-On Windows, use `gradlew.bat installDebug`. To install without USB debugging, run `./gradlew assembleDebug`, copy `android/app/build/outputs/apk/debug/app-debug.apk` to the device, open it, and approve Android's prompt to allow installation from that source. See the [complete Android build and usage guide](https://github.com/maphew/mdo/blob/main/android/README.md) for requirements, APK location, privacy details, and current limitations.
+On Windows, use `gradlew.bat installDebug`. To install without USB debugging, run `./gradlew assembleDebug`, copy `app/build/outputs/apk/debug/app-debug.apk` to the device, open it, and approve Android's prompt to allow installation from that source. See the [complete Android build and usage guide](https://github.com/maphew/mdo/blob/main/android/README.md) for requirements, APK location, privacy details, and current limitations.
 
 ### Cargo for Rust developers
 
