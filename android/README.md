@@ -21,7 +21,7 @@ cd android
 ```
 
 On Windows, use `gradlew.bat assembleDebug`. The APK is written to
-`android/app/build/outputs/apk/debug/app-debug.apk` and supports 64-bit ARM
+`app/build/outputs/apk/debug/app-debug.apk` and supports 64-bit ARM
 devices running Android 6.0 or newer.
 
 ## Use it
