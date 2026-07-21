@@ -1566,6 +1566,17 @@ Publish the first independent release</li>
 <pre><code class="language-powershell">irm https://maphew.github.io/mdo/install.ps1 | iex
 </code></pre>
 <p>Installs to <code>%LOCALAPPDATA%\mdo\bin</code> by default and adds that directory to your user <code>PATH</code> when needed. After installation, double-click <code>mdo-setup.exe</code> for guided first-time configuration.</p>
+<h3>Android preview</h3>
+<p>The Android app is not yet available from Google Play, F-Droid, or GitHub Releases. For now, install the preview by building it from source on a development computer. It supports 64-bit ARM devices running Android 6.0 or newer.</p>
+<p>After installing JDK 17, Android SDK platform 36, NDK <code>28.2.13676358</code>, Rust, and <a href="https://github.com/bbqsrc/cargo-ndk" rel="noopener noreferrer"><code>cargo-ndk</code></a>, connect a device with USB debugging enabled and run:</p>
+<pre><code class="language-bash">git clone https://github.com/maphew/mdo.git
+cd mdo
+rustup target add aarch64-linux-android
+cargo install cargo-ndk --locked
+cd android
+./gradlew installDebug
+</code></pre>
+<p>On Windows, use <code>gradlew.bat installDebug</code>. To install without USB debugging, run <code>./gradlew assembleDebug</code>, copy <code>android/app/build/outputs/apk/debug/app-debug.apk</code> to the device, open it, and approve Android's prompt to allow installation from that source. See the <a href="https://github.com/maphew/mdo/blob/main/android/README.md" rel="noopener noreferrer">complete Android build and usage guide</a> for requirements, APK location, privacy details, and current limitations.</p>
 <h3>Cargo for Rust developers</h3>
 <pre><code class="language-bash">cargo install mdo-cli
 mdo --version
@@ -1674,7 +1685,7 @@ macOS    $TMPDIR/mdo-{uid}/{hash}/notes.html
 <p>mdo is dual-licensed under MIT or Apache-2.0 and forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.</p>
 
 </main>
-<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-19T19:35:33Z">July 19, 2026, 7:35 PM UTC</time></footer>
+<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-21T23:23:43Z">July 21, 2026, 11:23 PM UTC</time></footer>
 <script>
 (function(){var t=document.querySelector('.mdo-source-meta time');if(!t)return;var d=new Date(t.getAttribute('datetime'));if(isNaN(d))return;try{t.textContent=d.toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){}})();
 </script>

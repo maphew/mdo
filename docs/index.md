@@ -84,6 +84,23 @@ irm https://maphew.github.io/mdo/install.ps1 | iex
 
 Installs to `%LOCALAPPDATA%\mdo\bin` by default and adds that directory to your user `PATH` when needed. After installation, double-click `mdo-setup.exe` for guided first-time configuration.
 
+### Android preview
+
+The Android app is not yet available from Google Play, F-Droid, or GitHub Releases. For now, install the preview by building it from source on a development computer. It supports 64-bit ARM devices running Android 6.0 or newer.
+
+After installing JDK 17, Android SDK platform 36, NDK `28.2.13676358`, Rust, and [`cargo-ndk`](https://github.com/bbqsrc/cargo-ndk), connect a device with USB debugging enabled and run:
+
+```bash
+git clone https://github.com/maphew/mdo.git
+cd mdo
+rustup target add aarch64-linux-android
+cargo install cargo-ndk --locked
+cd android
+./gradlew installDebug
+```
+
+On Windows, use `gradlew.bat installDebug`. To install without USB debugging, run `./gradlew assembleDebug`, copy `android/app/build/outputs/apk/debug/app-debug.apk` to the device, open it, and approve Android's prompt to allow installation from that source. See the [complete Android build and usage guide](https://github.com/maphew/mdo/blob/main/android/README.md) for requirements, APK location, privacy details, and current limitations.
+
 ### Cargo for Rust developers
 
 ```bash
