@@ -1,0 +1,6 @@
+Android preview release.
+
+* Installable ARM64 APK published with the GitHub Release
+* Open Markdown from the system picker, Files, or Share menu
+* Render locally with mdo's Rust engine and sanitizer
+* No Internet, broad-storage, ads, analytics, or telemetry permissions

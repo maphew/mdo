@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.1 - 2026-07-22
+
 - Add a native Android app that opens Markdown through the system document
   picker or file/share intents and renders it offline through mdo's existing
   Rust renderer and sanitizer.
@@ -9,6 +11,12 @@
   optional secret-backed APK/AAB signing and publication in tagged releases.
 - Add upstream store metadata, a no-data-collection privacy policy, and
   preparation material for F-Droid and Google Play submissions.
+- Publish the Android preview as signed ARM64 APK and AAB assets alongside the
+  desktop archives in the GitHub Release.
+- Render the docs site with stock mdo output, keep Markdown links useful on
+  GitHub while rewriting them to HTML at site-build time, and retain the
+  custom faux-browser styling only on the homepage.
+- Upgrade `ammonia` to 4.1.4 to address RUSTSEC-2026-0213.
 
 ## 0.6.0 - 2026-07-18
 

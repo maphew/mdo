@@ -6,9 +6,9 @@ metrics. Users never need this page.
 ## Releases
 
 GitHub releases are published from this repository by
-`.github/workflows/release.yml`. Push a version tag such as `v0.5.0` to build
-Linux, macOS, and Windows archives and publish them to a GitHub Release. The
-workflow can also be run manually with an existing tag via
+`.github/workflows/release.yml`. Push a version tag such as `v0.6.1` to build
+Linux, macOS, Windows, and signed Android packages and publish them to a
+GitHub Release. The workflow can also be run manually with an existing tag via
 **Actions → Release → Run workflow**.
 
 The release workflow keeps repository access read-only for build jobs and
