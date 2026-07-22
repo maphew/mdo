@@ -132,7 +132,7 @@ Setup explains the render-and-open workflow, the normal convert-once command, an
 
 Running `mdo` with no arguments prints a short **Open Markdown as HTML** landing page and exits successfully; use `mdo --help` for the full CLI reference. Run `mdo --setup` when you want guided setup. On Windows and Linux it can offer to install **Open as HTML** for the current user only. The default answer is **Yes**, but mdo still does not change the default Markdown app. Choose **No** to skip or run setup again later.
 
-After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same guided setup without a terminal already open; on Linux, launch **mdo Setup** from your application menu or run `mdo-setup`. Launcher details are in the [file-manager integration guide](https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md).
+After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same guided setup without a terminal already open; on Linux, launch **mdo Setup** from your application menu or run `mdo-setup`. Launcher details are in the [file-manager integration guide](file-manager-integration.html).
 
 ## Usage
 
@@ -163,11 +163,11 @@ mdo --open notes.md
 
 ## Imaginative Markdown + CSS
 
-This page — including the faux browser window floating over the hero image above — is normal Markdown rendered by `mdo`, with the visual story layered on through `--css`. See [Custom CSS](https://github.com/maphew/mdo/blob/main/docs/custom-css.md) for how it works and how to style your own pages.
+This page — including the faux browser window floating over the hero image above — is normal Markdown rendered by `mdo`, with the visual story layered on through `--css`. It is the only page on this site with custom styling; every other page is mdo's out-of-the-box output, exactly what you get on your own machine. See [Custom CSS](custom-css.html) for how `--css` works and the [faux browser window how-to](faux-browser-window.html) for how this page's hero is built.
 
 ## File Manager Integration
 
-Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same `mdo --open` render-and-open path. Platform implementation details live in the [file-manager integration guide](https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md).
+Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same `mdo --open` render-and-open path. Platform implementation details live in the [file-manager integration guide](file-manager-integration.html).
 
 ### Windows Explorer
 
@@ -234,10 +234,11 @@ Release notes, architecture decisions, source code, and package metadata are all
 | Public Metrics | [metrics/](metrics/) |
 | Android privacy | [android-privacy.html](android-privacy.html) |
 | Changelog | [CHANGELOG.md](https://github.com/maphew/mdo/blob/main/CHANGELOG.md) |
-| Usage & CLI reference | [docs/usage.md](https://github.com/maphew/mdo/blob/main/docs/usage.md) |
-| File-manager integration | [docs/file-manager-integration.md](https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md) |
-| Custom CSS | [docs/custom-css.md](https://github.com/maphew/mdo/blob/main/docs/custom-css.md) |
-| Maintaining | [docs/maintaining.md](https://github.com/maphew/mdo/blob/main/docs/maintaining.md) |
+| Usage & CLI reference | [usage.html](usage.html) |
+| File-manager integration | [file-manager-integration.html](file-manager-integration.html) |
+| Custom CSS | [custom-css.html](custom-css.html) |
+| Faux browser window how-to | [faux-browser-window.html](faux-browser-window.html) |
+| Maintaining | [maintaining.html](maintaining.html) |
 | Distribution ADR | [adr/0002-distribution-strategy.html](adr/0002-distribution-strategy.html) |
 | Tooling ADR | [adr/0003-keep-python-metrics-tooling.html](adr/0003-keep-python-metrics-tooling.html) |
 | docs.rs | [docs.rs/mdo-cli](https://docs.rs/mdo-cli) |

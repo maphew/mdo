@@ -1594,7 +1594,7 @@ mdo --open notes.md
 <p>Setup explains the render-and-open workflow, the normal convert-once command, and the reversible integration commands.</p>
 <h3>Opt in when ready</h3>
 <p>Running <code>mdo</code> with no arguments prints a short <strong>Open Markdown as HTML</strong> landing page and exits successfully; use <code>mdo --help</code> for the full CLI reference. Run <code>mdo --setup</code> when you want guided setup. On Windows and Linux it can offer to install <strong>Open as HTML</strong> for the current user only. The default answer is <strong>Yes</strong>, but mdo still does not change the default Markdown app. Choose <strong>No</strong> to skip or run setup again later.</p>
-<p>After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click <code>mdo-setup.exe</code> to open that same guided setup without a terminal already open; on Linux, launch <strong>mdo Setup</strong> from your application menu or run <code>mdo-setup</code>. Launcher details are in the <a href="https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md" rel="noopener noreferrer">file-manager integration guide</a>.</p>
+<p>After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click <code>mdo-setup.exe</code> to open that same guided setup without a terminal already open; on Linux, launch <strong>mdo Setup</strong> from your application menu or run <code>mdo-setup</code>. Launcher details are in the <a href="file-manager-integration.html" rel="noopener noreferrer">file-manager integration guide</a>.</p>
 <h2>Usage</h2>
 <p>By default, <code>mdo</code> writes a styled HTML file beside the source Markdown file. Use <code>--open</code> to render into a stable temp path and launch the default browser.</p>
 <h3>Common commands</h3>
@@ -1618,9 +1618,9 @@ mdo --open notes.md
 <li>Light/dark theme toggle in styled output</li>
 </ul>
 <h2>Imaginative Markdown + CSS</h2>
-<p>This page — including the faux browser window floating over the hero image above — is normal Markdown rendered by <code>mdo</code>, with the visual story layered on through <code>--css</code>. See <a href="https://github.com/maphew/mdo/blob/main/docs/custom-css.md" rel="noopener noreferrer">Custom CSS</a> for how it works and how to style your own pages.</p>
+<p>This page — including the faux browser window floating over the hero image above — is normal Markdown rendered by <code>mdo</code>, with the visual story layered on through <code>--css</code>. It is the only page on this site with custom styling; every other page is mdo's out-of-the-box output, exactly what you get on your own machine. See <a href="custom-css.html" rel="noopener noreferrer">Custom CSS</a> for how <code>--css</code> works and the <a href="faux-browser-window.html" rel="noopener noreferrer">faux browser window how-to</a> for how this page's hero is built.</p>
 <h2>File Manager Integration</h2>
-<p>Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same <code>mdo --open</code> render-and-open path. Platform implementation details live in the <a href="https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md" rel="noopener noreferrer">file-manager integration guide</a>.</p>
+<p>Open Markdown files from the desktop without leaving generated HTML beside the source file. Every integration launches the same <code>mdo --open</code> render-and-open path. Platform implementation details live in the <a href="file-manager-integration.html" rel="noopener noreferrer">file-manager integration guide</a>.</p>
 <h3>Windows Explorer</h3>
 <pre><code class="language-powershell">mdo-setup.exe
 mdo.exe --install-file-manager
@@ -1672,10 +1672,11 @@ macOS    $TMPDIR/mdo-{uid}/{hash}/notes.html
 <tr><td>Public Metrics</td><td><a href="metrics/" rel="noopener noreferrer">metrics/</a></td></tr>
 <tr><td>Android privacy</td><td><a href="android-privacy.html" rel="noopener noreferrer">android-privacy.html</a></td></tr>
 <tr><td>Changelog</td><td><a href="https://github.com/maphew/mdo/blob/main/CHANGELOG.md" rel="noopener noreferrer">CHANGELOG.md</a></td></tr>
-<tr><td>Usage &amp; CLI reference</td><td><a href="https://github.com/maphew/mdo/blob/main/docs/usage.md" rel="noopener noreferrer">docs/usage.md</a></td></tr>
-<tr><td>File-manager integration</td><td><a href="https://github.com/maphew/mdo/blob/main/docs/file-manager-integration.md" rel="noopener noreferrer">docs/file-manager-integration.md</a></td></tr>
-<tr><td>Custom CSS</td><td><a href="https://github.com/maphew/mdo/blob/main/docs/custom-css.md" rel="noopener noreferrer">docs/custom-css.md</a></td></tr>
-<tr><td>Maintaining</td><td><a href="https://github.com/maphew/mdo/blob/main/docs/maintaining.md" rel="noopener noreferrer">docs/maintaining.md</a></td></tr>
+<tr><td>Usage &amp; CLI reference</td><td><a href="usage.html" rel="noopener noreferrer">usage.html</a></td></tr>
+<tr><td>File-manager integration</td><td><a href="file-manager-integration.html" rel="noopener noreferrer">file-manager-integration.html</a></td></tr>
+<tr><td>Custom CSS</td><td><a href="custom-css.html" rel="noopener noreferrer">custom-css.html</a></td></tr>
+<tr><td>Faux browser window how-to</td><td><a href="faux-browser-window.html" rel="noopener noreferrer">faux-browser-window.html</a></td></tr>
+<tr><td>Maintaining</td><td><a href="maintaining.html" rel="noopener noreferrer">maintaining.html</a></td></tr>
 <tr><td>Distribution ADR</td><td><a href="adr/0002-distribution-strategy.html" rel="noopener noreferrer">adr/0002-distribution-strategy.html</a></td></tr>
 <tr><td>Tooling ADR</td><td><a href="adr/0003-keep-python-metrics-tooling.html" rel="noopener noreferrer">adr/0003-keep-python-metrics-tooling.html</a></td></tr>
 <tr><td>docs.rs</td><td><a href="https://docs.rs/mdo-cli" rel="noopener noreferrer">docs.rs/mdo-cli</a></td></tr>
@@ -1685,7 +1686,7 @@ macOS    $TMPDIR/mdo-{uid}/{hash}/notes.html
 <p>mdo is dual-licensed under MIT or Apache-2.0 and forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.</p>
 
 </main>
-<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-21T23:35:21Z">July 21, 2026, 11:35 PM UTC</time></footer>
+<footer class="mdo-source-meta">Source modified: <time datetime="2026-07-22T20:27:47Z">July 22, 2026, 8:27 PM UTC</time></footer>
 <script>
 (function(){var t=document.querySelector('.mdo-source-meta time');if(!t)return;var d=new Date(t.getAttribute('datetime'));if(isNaN(d))return;try{t.textContent=d.toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){}})();
 </script>

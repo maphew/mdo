@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Regenerate checked-in docs pages with mdo's runtime CSS pipeline.
+"""Render the docs site with mdo.
+
+Every Markdown page under docs/ is rendered with mdo's out-of-the-box
+settings — the same output users get on their own machine. The only
+exception is the homepage, docs/index.md, which keeps the
+docs/assets/site.css override so it can demo the faux browser window
+(see docs/faux-browser-window.md).
 
 Set MDO_BIN to reuse an already-built mdo binary; otherwise this script uses
 `cargo run`.
@@ -13,6 +19,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+DOCS_DIR = REPO_ROOT / "docs"
 
 
 def run_mdo(*args: str) -> None:
@@ -22,27 +29,13 @@ def run_mdo(*args: str) -> None:
 
 
 def main() -> int:
-    run_mdo(
-        "--css",
-        "docs/assets/site.css",
-        "--output",
-        "docs/index.html",
-        "docs/index.md",
-    )
-    run_mdo(
-        "--css",
-        "docs/assets/sample.css",
-        "--output",
-        "docs/assets/sample.html",
-        "docs/assets/sample.md",
-    )
-    run_mdo(
-        "--css",
-        "docs/assets/site.css",
-        "--output",
-        "docs/android-privacy.html",
-        "docs/android-privacy.md",
-    )
+    for source in sorted(DOCS_DIR.rglob("*.md")):
+        relative = source.relative_to(REPO_ROOT).as_posix()
+        output = source.with_suffix(".html").relative_to(REPO_ROOT).as_posix()
+        if relative == "docs/index.md":
+            run_mdo("--css", "docs/assets/site.css", "--output", output, relative)
+        else:
+            run_mdo("--output", output, relative)
     return 0
 
 

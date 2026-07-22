@@ -65,8 +65,8 @@ App Signing with this key as the upload key. The APK published on GitHub must
 keep using the same signing key for Android to accept in-place updates.
 
 Detailed store preparation and the current human-owned steps are in
-[`packaging/google-play/README.md`](../packaging/google-play/README.md) and
-[`packaging/fdroid/README.md`](../packaging/fdroid/README.md).
+[`packaging/google-play/README.md`](https://github.com/maphew/mdo/blob/main/packaging/google-play/README.md) and
+[`packaging/fdroid/README.md`](https://github.com/maphew/mdo/blob/main/packaging/fdroid/README.md).
 
 ## Package-manager manifests
 
@@ -86,15 +86,21 @@ before submitting to a tap, bucket, or the WinGet repository.
 
 The GitHub Pages site is the `docs/` directory, deployed by
 `.github/workflows/pages.yml` on every push to `main`. The workflow builds
-mdo, regenerates the checked-in HTML pages with `scripts/build-docs.py`, and
-renders each `docs/adr/*.md` to HTML with the `docs/assets/site.css`
-override.
+mdo, then renders every `docs/**/*.md` page to HTML with
+`scripts/build-docs.py` using mdo's out-of-the-box settings — so the site
+shows the same output users get on their own machines. The one exception is
+the homepage `docs/index.md`, rendered with the `--css docs/assets/site.css`
+override to demo the [faux browser window](faux-browser-window.html).
 
-Regenerate the checked-in pages locally with:
+Regenerate the pages locally with:
 
 ```bash
 python scripts/build-docs.py
 ```
+
+Only `docs/index.html`, `docs/assets/sample.html`, and
+`docs/android-privacy.html` are checked in; the other generated pages are
+gitignored and built fresh by the Pages workflow.
 
 `README.html` at the repository root is a plain `mdo README.md` render kept
 as an example of default output; `scripts/build-docs.py` does not touch it.
@@ -105,10 +111,10 @@ Regenerate it separately when the README changes, e.g.
 
 Design decisions live in `docs/adr/`:
 
-- [ADR 0001 — Rename to mdo](adr/0001-rename-to-mdo.md)
-- [ADR 0002 — Distribution strategy](adr/0002-distribution-strategy.md)
-- [ADR 0003 — Keep Python metrics tooling](adr/0003-keep-python-metrics-tooling.md)
-- [ADR 0004 — State-aware setup launcher](adr/0004-state-aware-setup-launcher.md)
+- [ADR 0001 — Rename to mdo](adr/0001-rename-to-mdo.html)
+- [ADR 0002 — Distribution strategy](adr/0002-distribution-strategy.html)
+- [ADR 0003 — Keep Python metrics tooling](adr/0003-keep-python-metrics-tooling.html)
+- [ADR 0004 — State-aware setup launcher](adr/0004-state-aware-setup-launcher.html)
 
 ## Public metrics
 
@@ -121,5 +127,5 @@ The collector writes only aggregate or already-public information. It does
 not read local user data, runtime mdo output, server logs, IP addresses, user
 agents, cookies, or unique identifiers — mdo itself has no telemetry. See the
 [metrics privacy note](https://maphew.github.io/mdo/metrics/privacy.html) and
-[ADR 0003](adr/0003-keep-python-metrics-tooling.md) for why this tooling is
+[ADR 0003](adr/0003-keep-python-metrics-tooling.html) for why this tooling is
 Python.

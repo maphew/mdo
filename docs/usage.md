@@ -2,7 +2,7 @@
 
 Complete CLI reference and output details for `mdo`. For a quick start, see
 the [README](https://github.com/maphew/mdo#readme); for desktop integration,
-see [File-manager integration](file-manager-integration.md).
+see [File-manager integration](file-manager-integration.html).
 
 ## CLI reference
 
@@ -90,7 +90,7 @@ mdo --bare input.md
 ```
 
 Append custom CSS after the built-in styles (see
-[Custom CSS](custom-css.md) for details):
+[Custom CSS](custom-css.html) for details):
 
 ```bash
 mdo --css my-overrides.css input.md
@@ -125,7 +125,7 @@ immediately verify the browser-opening flow.
 
 Windows and Linux release archives also include a double-clickable
 `mdo-setup` launcher that opens the same guide without a terminal already
-open — see [File-manager integration](file-manager-integration.md).
+open — see [File-manager integration](file-manager-integration.html).
 
 ## Default output
 
