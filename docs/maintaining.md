@@ -65,8 +65,8 @@ App Signing with this key as the upload key. The APK published on GitHub must
 keep using the same signing key for Android to accept in-place updates.
 
 Detailed store preparation and the current human-owned steps are in
-[`packaging/google-play/README.md`](../packaging/google-play/README.md) and
-[`packaging/fdroid/README.md`](../packaging/fdroid/README.md).
+[`packaging/google-play/README.md`](https://github.com/maphew/mdo/blob/main/packaging/google-play/README.md) and
+[`packaging/fdroid/README.md`](https://github.com/maphew/mdo/blob/main/packaging/fdroid/README.md).
 
 ## Package-manager manifests
 
@@ -86,15 +86,26 @@ before submitting to a tap, bucket, or the WinGet repository.
 
 The GitHub Pages site is the `docs/` directory, deployed by
 `.github/workflows/pages.yml` on every push to `main`. The workflow builds
-mdo, regenerates the checked-in HTML pages with `scripts/build-docs.py`, and
-renders each `docs/adr/*.md` to HTML with the `docs/assets/site.css`
-override.
+mdo, then renders every `docs/**/*.md` page to HTML with
+`scripts/build-docs.py` using mdo's out-of-the-box settings — so the site
+shows the same output users get on their own machines. The one exception is
+the homepage `docs/index.md`, rendered with the `--css docs/assets/site.css`
+override to demo the [faux browser window](faux-browser-window.md).
 
-Regenerate the checked-in pages locally with:
+Cross-page links in the Markdown sources point at `.md` files so they keep
+working when the sources are browsed on GitHub; `scripts/build-docs.py`
+rewrites relative `.md` links to `.html` in the generated pages so they also
+resolve on the published site.
+
+Regenerate the pages locally with:
 
 ```bash
 python scripts/build-docs.py
 ```
+
+Generated pages are not checked in — they are gitignored and built fresh by
+the Pages workflow on every deploy. The only tracked HTML under `docs/` is
+the hand-written metrics pages (`docs/metrics/*.html`).
 
 `README.html` at the repository root is a plain `mdo README.md` render kept
 as an example of default output; `scripts/build-docs.py` does not touch it.
