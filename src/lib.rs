@@ -14,12 +14,13 @@ use std::fs::OpenOptions;
 #[cfg(unix)]
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 
-use pulldown_cmark::{html, Options, Parser as MdParser};
+use pulldown_cmark::Options;
 use url::Url;
 
 #[cfg(target_os = "android")]
 mod android;
 pub mod file_manager;
+mod highlight;
 #[cfg(target_os = "windows")]
 pub mod windows_setup;
 
@@ -346,7 +347,7 @@ fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
     }
 }
 
-fn markdown_to_html(markdown: &str) -> String {
+fn markdown_options() -> Options {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
     options.insert(Options::ENABLE_TABLES);
@@ -355,10 +356,24 @@ fn markdown_to_html(markdown: &str) -> String {
     options.insert(Options::ENABLE_GFM);
     options.insert(Options::ENABLE_YAML_STYLE_METADATA_BLOCKS);
 
-    let parser = MdParser::new_ext(markdown, options);
-    let mut html_output = String::new();
-    html::push_html(&mut html_output, parser);
-    html_output
+    options
+}
+
+fn markdown_to_html(markdown: &str, placeholder_discriminator: u64) -> highlight::RenderedMarkdown {
+    highlight::render(markdown, markdown_options(), placeholder_discriminator)
+}
+
+/// Render and sanitize Markdown, retrying the complete placeholder render if
+/// HTML normalization causes any generated token not to occur exactly once.
+fn safe_markdown_body(markdown: &str) -> (String, Option<&'static str>) {
+    for discriminator in 0_u64.. {
+        let rendered = markdown_to_html(markdown, discriminator);
+        let sanitized = sanitize_html(rendered.raw_html());
+        if let Some(body) = rendered.finish(sanitized) {
+            return (body, rendered.css());
+        }
+    }
+    unreachable!("u64 placeholder discriminator space exhausted")
 }
 
 fn sanitize_html(html: &str) -> String {
@@ -383,9 +398,16 @@ pub fn render_markdown_document(
     fallback_title: &str,
     source_modified_unix_secs: Option<u64>,
 ) -> String {
-    let body = sanitize_html(&markdown_to_html(markdown));
+    let (body, highlight_css) = safe_markdown_body(markdown);
     let title = derive_title(markdown, fallback_title);
-    wrap_html5(&body, &title, None, None, source_modified_unix_secs)
+    wrap_html5(
+        &body,
+        &title,
+        None,
+        None,
+        highlight_css,
+        source_modified_unix_secs,
+    )
 }
 
 fn derive_title(markdown: &str, fallback: &str) -> String {
@@ -579,6 +601,7 @@ fn wrap_html5(
     title: &str,
     base_href: Option<&str>,
     css_override: Option<&str>,
+    highlight_css: Option<&str>,
     source_modified_unix_secs: Option<u64>,
 ) -> String {
     // `<base href>` makes relative image/link refs in the rendered HTML resolve
@@ -602,6 +625,7 @@ fn wrap_html5(
         "<style id=\"mdo-default-typography\">\n{}\n</style>\n",
         escape_style_end_tags(MDO_DEFAULT_TYPOGRAPHY_CSS)
     );
+    let highlight_css = highlight_css.unwrap_or_default();
     // Provenance lives only in <meta name="generator">; the visible page
     // carries no mdo branding, version, or render timing (v0.6 quiet output).
     let generator = format!("{APP_DISPLAY_NAME} {APP_VERSION}");
@@ -633,7 +657,7 @@ fn wrap_html5(
          <meta name=\"generator\" content=\"{generator}\">\n\
          {base_tag}\
          <title>{title}</title>\n\
-         <style>\n{css}\n{gfm_alerts_css}\n.mdo-source-meta{{margin-top:3rem;border:0;padding:1rem 0 1.5rem;font-size:.8rem;line-height:1.4;color:var(--text-light);text-align:center}}\n</style>\n\
+         <style>\n{css}\n{gfm_alerts_css}\n{highlight_css}\n.mdo-source-meta{{margin-top:3rem;border:0;padding:1rem 0 1.5rem;font-size:.8rem;line-height:1.4;color:var(--text-light);text-align:center}}\n</style>\n\
          {theme_toggle}\
          {mdo_default_typography}\
          {css_override_block}\
@@ -648,6 +672,7 @@ fn wrap_html5(
         title = html_escape(title),
         css = SIMPLE_CSS,
         gfm_alerts_css = GFM_ALERTS_CSS,
+        highlight_css = highlight_css,
         theme_toggle = THEME_TOGGLE, // ← THEME TOGGLE injection point (delete this line to remove)
         mdo_default_typography = mdo_default_typography,
         css_override_block = css_override_block,
@@ -864,17 +889,30 @@ pub fn convert_with_diagnostics(
         }
     };
 
-    let stage_start = Instant::now();
-    let raw_body = markdown_to_html(&markdown);
-    timings.markdown = stage_start.elapsed();
-
-    let body = if unsafe_html {
-        raw_body
-    } else {
+    let mut discriminator = 0_u64;
+    let (body, highlight_css) = loop {
         let stage_start = Instant::now();
-        let sanitized = sanitize_html(&raw_body);
-        timings.sanitize = stage_start.elapsed();
-        sanitized
+        let rendered = markdown_to_html(&markdown, discriminator);
+        timings.markdown += stage_start.elapsed();
+
+        let body = if unsafe_html {
+            rendered.raw_html().to_string()
+        } else {
+            let sanitize_start = Instant::now();
+            let sanitized = sanitize_html(rendered.raw_html());
+            timings.sanitize += sanitize_start.elapsed();
+            sanitized
+        };
+        // Highlighted spans are generated by mdo from escaped code text.
+        // Insert them only after ammonia has handled user-authored HTML. If
+        // normalization creates a token collision, retry the entire render
+        // with a fresh token set; never perform a partial splice.
+        if let Some(body) = rendered.finish(body) {
+            break (body, rendered.css());
+        }
+        discriminator = discriminator
+            .checked_add(1)
+            .expect("placeholder discriminator space exhausted");
     };
 
     let final_html = if bare {
@@ -905,6 +943,7 @@ pub fn convert_with_diagnostics(
             &title,
             base_href.as_deref(),
             css_override.as_deref(),
+            highlight_css,
             source_modified_unix_secs(input),
         );
         timings.assemble = stage_start.elapsed();
@@ -985,6 +1024,13 @@ mod tests {
     use std::time::SystemTime;
 
     static NEXT_TEMP_FIXTURE_ID: AtomicU64 = AtomicU64::new(0);
+
+    fn rendered_markdown_html(markdown: &str) -> String {
+        let rendered = markdown_to_html(markdown, 0);
+        rendered
+            .finish(rendered.raw_html().to_string())
+            .expect("unsanitized renderer should preserve its unique placeholders")
+    }
 
     #[test]
     fn temp_output_stem_replaces_shell_metacharacters() {
@@ -1068,7 +1114,7 @@ mod tests {
 
     #[test]
     fn wrap_html5_keeps_generator_meta_without_visible_branding() {
-        let html = wrap_html5("<p>hi</p>", "Title", None, None, Some(0));
+        let html = wrap_html5("<p>hi</p>", "Title", None, None, None, Some(0));
 
         assert!(html.contains(&format!(
             "<meta name=\"generator\" content=\"mdo {APP_VERSION}\">"
@@ -1079,7 +1125,7 @@ mod tests {
 
     #[test]
     fn wrap_html5_shows_source_modified_time_with_machine_datetime() {
-        let html = wrap_html5("<p>hi</p>", "Title", None, None, Some(951_827_696));
+        let html = wrap_html5("<p>hi</p>", "Title", None, None, None, Some(951_827_696));
 
         assert!(html.contains(
             "<footer class=\"mdo-source-meta\">Source modified: \
@@ -1089,7 +1135,7 @@ mod tests {
 
     #[test]
     fn wrap_html5_renders_without_source_modified_time() {
-        let html = wrap_html5("<p>hi</p>", "Title", None, None, None);
+        let html = wrap_html5("<p>hi</p>", "Title", None, None, None, None);
 
         assert!(html.contains("<main>\n<p>hi</p>\n</main>"));
         assert!(!html.contains("Source modified"));
@@ -1135,14 +1181,14 @@ mod tests {
                         later</li>\n\
                         </ul>\n";
 
-        assert_eq!(markdown_to_html(markdown), expected);
+        assert_eq!(rendered_markdown_html(markdown), expected);
     }
 
     #[test]
     fn gfm_alerts_render_all_supported_classes_and_survive_sanitizing() {
         for kind in ["note", "tip", "important", "warning", "caution"] {
             let markdown = format!("> [!{}]\n> Alert text\n", kind.to_uppercase());
-            let raw = markdown_to_html(&markdown);
+            let raw = rendered_markdown_html(&markdown);
             let class = format!("class=\"markdown-alert-{kind}\"");
 
             assert!(raw.contains(&class), "{raw}");
@@ -1153,7 +1199,7 @@ mod tests {
 
     #[test]
     fn wrapped_document_styles_alerts_in_light_and_dark_palettes() {
-        let html = wrap_html5("<p>hi</p>", "Title", None, None, None);
+        let html = wrap_html5("<p>hi</p>", "Title", None, None, None, None);
 
         assert!(html.contains(":root[data-theme=\"light\"]{--alert-note:"));
         assert!(html.contains(":root[data-theme=\"dark\"]{--alert-note:"));
@@ -1166,7 +1212,7 @@ mod tests {
     fn yaml_front_matter_is_hidden_and_supplies_document_title() {
         let markdown =
             "---\ntitle: 'Front Matter Title'\nauthor: Example\n...\n\n# Heading Title\n";
-        let body = markdown_to_html(markdown);
+        let body = rendered_markdown_html(markdown);
 
         assert_eq!(body, "<h1>Heading Title</h1>\n");
         assert_eq!(derive_title(markdown, "fallback"), "Front Matter Title");
@@ -1207,10 +1253,110 @@ mod tests {
 
     #[test]
     fn smart_punctuation_is_not_enabled() {
-        let html = markdown_to_html("-- --- ... \"straight\" 'quotes'\n");
+        let html = rendered_markdown_html("-- --- ... \"straight\" 'quotes'\n");
 
         assert_eq!(html, "<p>-- --- ... \"straight\" 'quotes'</p>\n");
         assert!(!html.contains(['–', '—', '…', '“', '”', '‘', '’']));
+    }
+
+    #[test]
+    fn recognized_fences_are_highlighted_with_both_theme_palettes() {
+        let markdown = "```rust\nfn main() { let html = \"<script>x</script>\"; }\n```\n";
+        let html = render_markdown_document(markdown, "fallback", None);
+
+        assert!(html.contains(
+            "<pre class=\"mdo-highlight mdo-syntect-code\"><code class=\"language-rust\">"
+        ));
+        assert!(html.contains("mdo-syntect-keyword"), "{html}");
+        assert!(html.contains(":root[data-theme=\"light\"] .mdo-syntect-code"));
+        assert!(html.contains(":root[data-theme=\"dark\"] .mdo-syntect-code"));
+        assert!(!html.contains("<script>x</script>"));
+        assert!(html.contains("&lt;script&gt;"));
+    }
+
+    #[test]
+    fn unknown_fences_remain_plain_and_do_not_add_theme_css() {
+        let markdown = "```not-a-real-language\n<unsafe> & plain\n```\n";
+        let html = render_markdown_document(markdown, "fallback", None);
+
+        assert!(html.contains(
+            "<pre><code class=\"language-not-a-real-language\">&lt;unsafe&gt; &amp; plain\n</code></pre>"
+        ));
+        assert!(!html.contains("mdo-highlight"));
+        assert!(!html.contains("Syntax highlighting generated by syntect"));
+    }
+
+    #[test]
+    fn pages_without_code_do_not_add_highlight_css() {
+        let html = render_markdown_document("# Just prose\n", "fallback", None);
+        assert!(!html.contains("Syntax highlighting generated by syntect"));
+        assert!(!html.contains("mdo-syntect-"));
+
+        let unlabeled = render_markdown_document("```\nplain code\n```\n", "fallback", None);
+        assert!(unlabeled.contains("<pre><code>plain code\n</code></pre>"));
+        assert!(!unlabeled.contains("Syntax highlighting generated by syntect"));
+    }
+
+    #[test]
+    fn literal_placeholder_spoof_does_not_capture_generated_markup() {
+        let spoof = "__MDO_HIGHLIGHT_PLACEHOLDER_0_0__";
+        let markdown = format!("`{spoof}`\n\n```rust\nlet answer = 42;\n```\n");
+        let html = render_markdown_document(&markdown, "fallback", None);
+
+        assert!(html.contains(spoof));
+        assert_eq!(html.matches("<pre class=\"mdo-highlight ").count(), 1);
+        assert!(!html.contains("__MDO_HIGHLIGHT_PLACEHOLDER_1_0__"));
+    }
+
+    #[test]
+    fn entity_normalized_placeholder_spoof_retries_before_any_splice() {
+        let normalized = "__MDO_HIGHLIGHT_PLACEHOLDER_0_0__";
+        let encoded = "&#95;&#95;MDO&#95;HIGHLIGHT&#95;PLACEHOLDER&#95;0&#95;0&#95;&#95;";
+        let markdown = format!("{encoded}\n\n```rust\nlet answer = 42;\n```\n");
+        let html = render_markdown_document(&markdown, "fallback", None);
+
+        assert!(html.contains(normalized), "{html}");
+        assert_eq!(html.matches("<pre class=\"mdo-highlight ").count(), 1);
+        assert!(!html.contains("__MDO_HIGHLIGHT_PLACEHOLDER_1_0__"));
+    }
+
+    #[test]
+    fn attribute_normalized_placeholder_cannot_receive_generated_markup() {
+        let normalized = "__MDO_HIGHLIGHT_PLACEHOLDER_0_0__";
+        let encoded = "&#95;&#95;MDO&#95;HIGHLIGHT&#95;PLACEHOLDER&#95;0&#95;0&#95;&#95;";
+        let markdown = format!(
+            "<span title=\"{encoded}\">probe</span>\n\n```rust\nlet one = 1;\n```\n\n```python\nprint(2)\n```\n"
+        );
+        let html = render_markdown_document(&markdown, "fallback", None);
+
+        assert!(html.contains(&format!("title=\"{normalized}\"")), "{html}");
+        assert!(!html.contains("title=\"<pre"), "{html}");
+        assert_eq!(html.matches("<pre class=\"mdo-highlight ").count(), 2);
+        assert!(!html.contains("__MDO_HIGHLIGHT_PLACEHOLDER_1_0__"));
+        assert!(!html.contains("__MDO_HIGHLIGHT_PLACEHOLDER_1_1__"));
+    }
+
+    #[test]
+    fn multiple_highlighted_blocks_splice_once_each() {
+        let markdown = "```rust\nlet one = 1;\n```\n\n```python\nprint(2)\n```\n";
+        let html = render_markdown_document(markdown, "fallback", None);
+
+        assert_eq!(html.matches("<pre class=\"mdo-highlight ").count(), 2);
+        assert!(html.contains("language-rust"));
+        assert!(html.contains("language-python"));
+        assert!(!html.contains("MDO_HIGHLIGHT_PLACEHOLDER"));
+    }
+
+    #[test]
+    fn raw_user_html_still_crosses_the_ammonia_boundary() {
+        let markdown = "<div onclick=\"alert(1)\"><script>bad()</script><span class=\"mdo-syntect-keyword\">user</span></div>\n\n```rust\nlet safe = \"<b>code</b>\";\n```\n";
+        let html = render_markdown_document(markdown, "fallback", None);
+
+        assert!(!html.contains("onclick=\"alert(1)\""));
+        assert!(!html.contains("<script>bad()</script>"));
+        assert!(html.contains(">user</span>"));
+        assert!(!html.contains("<b>code</b>"));
+        assert!(html.contains("&lt;b&gt;"));
     }
 
     #[test]
