@@ -48,7 +48,7 @@ include = [
 [dependencies]
 ammonia = "4.1.4"
 libc = "0.2"
-pulldown-cmark = "0.10"
+pulldown-cmark = "0.13"
 clap = { version = "4", features = ["derive"] }
 notify = "6"
 url = "2.5"
