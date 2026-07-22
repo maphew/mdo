@@ -98,9 +98,9 @@ Regenerate the pages locally with:
 python scripts/build-docs.py
 ```
 
-Only `docs/index.html`, `docs/assets/sample.html`, and
-`docs/android-privacy.html` are checked in; the other generated pages are
-gitignored and built fresh by the Pages workflow.
+Generated pages are not checked in — they are gitignored and built fresh by
+the Pages workflow on every deploy. The only tracked HTML under `docs/` is
+the hand-written metrics pages (`docs/metrics/*.html`).
 
 `README.html` at the repository root is a plain `mdo README.md` render kept
 as an example of default output; `scripts/build-docs.py` does not touch it.

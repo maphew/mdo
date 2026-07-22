@@ -133,6 +133,12 @@ The complete implementation lives in
 [`docs/assets/site.css`](https://github.com/maphew/mdo/blob/main/docs/assets/site.css)
 — search for `mammoth` to jump to the faux-window rules.
 
+An earlier, fully interactive version of this window — working minimize /
+maximize / close buttons, a dock, and an animated desktop scene — needed raw
+HTML and JavaScript, so it could not survive the move to Markdown-only page
+source. It is preserved in working order in
+[things tried: interactive preview window](things-tried/interactive-preview-window.html).
+
 ## Try it yourself
 
 From a checkout of the repository:
