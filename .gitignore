@@ -8,17 +8,8 @@ __pycache__/
 # Docs pages generated from docs/**/*.md by scripts/build-docs.py; the Pages
 # workflow builds them fresh on deploy. The hand-written docs/metrics/*.html
 # pages stay tracked.
-docs/adr/*.html
-docs/android-privacy.html
-docs/assets/sample.html
-docs/custom-css.html
-docs/faux-browser-window.html
-docs/file-manager-integration.html
-docs/index.html
-docs/maintaining.html
-docs/usage.html
-docs/release-notes/*.html
-docs/things-tried/*.html
+docs/**/*.html
+!docs/metrics/*.html
 
 # Beads / Dolt files (added by bd init)
 .dolt/
