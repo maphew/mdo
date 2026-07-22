@@ -9,7 +9,7 @@ an image followed by a blockquote — and everything else is layered on with
 
 This page explains how the trick works so you can adapt it for your own
 pages. For the general `--css` mechanics and cascade order, see
-[Custom CSS](custom-css.html).
+[Custom CSS](custom-css.md).
 
 ## Step 1 — Write a recognizable Markdown shape
 
@@ -137,7 +137,7 @@ An earlier, fully interactive version of this window — working minimize /
 maximize / close buttons, a dock, and an animated desktop scene — needed raw
 HTML and JavaScript, so it could not survive the move to Markdown-only page
 source. It is preserved in working order in
-[things tried: interactive preview window](things-tried/interactive-preview-window.html).
+[things tried: interactive preview window](things-tried/interactive-preview-window.md).
 
 ## Try it yourself
 

@@ -90,7 +90,12 @@ mdo, then renders every `docs/**/*.md` page to HTML with
 `scripts/build-docs.py` using mdo's out-of-the-box settings — so the site
 shows the same output users get on their own machines. The one exception is
 the homepage `docs/index.md`, rendered with the `--css docs/assets/site.css`
-override to demo the [faux browser window](faux-browser-window.html).
+override to demo the [faux browser window](faux-browser-window.md).
+
+Cross-page links in the Markdown sources point at `.md` files so they keep
+working when the sources are browsed on GitHub; `scripts/build-docs.py`
+rewrites relative `.md` links to `.html` in the generated pages so they also
+resolve on the published site.
 
 Regenerate the pages locally with:
 
@@ -111,10 +116,10 @@ Regenerate it separately when the README changes, e.g.
 
 Design decisions live in `docs/adr/`:
 
-- [ADR 0001 — Rename to mdo](adr/0001-rename-to-mdo.html)
-- [ADR 0002 — Distribution strategy](adr/0002-distribution-strategy.html)
-- [ADR 0003 — Keep Python metrics tooling](adr/0003-keep-python-metrics-tooling.html)
-- [ADR 0004 — State-aware setup launcher](adr/0004-state-aware-setup-launcher.html)
+- [ADR 0001 — Rename to mdo](adr/0001-rename-to-mdo.md)
+- [ADR 0002 — Distribution strategy](adr/0002-distribution-strategy.md)
+- [ADR 0003 — Keep Python metrics tooling](adr/0003-keep-python-metrics-tooling.md)
+- [ADR 0004 — State-aware setup launcher](adr/0004-state-aware-setup-launcher.md)
 
 ## Public metrics
 
@@ -127,5 +132,5 @@ The collector writes only aggregate or already-public information. It does
 not read local user data, runtime mdo output, server logs, IP addresses, user
 agents, cookies, or unique identifiers — mdo itself has no telemetry. See the
 [metrics privacy note](https://maphew.github.io/mdo/metrics/privacy.html) and
-[ADR 0003](adr/0003-keep-python-metrics-tooling.html) for why this tooling is
+[ADR 0003](adr/0003-keep-python-metrics-tooling.md) for why this tooling is
 Python.

@@ -40,7 +40,7 @@ The [project site](https://maphew.github.io/mdo/) homepage dogfoods `mdo` by
 building a visual preview — a faux browser window floating over the hero
 image — without raw HTML embeds or iframes. The source is only normal
 Markdown; the window chrome is layered on through `--css`. The full recipe is
-in the [faux browser window how-to](faux-browser-window.html).
+in the [faux browser window how-to](faux-browser-window.md).
 
 That trick keeps the content portable and readable as Markdown while using
 `--css` to create a richer static page. It is a good example of how `mdo` can
@@ -60,4 +60,4 @@ you get from a plain `mdo file.md` on your own machine. The one exception is
 the homepage, `docs/index.md`, which adds the `--css docs/assets/site.css`
 override so it can demo the faux browser window; the docs-only presentation
 is layered after mdo's embedded simple.css and typography defaults. See
-[Maintaining](maintaining.html) for how the site is deployed.
+[Maintaining](maintaining.md) for how the site is deployed.

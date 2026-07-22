@@ -11,7 +11,7 @@ It was retired when the homepage moved to Markdown-only source
 (`docs/index.md`): mdo sanitizes raw HTML by default and emits no JavaScript
 hooks, so a widget that needs `<div class>` markup, an iframe, and a script
 cannot be expressed in the page source anymore. The current hero is the
-CSS-only [faux browser window](../faux-browser-window.html), which trades
+CSS-only [faux browser window](../faux-browser-window.md), which trades
 interactivity for a pure-Markdown source.
 
 The pieces are preserved here in working order for possible revival — for
