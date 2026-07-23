@@ -1,0 +1,20 @@
+PackageIdentifier: Maphew.Mdo
+PackageVersion: 0.6.1
+PackageLocale: en-US
+Publisher: Matt Wilkie
+PublisherUrl: https://github.com/maphew
+Author: Matt Wilkie
+PackageName: mdo
+PackageUrl: https://github.com/maphew/mdo
+License: MIT OR Apache-2.0
+LicenseUrl: https://github.com/maphew/mdo#license
+ShortDescription: Convert Markdown to standalone HTML5 documents.
+Description: mdo is a small Rust command-line tool that converts Markdown files into standalone HTML5 documents, with optional watch and open modes.
+Moniker: mdo
+Tags:
+  - cli
+  - html
+  - markdown
+  - rust
+ManifestType: defaultLocale
+ManifestVersion: 1.10.0

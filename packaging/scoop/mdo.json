@@ -1,5 +1,5 @@
 {
-    "version": "0.6.0",
+    "version": "0.6.1",
     "description": "Convert Markdown to standalone HTML5 documents.",
     "homepage": "https://maphew.github.io/mdo/",
     "license": {
@@ -8,8 +8,8 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-x86_64-pc-windows-msvc.zip",
-            "hash": "f723b6a1967445a26cab7f3530b383cb9c6b508e0ff02aed1132d88bf665f08f",
+            "url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-x86_64-pc-windows-msvc.zip",
+            "hash": "4cca084920edf562ee1fdc8512d3c372be383d4a95f3d51dc2280d4e5e64abc7",
             "extract_dir": "mdo-x86_64-pc-windows-msvc"
         }
     },
