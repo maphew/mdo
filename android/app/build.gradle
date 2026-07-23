@@ -32,8 +32,8 @@ android {
         applicationId "io.github.maphew.mdo"
         minSdk 23
         targetSdk 36
-        versionCode 600
-        versionName "0.6.0-preview"
+        versionCode 601
+        versionName "0.6.1"
     }
 
     if (hasReleaseSigning) {

@@ -40,7 +40,9 @@ Rust users can build from source instead with `cargo install mdo-cli`
 
 The native Android app can open a Markdown document from the system picker or
 handle it from a Files app, then renders it locally through mdo's shared Rust
-engine. Android build and installation details are in
+engine. Download the signed ARM64 APK from the
+[latest GitHub Release](https://github.com/maphew/mdo/releases/latest/download/mdo-android-arm64.apk).
+Android installation, build, and usage details are in
 [`android/README.md`](android/README.md).
 
 ## Use
