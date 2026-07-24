@@ -1,0 +1,7 @@
+# Configuration for cargo-audit (read from .cargo/audit.toml).
+
+[advisories]
+# RUSTSEC-2025-0141: bincode 1.x is unmaintained; pulled in transitively via
+# syntect's dump-load feature and no feature-flag remedy exists. Tracked in
+# the beads mdo issue tracker; remove when syntect drops bincode.
+ignore = ["RUSTSEC-2025-0141"]
