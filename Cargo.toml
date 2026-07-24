@@ -1,6 +1,6 @@
 [package]
 name = "mdo-cli"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
 default-run = "mdo"
 build = "build.rs"

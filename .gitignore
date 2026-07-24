@@ -5,7 +5,11 @@
 /android/app/build
 __pycache__/
 *.pyc
-docs/adr/*.html
+# Docs pages generated from docs/**/*.md by scripts/build-docs.py; the Pages
+# workflow builds them fresh on deploy. The hand-written docs/metrics/*.html
+# pages stay tracked.
+docs/**/*.html
+!docs/metrics/*.html
 
 # Beads / Dolt files (added by bd init)
 .dolt/
