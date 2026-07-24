@@ -48,9 +48,14 @@ const MDO_DEFAULT_TYPOGRAPHY_CSS: &str = include_str!("../assets/mdo-default-typ
 // pulldown-cmark emits GFM alerts as blockquotes with a
 // `markdown-alert-{kind}` class. Keep the presentation in the generated
 // document so alerts also work for bare installs with no external assets.
-// The explicit palette values follow the theme toggle rather than relying on
-// the browser's OS preference after a reader has selected a manual theme.
+// The plain `:root` and prefers-color-scheme rules keep alerts styled when
+// JavaScript is disabled (the theme-toggle script never runs, so no
+// data-theme attribute is ever set); the higher-specificity
+// `:root[data-theme=...]` rules then follow the theme toggle rather than the
+// OS preference once a reader has selected a manual theme.
 const GFM_ALERTS_CSS: &str = r#"
+:root{--alert-note:#0969da;--alert-tip:#1a7f37;--alert-important:#8250df;--alert-warning:#9a6700;--alert-caution:#cf222e}
+@media (prefers-color-scheme: dark){:root{--alert-note:#58a6ff;--alert-tip:#3fb950;--alert-important:#a371f7;--alert-warning:#d29922;--alert-caution:#f85149}}
 :root[data-theme="light"]{--alert-note:#0969da;--alert-tip:#1a7f37;--alert-important:#8250df;--alert-warning:#9a6700;--alert-caution:#cf222e}
 :root[data-theme="dark"]{--alert-note:#58a6ff;--alert-tip:#3fb950;--alert-important:#a371f7;--alert-warning:#d29922;--alert-caution:#f85149}
 blockquote[class^="markdown-alert-"]{--alert-color:var(--accent);border-left:.3rem solid var(--alert-color);background:var(--accent-bg);padding:.75rem 1rem}
@@ -347,13 +352,22 @@ fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
 }
 
 fn markdown_to_html(markdown: &str) -> String {
+    // Front matter is stripped here, before parsing, by the same
+    // `yaml_front_matter` splitter that title derivation uses, so one set of
+    // acceptance rules governs both. Options::ENABLE_YAML_STYLE_METADATA_BLOCKS
+    // is deliberately NOT enabled: pulldown-cmark 0.13 recognizes metadata
+    // blocks anywhere at indent 0, not just at document start, which silently
+    // swallows mid-document text framed by `---` lines.
+    let markdown = yaml_front_matter(markdown)
+        .map(|(_, body)| body)
+        .unwrap_or(markdown);
+
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
     options.insert(Options::ENABLE_TABLES);
     options.insert(Options::ENABLE_FOOTNOTES);
     options.insert(Options::ENABLE_TASKLISTS);
     options.insert(Options::ENABLE_GFM);
-    options.insert(Options::ENABLE_YAML_STYLE_METADATA_BLOCKS);
 
     let parser = MdParser::new_ext(markdown, options);
     let mut html_output = String::new();
@@ -441,36 +455,49 @@ fn front_matter_title(markdown: &str) -> Option<String> {
     title
 }
 
-/// Split a complete YAML-style metadata block from the document body while
-/// following pulldown-cmark's delimiter rules closely enough for title
-/// extraction. The returned metadata excludes delimiters.
+/// Split a complete YAML-style metadata block from the document body. The
+/// returned metadata excludes delimiters.
+///
+/// This splitter is the single source of truth for front-matter recognition
+/// (both hiding the block from rendered output and title extraction), and its
+/// acceptance rules are deliberately conservative and GitHub-like:
+///
+/// - the opening `---` must be the very first line of the document;
+/// - the closing delimiter is `---` or `...` on its own line — trailing
+///   spaces are allowed but tabs are not;
+/// - the block must be non-empty and its first line must not be blank.
+///   GitHub and pulldown-cmark both reject blocks whose first content line is
+///   blank, so treating them as front matter here would hide visible content
+///   and let e.g. `---\n\ntitle: fake\n---` spoof the page title.
 fn yaml_front_matter(markdown: &str) -> Option<(&str, &str)> {
+    fn delimiter(line: &str) -> Option<&str> {
+        let line = line.trim_end_matches(['\r', '\n']).trim_end_matches(' ');
+        (line == "---" || line == "...").then_some(line)
+    }
+
     let first_line_end = markdown.find('\n').unwrap_or(markdown.len());
-    if markdown[..first_line_end].trim_end() != "---" || first_line_end == markdown.len() {
+    if delimiter(&markdown[..first_line_end]) != Some("---") || first_line_end == markdown.len() {
         return None;
     }
 
     let metadata_start = first_line_end + 1;
     let remainder = &markdown[metadata_start..];
     let mut consumed = 0;
+    // split_inclusive also yields a final segment without a trailing newline,
+    // so a closing delimiter at end-of-input is found by the loop as well.
     for segment in remainder.split_inclusive('\n') {
-        let line = segment.trim_end_matches(['\r', '\n']).trim_end();
-        if line == "---" || line == "..." {
-            return Some((
-                &remainder[..consumed],
-                &remainder[consumed + segment.len()..],
-            ));
+        if delimiter(segment).is_some() {
+            let metadata = &remainder[..consumed];
+            let first_content_line = metadata.lines().next()?;
+            if first_content_line.trim().is_empty() {
+                return None;
+            }
+            return Some((metadata, &remainder[consumed + segment.len()..]));
         }
         consumed += segment.len();
     }
 
-    // split_inclusive also yields a final segment without a newline.
-    let final_line = remainder[consumed..].trim_end();
-    if final_line == "---" || final_line == "..." {
-        Some((&remainder[..consumed], ""))
-    } else {
-        None
-    }
+    None
 }
 
 fn unquote_front_matter_scalar(value: &str) -> &str {
@@ -1155,6 +1182,11 @@ mod tests {
     fn wrapped_document_styles_alerts_in_light_and_dark_palettes() {
         let html = wrap_html5("<p>hi</p>", "Title", None, None, None);
 
+        // No-JS defaults: plain :root plus an OS dark-mode media query, so
+        // alerts stay styled when the theme-toggle script never runs.
+        assert!(html.contains("\n:root{--alert-note:"));
+        assert!(html.contains("@media (prefers-color-scheme: dark){:root{--alert-note:"));
+        // Manual theme-toggle overrides.
         assert!(html.contains(":root[data-theme=\"light\"]{--alert-note:"));
         assert!(html.contains(":root[data-theme=\"dark\"]{--alert-note:"));
         for kind in ["note", "tip", "important", "warning", "caution"] {
@@ -1174,6 +1206,31 @@ mod tests {
         let document = render_markdown_document(markdown, "fallback", None);
         assert!(document.contains("<title>Front Matter Title</title>"));
         assert!(!document.contains("author: Example"));
+    }
+
+    #[test]
+    fn mid_document_metadata_style_blocks_are_rendered_not_swallowed() {
+        let markdown = "# Top\n\nintro\n\n---\nnot a heading\n---\n\ntail\n";
+        let html = markdown_to_html(markdown);
+
+        assert!(html.contains("not a heading"), "{html}");
+        assert!(html.contains("tail"), "{html}");
+        assert_eq!(derive_title(markdown, "fallback"), "Top");
+    }
+
+    #[test]
+    fn blank_first_line_block_is_not_front_matter() {
+        // GitHub and pulldown-cmark reject metadata blocks whose first content
+        // line is blank; accepting one here would hide visible text and let it
+        // spoof the page title.
+        let markdown = "---\n\ntitle: fake\n---\n\n# Real Heading\n";
+        let html = markdown_to_html(markdown);
+
+        assert!(html.contains("title: fake"), "{html}");
+        assert_eq!(derive_title(markdown, "fallback"), "Real Heading");
+
+        // An empty block is likewise not front matter.
+        assert!(yaml_front_matter("---\n---\n# Heading\n").is_none());
     }
 
     #[test]
