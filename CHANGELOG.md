@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Render GitHub-flavored alerts (`> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`,
+  `[!WARNING]`, `[!CAUTION]`) as styled callouts with light/dark palettes that
+  follow the theme toggle and, when JavaScript is disabled, the OS color
+  scheme.
+- Support YAML front matter: a `---` block at the very start of the document
+  is hidden from the rendered output, and its `title:` value (plain, quoted,
+  or containing colons) becomes the page title, ahead of the existing H1 and
+  filename fallbacks. Recognition is conservative and GitHub-like — only at
+  document start, non-empty, first line non-blank — so `---` blocks elsewhere
+  in a document still render as visible content.
 - Add a native Android app that opens Markdown through the system document
   picker or file/share intents and renders it offline through mdo's existing
   Rust renderer and sanitizer.
