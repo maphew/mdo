@@ -2,6 +2,6 @@
 
 [advisories]
 # RUSTSEC-2025-0141: bincode 1.x is unmaintained; pulled in transitively via
-# syntect's dump-load feature and no feature-flag remedy exists. Tracked in
-# the beads mdo issue tracker; remove when syntect drops bincode.
+# syntect's dump-load feature and no feature-flag remedy exists. If this
+# exemption is accepted, track its removal until syntect drops bincode.
 ignore = ["RUSTSEC-2025-0141"]
