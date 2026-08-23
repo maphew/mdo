@@ -29,5 +29,5 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 git_common_dir="$(git -C "$repo_root" rev-parse --path-format=absolute --git-common-dir)"
 beads_repo_root="$(dirname -- "$git_common_dir")"
 if [[ ! -d "$beads_repo_root/.beads/embeddeddolt/beads/.dolt" ]]; then
-  "$HOME/.local/bin/bd" --directory "$repo_root" bootstrap --yes
+  "$HOME/.local/bin/bd" --directory "$beads_repo_root" bootstrap --yes
 fi

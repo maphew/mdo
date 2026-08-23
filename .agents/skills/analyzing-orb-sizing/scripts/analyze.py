@@ -187,10 +187,9 @@ def measurements_from(texts: list[str]) -> list[Measurement]:
     for text in texts:
         rss_matches = list(TIME_RSS.finditer(text))
         for index, rss_match in enumerate(rss_matches):
-            end = rss_matches[index + 1].start() if index + 1 < len(rss_matches) else len(text)
             # GNU time usually prints RSS after CPU and elapsed, so inspect the preceding report too.
             start = rss_matches[index - 1].end() if index else 0
-            report = text[start:end]
+            report = text[start : rss_match.start()]
             cpu_matches = list(TIME_CPU.finditer(report))
             elapsed_matches = list(TIME_ELAPSED.finditer(report))
             measurements.append(

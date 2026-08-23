@@ -169,6 +169,21 @@ Maximum resident set size (kbytes): 3700000
         self.assertEqual(result.verdict, "under-sized")
         self.assertEqual(result.recommended_size, "a0.medium")
 
+    def test_multiple_time_reports_keep_each_reports_cpu_and_elapsed(self) -> None:
+        time_output = """
+Percent of CPU this job got: 25%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 0:31.00
+Maximum resident set size (kbytes): 1000
+Percent of CPU this job got: 175%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 2:02.00
+Maximum resident set size (kbytes): 2000
+"""
+        measurements = analyze.measurements_from([time_output])
+        self.assertEqual(
+            [(item.cpu_percent, item.elapsed_seconds) for item in measurements],
+            [(25.0, 31.0), (175.0, 122.0)],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
