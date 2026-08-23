@@ -45,6 +45,23 @@ const UNSAFE_TEMP_OUTPUT_STEM_CHARS: &[char] = &[
 // simple.css typography can pass assets/restore-simple-css.css with --css.
 const MDO_DEFAULT_TYPOGRAPHY_CSS: &str = include_str!("../assets/mdo-default-typography.css");
 
+// pulldown-cmark emits GFM alerts as blockquotes with a
+// `markdown-alert-{kind}` class. Keep the presentation in the generated
+// document so alerts also work for bare installs with no external assets.
+// The plain `:root` and prefers-color-scheme rules keep alerts styled when
+// JavaScript is disabled (the theme-toggle script never runs, so no
+// data-theme attribute is ever set); the higher-specificity
+// `:root[data-theme=...]` rules then follow the theme toggle rather than the
+// OS preference once a reader has selected a manual theme.
+const GFM_ALERTS_CSS: &str = r#"
+:root{--alert-note:#0969da;--alert-tip:#1a7f37;--alert-important:#8250df;--alert-warning:#9a6700;--alert-caution:#cf222e}
+@media (prefers-color-scheme: dark){:root{--alert-note:#58a6ff;--alert-tip:#3fb950;--alert-important:#a371f7;--alert-warning:#d29922;--alert-caution:#f85149}}
+:root[data-theme="light"]{--alert-note:#0969da;--alert-tip:#1a7f37;--alert-important:#8250df;--alert-warning:#9a6700;--alert-caution:#cf222e}
+:root[data-theme="dark"]{--alert-note:#58a6ff;--alert-tip:#3fb950;--alert-important:#a371f7;--alert-warning:#d29922;--alert-caution:#f85149}
+blockquote[class^="markdown-alert-"]{--alert-color:var(--accent);border-left:.3rem solid var(--alert-color);background:var(--accent-bg);padding:.75rem 1rem}
+blockquote.markdown-alert-note{--alert-color:var(--alert-note)}blockquote.markdown-alert-tip{--alert-color:var(--alert-tip)}blockquote.markdown-alert-important{--alert-color:var(--alert-important)}blockquote.markdown-alert-warning{--alert-color:var(--alert-warning)}blockquote.markdown-alert-caution{--alert-color:var(--alert-caution)}
+"#;
+
 // ─── BEGIN THEME TOGGLE ────────────────────────────────────────────────
 // Self-contained light/dark mode toggle. To remove this feature entirely:
 //   1. Delete this block (down to "END THEME TOGGLE").
@@ -335,11 +352,22 @@ fn launch_via_xdg_open(path: &Path) -> std::io::Result<()> {
 }
 
 fn markdown_to_html(markdown: &str) -> String {
+    // Front matter is stripped here, before parsing, by the same
+    // `yaml_front_matter` splitter that title derivation uses, so one set of
+    // acceptance rules governs both. Options::ENABLE_YAML_STYLE_METADATA_BLOCKS
+    // is deliberately NOT enabled: pulldown-cmark 0.13 recognizes metadata
+    // blocks anywhere at indent 0, not just at document start, which silently
+    // swallows mid-document text framed by `---` lines.
+    let markdown = yaml_front_matter(markdown)
+        .map(|(_, body)| body)
+        .unwrap_or(markdown);
+
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
     options.insert(Options::ENABLE_TABLES);
     options.insert(Options::ENABLE_FOOTNOTES);
     options.insert(Options::ENABLE_TASKLISTS);
+    options.insert(Options::ENABLE_GFM);
 
     let parser = MdParser::new_ext(markdown, options);
     let mut html_output = String::new();
@@ -375,6 +403,16 @@ pub fn render_markdown_document(
 }
 
 fn derive_title(markdown: &str, fallback: &str) -> String {
+    if let Some(title) = front_matter_title(markdown) {
+        return title;
+    }
+
+    // A valid metadata block is not document content. Exclude it from the
+    // existing H1 search even when it has no usable title key.
+    let markdown = yaml_front_matter(markdown)
+        .map(|(_, document)| document)
+        .unwrap_or(markdown);
+
     // Strip fenced code blocks first so a heading — whether an ATX `# ` line or
     // a raw <h1> — inside a ``` or ~~~ block is never mistaken for the title.
     let without_fences = strip_code_fences(markdown);
@@ -388,6 +426,94 @@ fn derive_title(markdown: &str, fallback: &str) -> String {
         return title;
     }
     fallback.to_string()
+}
+
+/// Extract a simple scalar `title:` from a complete YAML-style metadata block
+/// at the start of the document.
+///
+/// pulldown-cmark deliberately recognizes the block delimiters without
+/// interpreting YAML. mdo follows that narrow behavior: it reads only an
+/// unindented `title` key and does not add a general-purpose YAML parser (and
+/// its dependency/security surface) merely to title the generated page.
+fn front_matter_title(markdown: &str) -> Option<String> {
+    let (metadata, _) = yaml_front_matter(markdown)?;
+    let mut title = None;
+    for line in metadata.lines() {
+        if line.starts_with(char::is_whitespace) {
+            continue;
+        }
+        if let Some((key, value)) = line.split_once(':') {
+            if key == "title" {
+                let value = unquote_front_matter_scalar(value.trim());
+                if !value.is_empty() {
+                    title = Some(value.to_string());
+                }
+            }
+        }
+    }
+
+    title
+}
+
+/// Split a complete YAML-style metadata block from the document body. The
+/// returned metadata excludes delimiters.
+///
+/// This splitter is the single source of truth for front-matter recognition
+/// (both hiding the block from rendered output and title extraction), and its
+/// acceptance rules are deliberately conservative and GitHub-like:
+///
+/// - the opening `---` must be the very first line of the document;
+/// - the closing delimiter is `---` or `...` on its own line — trailing
+///   spaces are allowed but tabs are not;
+/// - the block must be non-empty and its first line must not be blank.
+///   GitHub and pulldown-cmark both reject blocks whose first content line is
+///   blank, so treating them as front matter here would hide visible content
+///   and let e.g. `---\n\ntitle: fake\n---` spoof the page title.
+fn yaml_front_matter(markdown: &str) -> Option<(&str, &str)> {
+    fn delimiter(line: &str) -> Option<&str> {
+        let line = line.trim_end_matches(['\r', '\n']).trim_end_matches(' ');
+        (line == "---" || line == "...").then_some(line)
+    }
+
+    let first_line_end = markdown.find('\n').unwrap_or(markdown.len());
+    if delimiter(&markdown[..first_line_end]) != Some("---") || first_line_end == markdown.len() {
+        return None;
+    }
+
+    let metadata_start = first_line_end + 1;
+    let remainder = &markdown[metadata_start..];
+    let mut consumed = 0;
+    // split_inclusive also yields a final segment without a trailing newline,
+    // so a closing delimiter at end-of-input is found by the loop as well.
+    for segment in remainder.split_inclusive('\n') {
+        if delimiter(segment).is_some() {
+            let metadata = &remainder[..consumed];
+            let first_content_line = metadata.lines().next()?;
+            if first_content_line.trim().is_empty() {
+                return None;
+            }
+            return Some((metadata, &remainder[consumed + segment.len()..]));
+        }
+        consumed += segment.len();
+    }
+
+    None
+}
+
+fn unquote_front_matter_scalar(value: &str) -> &str {
+    if value.len() < 2 {
+        return value;
+    }
+
+    let bytes = value.as_bytes();
+    if matches!(
+        (bytes[0], bytes[value.len() - 1]),
+        (b'\'', b'\'') | (b'"', b'"')
+    ) {
+        &value[1..value.len() - 1]
+    } else {
+        value
+    }
 }
 
 /// Return `markdown` with fenced code blocks (``` or ~~~) removed, so title
@@ -534,7 +660,7 @@ fn wrap_html5(
          <meta name=\"generator\" content=\"{generator}\">\n\
          {base_tag}\
          <title>{title}</title>\n\
-         <style>\n{css}\n.mdo-source-meta{{margin-top:3rem;border:0;padding:1rem 0 1.5rem;font-size:.8rem;line-height:1.4;color:var(--text-light);text-align:center}}\n</style>\n\
+         <style>\n{css}\n{gfm_alerts_css}\n.mdo-source-meta{{margin-top:3rem;border:0;padding:1rem 0 1.5rem;font-size:.8rem;line-height:1.4;color:var(--text-light);text-align:center}}\n</style>\n\
          {theme_toggle}\
          {mdo_default_typography}\
          {css_override_block}\
@@ -548,6 +674,7 @@ fn wrap_html5(
         base_tag = base_tag,
         title = html_escape(title),
         css = SIMPLE_CSS,
+        gfm_alerts_css = GFM_ALERTS_CSS,
         theme_toggle = THEME_TOGGLE, // ← THEME TOGGLE injection point (delete this line to remove)
         mdo_default_typography = mdo_default_typography,
         css_override_block = css_override_block,
@@ -1008,6 +1135,139 @@ mod tests {
         assert!(html.contains("<strong>Android</strong>"));
         assert!(html.contains("<meta name=\"generator\" content=\"mdo "));
         assert!(!html.contains("<script>alert('no')</script>"));
+    }
+
+    #[test]
+    fn markdown_extensions_keep_their_existing_html() {
+        let markdown = "~~gone~~\n\n\
+                        | A | B |\n\
+                        | - | - |\n\
+                        | 1 | 2 |\n\n\
+                        Footnote[^one].\n\n\
+                        [^one]: Detail\n\n\
+                        - [x] done\n\
+                        - [ ] later\n";
+        let expected = "<p><del>gone</del></p>\n\
+                        <table><thead><tr><th>A</th><th>B</th></tr></thead><tbody>\n\
+                        <tr><td>1</td><td>2</td></tr>\n\
+                        </tbody></table>\n\
+                        <p>Footnote<sup class=\"footnote-reference\"><a href=\"#one\">1</a></sup>.</p>\n\
+                        <div class=\"footnote-definition\" id=\"one\"><sup class=\"footnote-definition-label\">1</sup>\n\
+                        <p>Detail</p>\n\
+                        </div>\n\
+                        <ul>\n\
+                        <li><input disabled=\"\" type=\"checkbox\" checked=\"\"/>\n\
+                        done</li>\n\
+                        <li><input disabled=\"\" type=\"checkbox\"/>\n\
+                        later</li>\n\
+                        </ul>\n";
+
+        assert_eq!(markdown_to_html(markdown), expected);
+    }
+
+    #[test]
+    fn gfm_alerts_render_all_supported_classes_and_survive_sanitizing() {
+        for kind in ["note", "tip", "important", "warning", "caution"] {
+            let markdown = format!("> [!{}]\n> Alert text\n", kind.to_uppercase());
+            let raw = markdown_to_html(&markdown);
+            let class = format!("class=\"markdown-alert-{kind}\"");
+
+            assert!(raw.contains(&class), "{raw}");
+            assert!(!raw.contains("[!"), "{raw}");
+            assert!(sanitize_html(&raw).contains(&class), "{raw}");
+        }
+    }
+
+    #[test]
+    fn wrapped_document_styles_alerts_in_light_and_dark_palettes() {
+        let html = wrap_html5("<p>hi</p>", "Title", None, None, None);
+
+        // No-JS defaults: plain :root plus an OS dark-mode media query, so
+        // alerts stay styled when the theme-toggle script never runs.
+        assert!(html.contains("\n:root{--alert-note:"));
+        assert!(html.contains("@media (prefers-color-scheme: dark){:root{--alert-note:"));
+        // Manual theme-toggle overrides.
+        assert!(html.contains(":root[data-theme=\"light\"]{--alert-note:"));
+        assert!(html.contains(":root[data-theme=\"dark\"]{--alert-note:"));
+        for kind in ["note", "tip", "important", "warning", "caution"] {
+            assert!(html.contains(&format!("blockquote.markdown-alert-{kind}")));
+        }
+    }
+
+    #[test]
+    fn yaml_front_matter_is_hidden_and_supplies_document_title() {
+        let markdown =
+            "---\ntitle: 'Front Matter Title'\nauthor: Example\n...\n\n# Heading Title\n";
+        let body = markdown_to_html(markdown);
+
+        assert_eq!(body, "<h1>Heading Title</h1>\n");
+        assert_eq!(derive_title(markdown, "fallback"), "Front Matter Title");
+
+        let document = render_markdown_document(markdown, "fallback", None);
+        assert!(document.contains("<title>Front Matter Title</title>"));
+        assert!(!document.contains("author: Example"));
+    }
+
+    #[test]
+    fn mid_document_metadata_style_blocks_are_rendered_not_swallowed() {
+        let markdown = "# Top\n\nintro\n\n---\nnot a heading\n---\n\ntail\n";
+        let html = markdown_to_html(markdown);
+
+        assert!(html.contains("not a heading"), "{html}");
+        assert!(html.contains("tail"), "{html}");
+        assert_eq!(derive_title(markdown, "fallback"), "Top");
+    }
+
+    #[test]
+    fn blank_first_line_block_is_not_front_matter() {
+        // GitHub and pulldown-cmark reject metadata blocks whose first content
+        // line is blank; accepting one here would hide visible text and let it
+        // spoof the page title.
+        let markdown = "---\n\ntitle: fake\n---\n\n# Real Heading\n";
+        let html = markdown_to_html(markdown);
+
+        assert!(html.contains("title: fake"), "{html}");
+        assert_eq!(derive_title(markdown, "fallback"), "Real Heading");
+
+        // An empty block is likewise not front matter.
+        assert!(yaml_front_matter("---\n---\n# Heading\n").is_none());
+    }
+
+    #[test]
+    fn front_matter_title_supports_colons_and_double_quotes() {
+        let markdown = "---\ntitle: \"Project: Alpha\"\n---\n\n# Heading\n";
+        assert_eq!(derive_title(markdown, "fallback"), "Project: Alpha");
+    }
+
+    #[test]
+    fn missing_empty_or_unclosed_front_matter_title_uses_existing_fallbacks() {
+        assert_eq!(
+            derive_title("---\nauthor: Example\n---\n\n# Heading\n", "fallback"),
+            "Heading"
+        );
+        assert_eq!(
+            derive_title("---\ntitle: \n---\n", "Fallback Title"),
+            "Fallback Title"
+        );
+        assert_eq!(
+            derive_title("---\ntitle: Incomplete\n# Real Heading\n", "fallback"),
+            "Real Heading"
+        );
+        assert_eq!(
+            derive_title(
+                "---\ndescription: |\n# Metadata, not a heading\n---\n\n# Real Heading\n",
+                "fallback"
+            ),
+            "Real Heading"
+        );
+    }
+
+    #[test]
+    fn smart_punctuation_is_not_enabled() {
+        let html = markdown_to_html("-- --- ... \"straight\" 'quotes'\n");
+
+        assert_eq!(html, "<p>-- --- ... \"straight\" 'quotes'</p>\n");
+        assert!(!html.contains(['–', '—', '…', '“', '”', '‘', '’']));
     }
 
     #[test]
