@@ -96,12 +96,23 @@ def load_thread(source: str) -> dict[str, Any]:
 
 
 def shell_results(thread: dict[str, Any]) -> list[ShellResult]:
-    shell_commands = {
-        block.get("id"): block.get("input", {}).get("command", "")
-        for message in thread.get("messages", [])
-        for block in message.get("content", [])
-        if block.get("type") == "tool_use" and block.get("name") == "shell_command"
-    }
+    shell_commands: dict[Any, str] = {}
+    for message in thread.get("messages", []):
+        for block in message.get("content", []):
+            if block.get("type") != "tool_use":
+                continue
+            tool_name = block.get("name")
+            input_data = block.get("input", {})
+            if not isinstance(input_data, dict):
+                continue
+            if tool_name == "Bash":
+                command = input_data.get("cmd", "")
+            elif tool_name == "shell_command":
+                command = input_data.get("command", "")
+            else:
+                continue
+            shell_commands[block.get("id")] = command if isinstance(command, str) else ""
+
     results: list[ShellResult] = []
     for message in thread.get("messages", []):
         for block in message.get("content", []):
@@ -111,9 +122,38 @@ def shell_results(thread: dict[str, Any]) -> list[ShellResult]:
             ):
                 continue
             command = shell_commands[block.get("toolUseID")]
-            if not isinstance(command, str):
-                command = ""
+
+            # Current Amp exports expose status/output directly on tool_result.
+            # Retain support for the older nested run.result representation so
+            # previously exported threads remain analyzable.
+            if "output" in block:
+                output = block.get("output")
+                if isinstance(output, str):
+                    output_text = output
+                elif isinstance(output, list):
+                    output_text = "\n".join(
+                        item.get("text", "")
+                        for item in output
+                        if isinstance(item, dict)
+                        and item.get("type") == "text"
+                        and isinstance(item.get("text"), str)
+                    )
+                else:
+                    output_text = json.dumps(output) if output is not None else ""
+                status = block.get("status")
+                exit_code = (
+                    0
+                    if status == "done"
+                    else 1 if status in {"error", "cancelled"} else None
+                )
+                results.append(
+                    ShellResult(command=command, output=output_text, exit_code=exit_code)
+                )
+                continue
+
             run = block.get("run", {})
+            if not isinstance(run, dict):
+                continue
             result = run.get("result")
             if isinstance(result, str):
                 results.append(ShellResult(command=command, output=result, exit_code=None))
@@ -191,6 +231,7 @@ def assess(thread: dict[str, Any], size_name: str) -> Assessment:
     measurements = measurements_from(measurement_texts)
     current = SIZES[size_name]
     current_index = SIZE_NAMES.index(size_name)
+    at_largest_size = current_index == len(SIZE_NAMES) - 1
     next_size = SIZE_NAMES[min(current_index + 1, len(SIZE_NAMES) - 1)]
 
     if pressure:
@@ -201,7 +242,14 @@ def assess(thread: dict[str, Any], size_name: str) -> Assessment:
             recommended_size=next_size,
             confidence="high",
             evidence=evidence,
-            missing_evidence=[],
+            missing_evidence=(
+                [
+                    "a0.large is the largest documented size; investigate the "
+                    "workload or request a larger orb"
+                ]
+                if at_largest_size
+                else []
+            ),
             measurements=measurements,
         )
 
@@ -220,7 +268,15 @@ def assess(thread: dict[str, Any], size_name: str) -> Assessment:
                 recommended_size=next_size,
                 confidence="medium",
                 evidence=evidence,
-                missing_evidence=["no hard OOM signal was found"],
+                missing_evidence=(
+                    [
+                        "no hard OOM signal was found",
+                        "a0.large is the largest documented size; investigate the "
+                        "workload or request a larger orb",
+                    ]
+                    if at_largest_size
+                    else ["no hard OOM signal was found"]
+                ),
                 measurements=measurements,
             )
 

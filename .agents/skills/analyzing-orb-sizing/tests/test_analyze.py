@@ -13,8 +13,30 @@ SPEC.loader.exec_module(analyze)
 
 
 def thread_with_result(
-    result: str, exit_code: int = 0, command: str = "representative-workload"
+    result: str,
+    exit_code: int = 0,
+    command: str = "representative-workload",
+    *,
+    current_schema: bool = False,
+    tool_name: str = "shell_command",
 ) -> dict:
+    tool_result = (
+        {
+            "type": "tool_result",
+            "toolUseID": "shell-1",
+            "status": "done" if exit_code == 0 else "error",
+            "output": result,
+        }
+        if current_schema
+        else {
+            "type": "tool_result",
+            "toolUseID": "shell-1",
+            "run": {
+                "status": "done",
+                "result": {"output": result, "exitCode": exit_code},
+            },
+        }
+    )
     return {
         "messages": [
             {
@@ -23,22 +45,15 @@ def thread_with_result(
                     {
                         "type": "tool_use",
                         "id": "shell-1",
-                        "name": "shell_command",
-                        "input": {"command": command},
+                        "name": tool_name,
+                        "input": {"cmd" if tool_name == "Bash" else "command": command},
                     }
                 ],
             },
             {
                 "role": "user",
                 "content": [
-                    {
-                        "type": "tool_result",
-                        "toolUseID": "shell-1",
-                        "run": {
-                            "status": "done",
-                            "result": {"output": result, "exitCode": exit_code},
-                        },
-                    }
+                    tool_result
                 ],
             }
         ]
@@ -46,6 +61,37 @@ def thread_with_result(
 
 
 class AssessTests(unittest.TestCase):
+    def test_pressure_at_largest_size_requests_manual_escalation(self) -> None:
+        result = analyze.assess(
+            thread_with_result("process exited with status 137", exit_code=137),
+            "a0.large",
+        )
+        self.assertEqual(result.verdict, "under-sized")
+        self.assertEqual(result.recommended_size, "a0.large")
+        self.assertIn("largest documented size", result.missing_evidence[0])
+
+    def test_current_amp_bash_result_is_analyzed(self) -> None:
+        result = analyze.assess(
+            thread_with_result(
+                "process exited with status 137",
+                exit_code=137,
+                current_schema=True,
+                tool_name="Bash",
+            ),
+            "a0.small",
+        )
+        self.assertEqual(result.verdict, "under-sized")
+        self.assertEqual(result.recommended_size, "a0.medium")
+
+    def test_current_amp_structured_text_output_is_analyzed(self) -> None:
+        thread = thread_with_result("unused", current_schema=True, tool_name="Bash")
+        thread["messages"][1]["content"][0]["output"] = [
+            {"type": "text", "text": "process exited with status 137"}
+        ]
+        thread["messages"][1]["content"][0]["status"] = "error"
+        result = analyze.assess(thread, "a0.small")
+        self.assertEqual(result.verdict, "under-sized")
+
     def test_oom_is_under_sized(self) -> None:
         result = analyze.assess(
             thread_with_result("process exited with status 137", exit_code=137),
