@@ -1,14 +1,14 @@
 {
-  "collected_at": "2026-08-23T08:48:45Z",
+  "collected_at": "2026-08-11T09:14:02Z",
   "crates_io": {
     "crate": {
       "created_at": "2026-05-30T00:01:38.591296Z",
-      "downloads": 48,
+      "downloads": 46,
       "html_url": "https://crates.io/crates/mdo-cli",
       "id": "mdo-cli",
       "max_version": "0.3.0",
       "name": "mdo-cli",
-      "recent_downloads": 48,
+      "recent_downloads": 46,
       "updated_at": "2026-05-30T00:13:33.236683Z"
     },
     "source": "https://crates.io/api/v1/crates/mdo-cli",
@@ -21,7 +21,7 @@
     "releases": {
       "releases": [
         {
-          "asset_downloads": 12,
+          "asset_downloads": 7,
           "assets": [
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-android-arm64.aab",
@@ -46,7 +46,7 @@
             },
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-x86_64-pc-windows-msvc.zip",
-              "download_count": 5,
+              "download_count": 3,
               "name": "mdo-x86_64-pc-windows-msvc.zip",
               "size": 1263267,
               "updated_at": "2026-07-23T18:40:54Z"
@@ -60,7 +60,7 @@
             },
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/SHA256SUMS",
-              "download_count": 6,
+              "download_count": 3,
               "name": "SHA256SUMS",
               "size": 475,
               "updated_at": "2026-07-23T18:40:54Z"
@@ -248,7 +248,7 @@
         "ok": true,
         "status": 200
       },
-      "total_asset_downloads": 51
+      "total_asset_downloads": 46
     },
     "repository": {
       "repository": {
@@ -258,9 +258,9 @@
         "full_name": "maphew/mdo",
         "html_url": "https://github.com/maphew/mdo",
         "open_issues": 5,
-        "pushed_at": "2026-08-22T08:47:56Z",
+        "pushed_at": "2026-08-10T09:48:06Z",
         "stars": 3,
-        "updated_at": "2026-08-22T08:48:37Z",
+        "updated_at": "2026-08-10T09:49:09Z",
         "watchers": 0
       },
       "source": "https://api.github.com/repos/maphew/mdo",

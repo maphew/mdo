@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+go_version="1.26.5"
+go_sha256="5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053"
+go_root="$HOME/.local/lib/go-$go_version"
+bd_commit="2a63eb3182f7f878893da36c99dd3b5d48f60206"
+
+if [[ ! -x "$go_root/bin/go" ]]; then
+  archive="$(mktemp)"
+  trap 'rm -f "$archive"' EXIT
+  curl -fsSL "https://go.dev/dl/go${go_version}.linux-amd64.tar.gz" -o "$archive"
+  echo "$go_sha256  $archive" | sha256sum --check --status
+  mkdir -p "$go_root"
+  tar -xzf "$archive" --strip-components=1 -C "$go_root"
+fi
+
+mkdir -p "$HOME/.local/bin"
+ln -sfn "$go_root/bin/go" "$HOME/.local/bin/go"
+ln -sfn "$go_root/bin/gofmt" "$HOME/.local/bin/gofmt"
+
+if ! "$go_root/bin/go" version -m "$(command -v bd 2>/dev/null || echo /dev/null)" 2>/dev/null | grep -q "${bd_commit:0:12}"; then
+  CGO_ENABLED=1 GOFLAGS=-tags=gms_pure_go GOBIN="$HOME/.local/bin" \
+    "$go_root/bin/go" install "github.com/steveyegge/beads/cmd/bd@$bd_commit"
+  ln -sfn "$HOME/.local/bin/bd" "$HOME/.local/bin/beads"
+fi
