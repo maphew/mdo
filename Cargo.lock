@@ -539,7 +539,7 @@ dependencies = [
 
 [[package]]
 name = "mdo-cli"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "ammonia",
  "clap",
