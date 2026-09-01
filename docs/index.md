@@ -1,6 +1,6 @@
 # mdo
 
-**Markdown to HTML5**
+**Open Markdown as HTML**
 
 A fast lightweight command-line tool written in Rust that converts Markdown into HTML, with optional file-manager integration for immediate on-the-fly viewing. The CLI supports live watch mode to automatically re-render whenever the Markdown file is edited.
 
@@ -24,7 +24,7 @@ Binary: `mdo`
 Package: `mdo-cli`  
 License: MIT or Apache-2.0
 
-![A mammoth beside a bluefin tuna in a snowy prehistoric scene.](assets/mammoth-bluefinhero-1024x695.jpg)
+![A mammoth pair in a snowy prehistoric scene.](assets/mammoth-bluefinhero-1024x695.jpg)
 
 > sample.md rendered by mdo
 >
@@ -50,13 +50,13 @@ License: MIT or Apache-2.0
 
 ## Why mdo?
 
-Markdown is excellent for authoring and diffs, but long local Markdown files are calmer to read as browser-rendered HTML.
+Markdown is excellent for authoring and diffs, but long files are more pleasant to read as browser-rendered HTML. Every day I read dozens to hundreds of Markdown files. Reading as rich text is smoother, calmer.
 
-There are countless Markdown-to-HTML converters available, so why make another one and risk becoming another [xkcd:927](https://xkcd.com/927/) footnote?
+Countless Markdown-to-HTML converters are available, so why make another one and risk becoming a [xkcd:927](https://xkcd.com/927/) footnote?
 
-I could not find a simple, fast, and self-contained solution. Everything I looked at wanted to be a full-featured editor, relied on node or python in `PATH`, or needed another runtime dependency. Every day I read dozens to hundreds of Markdown files, and reading them as HTML is richer and calmer.
+I couldn't find an existing simple, fast, and self-contained solution. Everything I discovered wanted to be a full-featured editor, relied on node or python in `PATH`, or needed another runtime dependency. 
 
-`mdo` plus file-manager integration creates disposable HTML pages quickly enough that opening Markdown can feel like opening a text file. That means fewer generated artifacts in source folders and fewer agent-workflow prompts that spend tokens asking for an HTML report.
+`mdo` plus file-manager integration creates disposable HTML pages quickly enough that opening Markdown can feel like opening a text file. This means fewer generated artifacts in source folders and fewer agent-workflow prompts that spend tokens asking for an HTML report.
 
 | Goal | What it means |
 |---|---|
@@ -130,13 +130,15 @@ Setup explains the render-and-open workflow, the normal convert-once command, an
 
 ### Opt in when ready
 
-Running `mdo` with no arguments prints a short **Open Markdown as HTML** landing page and exits successfully; use `mdo --help` for the full CLI reference. Run `mdo --setup` when you want guided setup. On Windows and Linux it can offer to install **Open as HTML** for the current user only. The default answer is **Yes**, but mdo still does not change the default Markdown app. Choose **No** to skip or run setup again later.
+Running `mdo` withoit arguments prints a short **Open Markdown as HTML** landing page and exits successfully; use `mdo --help` for full CLI reference. Run `mdo --setup` for guided file manager integration. On Windows and Linux offers to install **Open as HTML** for the current user only. The default answer is **Yes**, but mdo still does not change the default Markdown app. Choose **No** to skip or run setup again later. After pressing Enter to finish setup, mdo opens a short welcome sample to verify the browser-opening flow. 
 
-After you press Enter to finish setup, mdo opens a short welcome sample so you can immediately verify the browser-opening flow. On Windows, double-click `mdo-setup.exe` to open that same guided setup without a terminal already open; on Linux, launch **mdo Setup** from your application menu or run `mdo-setup`. Launcher details are in the [file-manager integration guide](file-manager-integration.md).
+On Windows, double-click `mdo-setup.exe` to open the same guided setup without a terminal; on Linux, launch **mdo Setup** from your application menu or run `mdo-setup`. Launcher details are in the [file-manager integration guide](file-manager-integration.md).
+
+The two methods give same results. 
 
 ## Usage
 
-By default, `mdo` writes a styled HTML file beside the source Markdown file. Use `--open` to render into a stable temp path and launch the default browser.
+By default, `mdo` cli in terminal writes a styled HTML file beside the source Markdown file. Use `--open` to render into a stable temp path and launch the default browser.
 
 ### Common commands
 
@@ -177,11 +179,11 @@ mdo.exe --install-file-manager
 mdo.exe --uninstall-file-manager
 ```
 
-- Right-click a `.md` file and choose **Open as HTML**; on Windows 11 it may be under **Show more options**.
+- Right-click an `.md` file and choose **Open as HTML**; on Windows 11 it may be under **Show more options**.
 - **Open with** offers **Open as HTML**.
 - If **Open as HTML** is made the default handler, double-click opens the browser.
 - If `mdo-open.exe` is next to `mdo.exe`, it is used for flash-free Explorer launches; otherwise the single `mdo.exe` binary still works.
-- `mdo-setup.exe` and no-file `mdo-open.exe` open guided setup in a fresh `wt` window with the **One Half Light** color scheme and center it on the active display, falling back to a plain new console when `wt` cannot be started.
+- `mdo-setup.exe` and `mdo-open.exe` open guided setup in a fresh `wt` windows terminal with the **One Half Light** color scheme and center it on the active display, falling back to a plain new console when `wt` cannot be started.
 - Windows Open With should show the friendly name **Open as HTML** with the mdo icon instead of exposing the wrapper file name.
 
 ### Linux File Managers
@@ -246,4 +248,4 @@ Release notes, architecture decisions, source code, and package metadata are all
 
 ---
 
-mdo is dual-licensed under MIT or Apache-2.0 and forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.
+mdo is dual-licensed under MIT or Apache-2.0, forked with gratitude from Hafiz Ali Raza's original Markdown-to-HTML CLI.
