@@ -93,13 +93,7 @@ mod linux_setup {
 
     pub fn run() -> io::Result<()> {
         continue_after_launcher_registration(register_launcher());
-        let mdo = sibling_binary("mdo")?;
-        if !mdo.exists() {
-            return Err(io::Error::new(
-                io::ErrorKind::NotFound,
-                format!("expected mdo next to mdo-setup at {}", mdo.display()),
-            ));
-        }
+        let mdo = mdo_cli::handler::sibling_binary(&std::env::current_exe()?, "mdo")?;
 
         // Already attached to a terminal (e.g. run from a shell): show guided setup
         // right here instead of spawning a second window. The `?` still
@@ -254,12 +248,6 @@ mod linux_setup {
             .unwrap_or(false)
     }
 
-    fn sibling_binary(name: &str) -> io::Result<PathBuf> {
-        let mut path = std::env::current_exe()?;
-        path.pop();
-        Ok(path.join(name))
-    }
-
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -338,16 +326,7 @@ mod windows_setup {
     };
 
     pub fn run() -> io::Result<()> {
-        let mdo = sibling_binary("mdo.exe")?;
-        if !mdo.exists() {
-            return Err(io::Error::new(
-                io::ErrorKind::NotFound,
-                format!(
-                    "expected mdo.exe next to mdo-setup.exe at {}",
-                    mdo.display()
-                ),
-            ));
-        }
+        let mdo = mdo_cli::handler::sibling_binary(&std::env::current_exe()?, "mdo.exe")?;
 
         // Match the no-file `mdo-open.exe` onboarding path: prefer Windows
         // Terminal for a styled, centered setup, then fall back to a plain new
@@ -373,12 +352,6 @@ mod windows_setup {
         }
 
         Ok(button)
-    }
-
-    fn sibling_binary(name: &str) -> io::Result<PathBuf> {
-        let mut path = std::env::current_exe()?;
-        path.pop();
-        Ok(path.join(name))
     }
 
     fn wide(value: &str) -> Vec<u16> {
