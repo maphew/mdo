@@ -29,8 +29,8 @@ pub mod windows_setup;
 const SIMPLE_CSS: &str = include_str!("../assets/simple.min.css");
 const APP_DISPLAY_NAME: &str = "mdo";
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const SETUP_SAMPLE_FILE_NAME: &str = "welcome-to-open-as-html-with-mdo.md";
-pub const SETUP_SAMPLE_MARKDOWN: &str = "\
+const SETUP_SAMPLE_FILE_NAME: &str = "welcome-to-open-as-html-with-mdo.md";
+const SETUP_SAMPLE_MARKDOWN: &str = "\
 # Welcome to the world of Open as HTML with mdo
 
 If you are reading this in your browser, mdo rendered Markdown as HTML and
@@ -134,10 +134,6 @@ const THEME_TOGGLE: &str = r#"<style id="mdo-theme-toggle">
 </script>
 "#;
 // ─── END THEME TOGGLE ──────────────────────────────────────────────────
-
-pub fn derive_output(input: &Path) -> PathBuf {
-    input.with_extension("html")
-}
 
 /// Stable per-source-path location under a private temp/cache dir, e.g.
 /// `%TEMP%\mdo-<uid>\<hash>\<stem>.html`. Re-opening the same source
