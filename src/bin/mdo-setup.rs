@@ -327,15 +327,6 @@ mod windows_setup {
 
     pub fn run() -> io::Result<()> {
         let mdo = mdo_cli::handler::sibling_binary(&std::env::current_exe()?, "mdo.exe")?;
-        if !mdo.exists() {
-            return Err(io::Error::new(
-                io::ErrorKind::NotFound,
-                format!(
-                    "expected mdo.exe next to mdo-setup.exe at {}",
-                    mdo.display()
-                ),
-            ));
-        }
 
         // Match the no-file `mdo-open.exe` onboarding path: prefer Windows
         // Terminal for a styled, centered setup, then fall back to a plain new

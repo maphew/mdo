@@ -1020,8 +1020,6 @@ mod windows_tests {
         assert!(!wrapper.contains(handler::OPEN_FLAGS[0]));
     }
 
-    use super::*;
-
     #[test]
     fn registry_command_uses_open_flag_without_wrapper() {
         let command = windows_registry_command(Path::new(r"C:\Tools\mdo.exe"), false);
