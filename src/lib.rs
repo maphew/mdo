@@ -23,6 +23,7 @@ use url::Url;
 #[cfg(target_os = "android")]
 mod android;
 pub mod file_manager;
+pub mod handler;
 mod highlight;
 pub mod watch;
 #[cfg(target_os = "windows")]
