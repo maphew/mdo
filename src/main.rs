@@ -38,8 +38,8 @@ use std::time::Duration;
 
 use clap::Parser;
 use mdo_cli::{
-    convert, derive_output, file_manager, launch_browser, open_setup_sample, temp_output_for,
-    ConvertOutcome, ConvertRequest, RenderError, StageTimings,
+    convert, file_manager, launch_browser, open_setup_sample, temp_output_for, ConvertOutcome,
+    ConvertRequest, RenderError, StageTimings,
 };
 use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
 
@@ -395,7 +395,7 @@ fn main() -> notify::Result<()> {
                 std::process::exit(1);
             }
         },
-        (None, false) => (derive_output(&input), false),
+        (None, false) => (input.with_extension("html"), false),
     };
 
     // Register the watch BEFORE the initial render so a save that lands
