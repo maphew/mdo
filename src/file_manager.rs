@@ -4,6 +4,8 @@ use std::process::Command;
 #[cfg(target_os = "windows")]
 use std::process::Stdio;
 
+use crate::handler;
+
 const APP_DISPLAY_NAME: &str = "Open as HTML";
 #[cfg(target_os = "linux")]
 const DESKTOP_FILE_NAME: &str = "mdo.desktop";
@@ -320,13 +322,16 @@ fn xdg_data_home() -> io::Result<PathBuf> {
 #[cfg(target_os = "linux")]
 fn linux_desktop_entry(exe: &Path) -> String {
     let quoted_exe = quote_desktop_exec_arg(&exe.to_string_lossy());
+    // The Exec line is the handler invocation contract in desktop-entry
+    // spelling: the binary, the contract flags, then the %f file placeholder.
+    let open_flags = handler::OPEN_FLAGS.join(" ");
     format!(
         "[Desktop Entry]\n\
          Type=Application\n\
          Name={APP_DISPLAY_NAME}\n\
          GenericName=Markdown HTML Opener\n\
          Comment=Open Markdown as HTML in the default browser\n\
-         Exec={quoted_exe} --open %f\n\
+         Exec={quoted_exe} {open_flags} %f\n\
          Icon=mdo\n\
          Terminal=false\n\
          NoDisplay=true\n\
@@ -503,26 +508,32 @@ struct WindowsHandler {
 
 #[cfg(target_os = "windows")]
 fn windows_handler_for(current_exe: &Path) -> WindowsHandler {
-    let sibling_wrapper = current_exe.with_file_name("mdo-open.exe");
-    if sibling_wrapper.exists() {
-        WindowsHandler {
-            path: sibling_wrapper,
+    let sibling_wrapper = handler::sibling_binary(current_exe, "mdo-open.exe").ok();
+    match sibling_wrapper {
+        Some(path) => WindowsHandler {
+            path,
             is_wrapper: true,
-        }
-    } else {
-        WindowsHandler {
+        },
+        None => WindowsHandler {
             path: current_exe.to_path_buf(),
             is_wrapper: false,
-        }
+        },
     }
 }
 
 #[cfg(target_os = "windows")]
-fn windows_registry_command(handler: &Path, is_wrapper: bool) -> String {
+fn windows_registry_command(handler_path: &Path, is_wrapper: bool) -> String {
     if is_wrapper {
-        format!("\"{}\" \"%1\"", handler.display())
+        format!("\"{}\" \"%1\"", handler_path.display())
     } else {
-        format!("\"{}\" --open \"%1\"", handler.display())
+        // The registry command is the handler invocation contract in
+        // registry spelling: the binary, the contract flags, then the %1
+        // file placeholder.
+        format!(
+            "\"{}\" {} \"%1\"",
+            handler_path.display(),
+            handler::OPEN_FLAGS.join(" ")
+        )
     }
 }
 
@@ -962,10 +973,53 @@ text/markdown=code.desktop;other.desktop;\n\
 image/png=viewer.desktop;\n"
         );
     }
+
+    /// The desktop Exec line is one of the two emitted forms of the handler
+    /// invocation contract (the other is the Windows registry command): the
+    /// same binary and the same contract flags, derived from the contract
+    /// rather than restated as a literal so the two cannot drift apart.
+    #[test]
+    fn desktop_entry_reflects_the_handler_invocation_contract() {
+        let entry = linux_desktop_entry(Path::new("/opt/mdo/mdo"));
+        let expected = format!(
+            "Exec=\"/opt/mdo/mdo\" {} %f\n",
+            handler::OPEN_FLAGS.join(" ")
+        );
+        assert!(
+            entry.contains(&expected),
+            "entry should carry the contract Exec line: {entry}"
+        );
+
+        // The setup launcher entry is not open-mode: no contract flags.
+        let setup_entry = linux_setup_desktop_entry(Path::new("/usr/bin/mdo-setup"));
+        assert!(!setup_entry.contains(handler::OPEN_FLAGS[0]));
+    }
 }
 
 #[cfg(all(test, target_os = "windows"))]
 mod windows_tests {
+    use super::*;
+
+    /// The registry command is one of the two emitted forms of the handler
+    /// invocation contract (the other is the Linux desktop Exec line): it
+    /// must carry the same binary and the same contract flags, derived here
+    /// rather than restated as a literal so the two cannot drift apart.
+    #[test]
+    fn registry_command_reflects_the_handler_invocation_contract() {
+        let command = windows_registry_command(Path::new(r"C:\Tools\mdo.exe"), false);
+        let expected = format!(
+            r#""C:\Tools\mdo.exe" {} "%1""#,
+            handler::OPEN_FLAGS.join(" ")
+        );
+        assert_eq!(command, expected);
+
+        // The forwarding wrapper carries NO flags: it owns the contract
+        // itself and forwards the file as received.
+        let wrapper = windows_registry_command(Path::new(r"C:\Tools\mdo-open.exe"), true);
+        assert_eq!(wrapper, r#""C:\Tools\mdo-open.exe" "%1""#);
+        assert!(!wrapper.contains(handler::OPEN_FLAGS[0]));
+    }
+
     use super::*;
 
     #[test]
