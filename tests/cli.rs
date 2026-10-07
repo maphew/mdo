@@ -3,11 +3,12 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+#[cfg(target_os = "linux")]
+use mdo_cli::temp_output_for;
+
 #[cfg(unix)]
 use std::time::{Duration, Instant};
 
-#[cfg(target_os = "linux")]
-use std::hash::{Hash, Hasher};
 #[cfg(target_os = "linux")]
 use std::os::unix::fs::{symlink, PermissionsExt};
 
@@ -570,7 +571,7 @@ fn open_output_refuses_precreated_symlink() {
     fs::write(&input, "# Safe\n\nreplacement").expect("failed to write markdown fixture");
     fs::write(&target, "do not overwrite").expect("failed to write symlink target");
 
-    let output_path = temp_output_for_test(&input);
+    let output_path = temp_output_for(&input).expect("failed to compute expected temp output path");
     fs::create_dir_all(
         output_path
             .parent()
@@ -614,24 +615,6 @@ fn open_output_refuses_precreated_symlink() {
     fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
 }
 
-#[cfg(target_os = "linux")]
-fn temp_output_for_test(input: &std::path::Path) -> PathBuf {
-    let canonical = fs::canonicalize(input).unwrap_or_else(|_| input.to_path_buf());
-    let mut hasher = std::collections::hash_map::DefaultHasher::new();
-    canonical.hash(&mut hasher);
-    let hash = hasher.finish();
-
-    let stem = input
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("document");
-
-    std::env::temp_dir()
-        .join(format!("mdo-{}", unsafe { libc::geteuid() }))
-        .join(format!("{hash:016x}"))
-        .join(format!("{stem}.html"))
-}
-
 /// An empty directory suitable for use as `PATH` when a test needs to make
 /// sure no desktop opener (xdg-open, gio, ...) can be found on it.
 #[cfg(target_os = "linux")]
@@ -671,7 +654,8 @@ fn open_launch_failure_exits_nonzero_and_reports_path() {
         "stderr should report the launch failure: {stderr}"
     );
 
-    let rendered_path = temp_output_for_test(&input);
+    let rendered_path =
+        temp_output_for(&input).expect("failed to compute expected temp output path");
     assert!(
         stderr.contains(
             rendered_path
@@ -721,7 +705,8 @@ fn open_success_exits_zero() {
         "mdo --open should exit zero when render and launch both succeed: {output:?}"
     );
 
-    let rendered_path = temp_output_for_test(&input);
+    let rendered_path =
+        temp_output_for(&input).expect("failed to compute expected temp output path");
     assert!(rendered_path.exists());
 
     fs::remove_dir_all(rendered_path.parent().expect("rendered path has a parent"))
@@ -764,7 +749,8 @@ fn open_reports_failure_when_opener_exits_nonzero() {
         "stderr should report the launch failure: {stderr}"
     );
 
-    let rendered_path = temp_output_for_test(&input);
+    let rendered_path =
+        temp_output_for(&input).expect("failed to compute expected temp output path");
     assert!(
         rendered_path.exists(),
         "rendered output should survive an opener failure"
