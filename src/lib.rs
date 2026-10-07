@@ -1,4 +1,5 @@
-//! Shared mdo rendering, temp-output, browser launch, and integration helpers.
+//! Shared mdo rendering, watch-mode, temp-output, browser launch, and
+//! integration helpers.
 
 use std::collections::hash_map::DefaultHasher;
 use std::collections::BTreeSet;
@@ -23,6 +24,7 @@ use url::Url;
 mod android;
 pub mod file_manager;
 mod highlight;
+pub mod watch;
 #[cfg(target_os = "windows")]
 pub mod windows_setup;
 
