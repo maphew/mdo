@@ -32,14 +32,14 @@
 //! Bundles [simple.css](https://simplecss.org/) (© 2020 Kev Quirk, MIT).
 
 use std::io::{self, IsTerminal, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc::channel;
 use std::time::Duration;
 
 use clap::Parser;
 use mdo_cli::{
-    convert_with_diagnostics, derive_output, file_manager, launch_browser, open_setup_sample,
-    temp_output_for,
+    convert, derive_output, file_manager, launch_browser, open_setup_sample, temp_output_for,
+    ConvertOutcome, ConvertRequest, RenderError, StageTimings,
 };
 use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
 
@@ -442,13 +442,17 @@ fn main() -> notify::Result<()> {
         None
     };
 
-    let converted = convert_with_diagnostics(
+    let converted = report_render(
         &input,
         &output,
-        args.bare,
-        args.unsafe_html,
-        private_output,
-        args.css.as_deref(),
+        &convert(ConvertRequest {
+            input: &input,
+            output: &output,
+            bare: args.bare,
+            unsafe_html: args.unsafe_html,
+            private_output,
+            css_override: args.css.as_deref(),
+        }),
         args.verbose,
     );
 
@@ -561,20 +565,82 @@ fn main() -> notify::Result<()> {
         }
 
         println!("🔁 File changed, re-rendering...");
-        // A failed render (e.g. convert ran while the file was momentarily
-        // absent mid-rename) must not end watch mode; convert_with_diagnostics
-        // already reports the ❌ error itself, so we just loop and wait for
-        // the next event.
-        convert_with_diagnostics(
+        // A failed render (e.g. convert returned Err while the file was
+        // momentarily absent mid-rename) must not end watch mode; the ❌
+        // error is reported by `report_render`, so we just loop and wait
+        // for the next event.
+        let _ = report_render(
             &input,
             &output,
-            args.bare,
-            args.unsafe_html,
-            private_output,
-            args.css.as_deref(),
+            &convert(ConvertRequest {
+                input: &input,
+                output: &output,
+                bare: args.bare,
+                unsafe_html: args.unsafe_html,
+                private_output,
+                css_override: args.css.as_deref(),
+            }),
             args.verbose,
         );
     }
+}
+
+/// Print one render workflow's result. The render pipeline prints nothing
+/// itself, so all rendering output lives here: success relocates v0.6's
+/// single ✅ line, failure prints the historical ❌ line for that failure
+/// site, and the verbose timing report goes to STDERR only. Returns whether
+/// the render succeeded, so exit-code policy stays local to `main`.
+fn report_render(
+    input: &Path,
+    output: &Path,
+    result: &Result<ConvertOutcome, RenderError>,
+    verbose: bool,
+) -> bool {
+    match result {
+        Ok(outcome) => {
+            println!("✅ Converted {:?} → {:?}", input, output);
+            if verbose {
+                report_render_timings(input, &outcome.timings);
+            }
+            true
+        }
+        Err(err) => {
+            print_render_failure(err);
+            false
+        }
+    }
+}
+
+/// Print a typed render failure with the exact line the library used to
+/// print at each failure site, so CLI output stays byte-identical.
+fn print_render_failure(err: &RenderError) {
+    match err {
+        RenderError::Read { path, source } => eprintln!("❌ Failed to read {:?}: {}", path, source),
+        RenderError::ReadCssOverride { path, source } => {
+            eprintln!("❌ Failed to read CSS override {:?}: {}", path, source)
+        }
+        RenderError::CreateOutputDir { path, source } => {
+            eprintln!("❌ Failed to create {:?}: {}", path, source)
+        }
+        RenderError::Write { path, source } => {
+            eprintln!("❌ Failed to write to {:?}: {}", path, source)
+        }
+    }
+}
+
+/// Print per-stage and total timings for a completed render to STDERR only.
+/// Performance diagnostics belong in the terminal: they never touch stdout
+/// or the generated HTML (v0.6 quiet output). `total` is the wall-clock time
+/// of the whole workflow, so it is always at least the sum of the stages.
+fn report_render_timings(input: &Path, timings: &StageTimings) {
+    let ms = |d: Duration| d.as_secs_f64() * 1000.0;
+    eprintln!("⏱  Render workflow for {:?}:", input);
+    eprintln!("   read     {:>10.3} ms", ms(timings.read));
+    eprintln!("   markdown {:>10.3} ms", ms(timings.markdown));
+    eprintln!("   sanitize {:>10.3} ms", ms(timings.sanitize));
+    eprintln!("   assemble {:>10.3} ms", ms(timings.assemble));
+    eprintln!("   write    {:>10.3} ms", ms(timings.write));
+    eprintln!("   total    {:>10.3} ms", ms(timings.total));
 }
 
 /// True if `event` plausibly changed the content of the file named
