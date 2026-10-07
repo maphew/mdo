@@ -10,10 +10,13 @@
 //! but break terminal usage (no stdout to the parent shell, output races the
 //! returning prompt under cmd/PowerShell).
 //!
-//! Instead, `mdo-open[.exe]` is a tiny desktop wrapper that:
-//!   1. Locates `mdo[.exe]` next to itself.
-//!   2. Spawns it with `--open` and the rest of the args, using
-//!      `CREATE_NO_WINDOW` so the child never gets a console allocated.
+//! Instead, `mdo-open[.exe]` is a tiny desktop wrapper that consumes the
+//! shared handler invocation contract (`mdo_cli::handler`):
+//!   1. Locates `mdo[.exe]` next to itself (the one sibling-binary
+//!      discovery function, so a missing sibling gets one clear message).
+//!   2. Spawns it with the contract argv (`--open` plus the file args),
+//!      using `CREATE_NO_WINDOW` so the child never gets a console
+//!      allocated.
 //!   3. If launched directly with no file args, opens onboarding: Windows
 //!      starts the terminal setup in Windows Terminal when available; Linux
 //!      opens `mdo-setup` for native first-run onboarding. This step is
@@ -48,8 +51,8 @@ use std::process::{Command, ExitCode};
 
 #[cfg(target_os = "windows")]
 use std::io;
-#[cfg(target_os = "windows")]
-use std::path::Path;
+
+use mdo_cli::handler;
 
 #[cfg(target_os = "windows")]
 const MDO_BIN: &str = "mdo.exe";
@@ -60,12 +63,16 @@ const MDO_BIN: &str = "mdo";
 const SETUP_BIN: &str = "mdo-setup";
 
 fn main() -> ExitCode {
-    let mut exe_path = match env::current_exe() {
+    // A GUI-launched binary often has no console attached, so this message
+    // may still go nowhere on Windows — but silent failure is worse
+    // everywhere, and on Linux it reaches the file manager's stderr log.
+    let exe_path = match env::current_exe() {
         Ok(p) => p,
-        Err(_) => return ExitCode::from(1),
+        Err(e) => {
+            eprintln!("mdo-open: cannot locate its own executable: {e}");
+            return ExitCode::from(1);
+        }
     };
-    exe_path.pop(); // strip the file name, keep the directory
-
     let args = env::args_os().skip(1).collect::<Vec<_>>();
 
     #[cfg(target_os = "windows")]
@@ -77,7 +84,10 @@ fn main() -> ExitCode {
         if args.is_empty() {
             return match spawn_windows_onboarding(&exe_path) {
                 Ok(()) => ExitCode::SUCCESS,
-                Err(_) => ExitCode::from(1),
+                Err(e) => {
+                    eprintln!("mdo-open: {e}");
+                    ExitCode::from(1)
+                }
             };
         }
 
@@ -90,33 +100,47 @@ fn main() -> ExitCode {
         // instead of always reporting success.
         match spawn_windows_open(&exe_path, args) {
             Ok(status) => exit_code_from_status(status),
-            Err(_) => ExitCode::from(1),
+            Err(e) => {
+                eprintln!("mdo-open: {e}");
+                ExitCode::from(1)
+            }
         }
     }
 
     #[cfg(not(target_os = "windows"))]
     {
         #[cfg(target_os = "linux")]
-        let mut cmd = if args.is_empty() {
-            let setup = exe_path.join(SETUP_BIN);
-            if !setup.exists() {
+        if args.is_empty() {
+            // No-file launch is onboarding, not open: hand off to the
+            // sibling `mdo-setup`.
+            let setup = match handler::sibling_binary(&exe_path, SETUP_BIN) {
+                Ok(path) => path,
+                Err(e) => {
+                    eprintln!("mdo-open: {e}");
+                    return ExitCode::from(1);
+                }
+            };
+            let mut cmd = Command::new(setup);
+            match cmd.status() {
+                Ok(status) => return exit_code_from_status(status),
+                Err(e) => {
+                    eprintln!("mdo-open: {e}");
+                    return ExitCode::from(1);
+                }
+            }
+        }
+
+        // Everything else is the forward: sibling mdo with the contract
+        // argv (`--open` plus the files as received).
+        let mdo_bin = match handler::sibling_binary(&exe_path, MDO_BIN) {
+            Ok(path) => path,
+            Err(e) => {
+                eprintln!("mdo-open: {e}");
                 return ExitCode::from(1);
             }
-            Command::new(setup)
-        } else {
-            let mut cmd = Command::new(exe_path.join(MDO_BIN));
-            cmd.arg("--open");
-            cmd.args(args);
-            cmd
         };
-
-        #[cfg(not(target_os = "linux"))]
-        let mut cmd = {
-            let mut cmd = Command::new(exe_path.join(MDO_BIN));
-            cmd.arg("--open");
-            cmd.args(args);
-            cmd
-        };
+        let mut cmd = Command::new(mdo_bin);
+        cmd.args(handler::open_argv(&args));
 
         // Non-Windows binaries never had a console-flash problem to begin
         // with (that's Windows Explorer + console-subsystem-exe behavior),
@@ -126,7 +150,10 @@ fn main() -> ExitCode {
         // in an already-attached terminal) and propagate its exit status.
         match cmd.status() {
             Ok(status) => exit_code_from_status(status),
-            Err(_) => ExitCode::from(1),
+            Err(e) => {
+                eprintln!("mdo-open: {e}");
+                ExitCode::from(1)
+            }
         }
     }
 }
@@ -137,10 +164,17 @@ fn main() -> ExitCode {
 /// a failure whose low byte is zero (e.g. 0x100) must not truncate to
 /// "success"; any failing status maps to a non-zero code.
 fn exit_code_from_status(status: std::process::ExitStatus) -> ExitCode {
-    if status.success() {
+    exit_code_from_parts(status.success(), status.code())
+}
+
+/// The truncation rule of [`exit_code_from_status`], split from
+/// `ExitStatus` so it is unit-testable portably (Unix cannot even produce a
+/// failed status with a zero low byte; Windows can).
+fn exit_code_from_parts(success: bool, code: Option<i32>) -> ExitCode {
+    if success {
         return ExitCode::SUCCESS;
     }
-    match status.code() {
+    match code {
         Some(code) if code as u8 != 0 => ExitCode::from(code as u8),
         _ => ExitCode::FAILURE,
     }
@@ -148,28 +182,18 @@ fn exit_code_from_status(status: std::process::ExitStatus) -> ExitCode {
 
 #[cfg(target_os = "windows")]
 fn spawn_windows_open(
-    exe_dir: &Path,
+    anchor_exe: &std::path::Path,
     args: Vec<std::ffi::OsString>,
 ) -> io::Result<std::process::ExitStatus> {
-    let mut cmd = Command::new(exe_dir.join(MDO_BIN));
-    cmd.arg("--open");
-    cmd.args(args);
+    let mdo_bin = handler::sibling_binary(anchor_exe, MDO_BIN)?;
+    let mut cmd = Command::new(mdo_bin);
+    cmd.args(handler::open_argv(&args));
     spawn_without_console(cmd)
 }
 
 #[cfg(target_os = "windows")]
-fn spawn_windows_onboarding(exe_dir: &Path) -> io::Result<()> {
-    let mdo = exe_dir.join(MDO_BIN);
-    if !mdo.exists() {
-        return Err(io::Error::new(
-            io::ErrorKind::NotFound,
-            format!(
-                "expected {MDO_BIN} next to mdo-open.exe at {}",
-                mdo.display()
-            ),
-        ));
-    }
-
+fn spawn_windows_onboarding(anchor_exe: &std::path::Path) -> io::Result<()> {
+    let mdo = handler::sibling_binary(anchor_exe, MDO_BIN)?;
     mdo_cli::windows_setup::spawn_terminal_setup(&mdo)
 }
 
@@ -188,4 +212,52 @@ fn spawn_without_console(mut cmd: Command) -> io::Result<std::process::ExitStatu
     cmd.creation_flags(CREATE_NO_WINDOW);
     let mut child = cmd.spawn()?;
     child.wait()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn exit_code_success_is_success() {
+        assert_eq!(exit_code_from_parts(true, Some(0)), ExitCode::SUCCESS);
+        assert_eq!(exit_code_from_parts(true, None), ExitCode::SUCCESS);
+    }
+
+    #[test]
+    fn small_exit_codes_pass_through() {
+        assert_eq!(exit_code_from_parts(false, Some(1)), ExitCode::from(1));
+        assert_eq!(exit_code_from_parts(false, Some(7)), ExitCode::from(7));
+        assert_eq!(exit_code_from_parts(false, Some(255)), ExitCode::from(255));
+    }
+
+    #[test]
+    fn failure_with_zero_low_byte_must_not_read_as_success() {
+        // The truncation trap: 0x100 has a zero low byte, but the child
+        // FAILED. Truncating to `ExitCode::from(0)` would report success.
+        assert_eq!(exit_code_from_parts(false, Some(0x100)), ExitCode::FAILURE);
+        assert_eq!(exit_code_from_parts(false, Some(0x200)), ExitCode::FAILURE);
+        assert_eq!(exit_code_from_parts(false, Some(0xFF00)), ExitCode::FAILURE);
+    }
+
+    #[test]
+    fn unknown_termination_falls_back_to_failure() {
+        // Signal deaths (and nested nested process terminations) offer no
+        // exit code at all: a generic failure keeps mdo-open honest.
+        assert_eq!(exit_code_from_parts(false, None), ExitCode::FAILURE);
+    }
+
+    // Windows-only end-to-end of the truncation rule: only Windows can
+    // actually produce a failed child whose exit code has a zero low byte.
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn real_windows_exit_code_256_means_failure() {
+        let status = Command::new("cmd.exe")
+            .args(["/C", "exit", "256"])
+            .status()
+            .expect("cmd.exe should be spawnable on Windows");
+        assert!(!status.success());
+        assert_eq!(status.code(), Some(256));
+        assert_eq!(exit_code_from_status(status), ExitCode::FAILURE);
+    }
 }
