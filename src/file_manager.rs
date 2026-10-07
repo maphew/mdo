@@ -29,12 +29,259 @@ const SVG_ICON: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" width="256" h
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 use std::fs;
 
+/// Register the file-manager integration for this user. On Linux this
+/// writes the hidden `mdo.desktop` entry and its icon through a pure
+/// planning step and a thin executor; on Windows it shells out to
+/// `reg.exe` (see [`install_windows_plan`] for the registry shape).
+/// Windows ignores `set_default`: choosing a default app lives in
+/// Explorer's Open with dialog, not in the registration.
+#[cfg(target_os = "linux")]
 pub fn install(set_default: bool) -> io::Result<()> {
-    install_impl(set_default)
+    let exe = std::env::current_exe()?;
+    let data_home = xdg_data_home()?;
+
+    let plan = linux_install_plan(&data_home, &exe, set_default);
+    let report = apply_linux_install_plan(&plan)?;
+    print_linux_install_report(&report);
+    Ok(())
 }
 
+/// Data-first description of a Linux integration install: everything the
+/// executor touches, decided without disk or environment access so the
+/// planning step stays a pure function (unit-tested without spawn-capture),
+/// mirroring the registry's [`install_windows_plan`].
+#[cfg(target_os = "linux")]
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct LinuxInstallPlan {
+    /// The hidden `mdo.desktop` handler entry and where it goes.
+    desktop_file: PathBuf,
+    /// The entry's content, handler-invocation contract spelling included.
+    desktop_entry: String,
+    /// The hicolor icon file and where it goes.
+    icon_file: PathBuf,
+    /// Whether xdg-mime should try to register mdo as the default handler
+    /// for the mimes in [`LinuxInstallPlan::default_mimes`].
+    set_default: bool,
+    /// The mimes to register, in order, exactly as the original inline flow
+    /// did.
+    default_mimes: &'static [&'static str],
+    /// The data root the legacy nautilus script cleanup runs against.
+    legacy_cleanup_root: Option<PathBuf>,
+}
+
+/// What the Linux install executor changed, for the caller to print. File
+/// entries are paths; the default outcome is the one piece of xdg-mime's
+/// best-effort behavior a human needs to see.
+#[cfg(target_os = "linux")]
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct LinuxInstallReport {
+    desktop_file: PathBuf,
+    icon_file: PathBuf,
+    default: LinuxDefaultOutcome,
+}
+
+#[cfg(target_os = "linux")]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum LinuxDefaultOutcome {
+    /// xdg-mime registered mdo for at least one of the mimes.
+    Applied,
+    /// Defaulting was requested but xdg-mime could not comply (tool
+    /// missing or non-zero exit): the manual hint applies.
+    NeedsManualHint,
+    /// Defaulting was not requested: integration stays Open With-only.
+    NotRequested,
+}
+
+#[cfg(target_os = "linux")]
+fn linux_install_plan(data_home: &Path, current_exe: &Path, set_default: bool) -> LinuxInstallPlan {
+    LinuxInstallPlan {
+        desktop_file: data_home.join("applications").join(DESKTOP_FILE_NAME),
+        desktop_entry: linux_desktop_entry(current_exe),
+        icon_file: data_home
+            .join("icons")
+            .join("hicolor")
+            .join("scalable")
+            .join("apps")
+            .join("mdo.svg"),
+        set_default,
+        default_mimes: &["text/markdown", "text/x-markdown"],
+        legacy_cleanup_root: Some(data_home.to_path_buf()),
+    }
+}
+
+/// Apply the plan in the original write order: directories, icon, entry
+/// (mode 0644), best-effort desktop-database refresh, the optional default
+/// registration, and the legacy cleanup. A scalable SVG under
+/// hicolor/scalable/apps is resolved by name, so it needs no icon-cache
+/// refresh; gtk-update-icon-cache on a user theme dir without an
+/// index.theme just fails — skip it.
+#[cfg(target_os = "linux")]
+fn apply_linux_install_plan(plan: &LinuxInstallPlan) -> io::Result<LinuxInstallReport> {
+    if let Some(applications) = plan.desktop_file.parent() {
+        fs::create_dir_all(applications)?;
+    }
+    if let Some(icon_dir) = plan.icon_file.parent() {
+        fs::create_dir_all(icon_dir)?;
+    }
+    fs::write(&plan.icon_file, SVG_ICON)?;
+    fs::write(&plan.desktop_file, &plan.desktop_entry)?;
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&plan.desktop_file, fs::Permissions::from_mode(0o644))?;
+    }
+
+    if let Some(applications) = plan.desktop_file.parent() {
+        run_optional("update-desktop-database", &[applications.as_os_str()]);
+    }
+
+    let default = if plan.set_default {
+        let mut ok = false;
+        for mime in plan.default_mimes {
+            ok |= run_optional_status(
+                "xdg-mime",
+                &[
+                    std::ffi::OsStr::new("default"),
+                    std::ffi::OsStr::new(DESKTOP_FILE_NAME),
+                    std::ffi::OsStr::new(*mime),
+                ],
+            );
+        }
+        if ok {
+            LinuxDefaultOutcome::Applied
+        } else {
+            LinuxDefaultOutcome::NeedsManualHint
+        }
+    } else {
+        LinuxDefaultOutcome::NotRequested
+    };
+
+    if let Some(root) = &plan.legacy_cleanup_root {
+        remove_legacy_nautilus_scripts(root)?;
+    }
+
+    Ok(LinuxInstallReport {
+        desktop_file: plan.desktop_file.clone(),
+        icon_file: plan.icon_file.clone(),
+        default,
+    })
+}
+
+/// Print the executor's report. This is the Linux install's whole CLI
+/// surface; the exact lines mirror the pre-plan flow byte for byte.
+#[cfg(target_os = "linux")]
+fn print_linux_install_report(report: &LinuxInstallReport) {
+    println!("Installed desktop entry: {}", report.desktop_file.display());
+    println!("Installed icon: {}", report.icon_file.display());
+    match report.default {
+        LinuxDefaultOutcome::Applied => {
+            println!("{APP_DISPLAY_NAME} is now the default Markdown handler.");
+        }
+        LinuxDefaultOutcome::NeedsManualHint => {
+            println!(
+                "Could not set {APP_DISPLAY_NAME} as the default automatically (is xdg-mime installed?)."
+            );
+            println!("To set it manually, run: xdg-mime default {DESKTOP_FILE_NAME} text/markdown");
+            println!("(and the same for text/x-markdown)");
+        }
+        LinuxDefaultOutcome::NotRequested => {
+            println!(
+                "{APP_DISPLAY_NAME} is available from Open With without changing your default Markdown handler."
+            );
+        }
+    }
+}
+
+/// Windows registration: resolve the handler beside the running exe, write
+/// the icon, then apply the registry plan (planning and its tests are
+/// pure; the executor is the only registry-touching step).
+#[cfg(target_os = "windows")]
+pub fn install(_set_default: bool) -> io::Result<()> {
+    let current_exe = std::env::current_exe()?;
+    let handler_selection = windows_handler_for(&current_exe);
+    let command = windows_registry_command(&handler_selection.path, handler_selection.is_wrapper);
+    let icon_file = install_windows_icon()?;
+    let icon_ref = format!("\"{}\",0", icon_file.display());
+    let current_exe_command = windows_registry_command(&current_exe, false);
+
+    // Registry mutation is split into a pure planning step (`install_windows_plan`,
+    // unit-tested below without touching the registry) and a thin executor
+    // (`apply_registry_plan`) that shells out to `reg.exe`. This keeps the
+    // "which keys/values would be written, in what order, with which
+    // failure semantics" logic testable in CI without mutating the real
+    // registry on the CI machine.
+    let plan = install_windows_plan(
+        handler_selection.is_wrapper,
+        &command,
+        &current_exe_command,
+        &icon_ref,
+    );
+    apply_registry_plan(&plan)?;
+
+    println!("Using handler: {}", handler_selection.path.display());
+    println!("Using icon: {}", icon_file.display());
+    if !handler_selection.is_wrapper {
+        println!(
+            "Note: mdo-open.exe was not found next to mdo.exe, so Explorer will launch mdo.exe directly."
+        );
+    }
+    println!("{APP_DISPLAY_NAME} is registered for Markdown files.");
+    println!("To make it the default, use Open with -> Choose another app -> {APP_DISPLAY_NAME} -> Always.");
+
+    Ok(())
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+pub fn install(_set_default: bool) -> io::Result<()> {
+    Err(io::Error::new(
+        io::ErrorKind::Unsupported,
+        "built-in file-manager installation is currently supported on Windows and Linux",
+    ))
+}
+
+#[cfg(target_os = "linux")]
 pub fn uninstall() -> io::Result<()> {
-    uninstall_impl()
+    let data_home = xdg_data_home()?;
+    let desktop_dir = data_home.join("applications");
+    remove_linux_handler_files(&data_home)?;
+
+    for mimeapps in mimeapps_paths(&data_home) {
+        remove_desktop_from_mimeapps(&mimeapps)?;
+    }
+
+    run_optional("update-desktop-database", &[desktop_dir.as_os_str()]);
+
+    println!("Done.");
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+pub fn uninstall() -> io::Result<()> {
+    // Uninstall was already best-effort (every op ignores failures), so this
+    // reduces to applying the plan; `apply_registry_plan` returns `Ok(())`
+    // whenever every op in the plan is best-effort, which is always true here.
+    apply_registry_plan(&uninstall_windows_plan())?;
+    let _ = remove_windows_icon();
+
+    println!("Done.");
+    println!(
+        "If {APP_DISPLAY_NAME} was set as the default handler for .md, Windows will prompt you to pick a new default the next time you open a .md file."
+    );
+    Ok(())
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+pub fn uninstall() -> io::Result<()> {
+    Err(io::Error::new(
+        io::ErrorKind::Unsupported,
+        "built-in file-manager uninstallation is currently supported on Windows and Linux",
+    ))
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+pub fn integration_installed() -> bool {
+    false
 }
 
 /// Report whether mdo's own handler registration is present for this user.
@@ -45,87 +292,21 @@ pub fn uninstall() -> io::Result<()> {
 /// stale remnants, system-wide registrations, or the effective default app.
 /// A query failure reads as "not detected", so setup falls back to the
 /// ordinary first-time flow — which is safe because install is idempotent.
+#[cfg(target_os = "linux")]
 pub fn integration_installed() -> bool {
-    integration_installed_impl()
+    xdg_data_home()
+        .map(|data_home| linux_integration_installed_at(&data_home))
+        .unwrap_or(false)
 }
 
-#[cfg(target_os = "linux")]
-fn install_impl(set_default: bool) -> io::Result<()> {
-    let exe = std::env::current_exe()?;
-    install_linux_for_exe(&exe, set_default)
-}
-
-#[cfg(target_os = "linux")]
-pub fn install_linux_for_exe(current_exe: &Path, set_default: bool) -> io::Result<()> {
-    let data_home = xdg_data_home()?;
-    let desktop_dir = data_home.join("applications");
-    let desktop_file = desktop_dir.join(DESKTOP_FILE_NAME);
-    let icon_root = data_home.join("icons").join("hicolor");
-    let icon_dir = icon_root.join("scalable").join("apps");
-    let icon_file = icon_dir.join("mdo.svg");
-
-    fs::create_dir_all(&desktop_dir)?;
-    fs::create_dir_all(&icon_dir)?;
-    fs::write(&icon_file, SVG_ICON)?;
-
-    let desktop_entry = linux_desktop_entry(current_exe);
-    fs::write(&desktop_file, desktop_entry)?;
-
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(&desktop_file, fs::Permissions::from_mode(0o644))?;
-    }
-
-    run_optional("update-desktop-database", &[desktop_dir.as_os_str()]);
-
-    // A scalable SVG under hicolor/scalable/apps is resolved by name, so it
-    // needs no icon-cache refresh; gtk-update-icon-cache on a user theme dir
-    // without an index.theme just fails. Skip it.
-
-    let default_set = if set_default {
-        let mut ok = false;
-        for mime in ["text/markdown", "text/x-markdown"] {
-            ok |= run_optional_status(
-                "xdg-mime",
-                &[
-                    std::ffi::OsStr::new("default"),
-                    std::ffi::OsStr::new(DESKTOP_FILE_NAME),
-                    std::ffi::OsStr::new(mime),
-                ],
-            );
-        }
-        ok
-    } else {
-        false
-    };
-
-    remove_legacy_nautilus_scripts(&data_home)?;
-
-    println!("Installed desktop entry: {}", desktop_file.display());
-    println!("Installed icon: {}", icon_file.display());
-    if set_default {
-        if default_set {
-            println!("{APP_DISPLAY_NAME} is now the default Markdown handler.");
-        } else {
-            println!(
-                "Could not set {APP_DISPLAY_NAME} as the default automatically (is xdg-mime installed?)."
-            );
-            println!("To set it manually, run: xdg-mime default {DESKTOP_FILE_NAME} text/markdown");
-            println!("(and the same for text/x-markdown)");
-        }
-    } else {
-        println!(
-            "{APP_DISPLAY_NAME} is available from Open With without changing your default Markdown handler."
-        );
-    }
-
-    Ok(())
+#[cfg(target_os = "windows")]
+pub fn integration_installed() -> bool {
+    reg_key_exists(WINDOWS_OWNED_PROGID_COMMAND_KEY)
 }
 
 /// Install the application-menu entry for the native setup launcher.
 ///
-/// This is deliberately separate from [`install_linux_for_exe`]: the latter
+/// This is deliberately separate from the install step above: the latter
 /// owns the hidden Markdown file-handler entry and may be uninstalled without
 /// making setup disappear from the application menu.
 #[cfg(target_os = "linux")]
@@ -155,13 +336,6 @@ fn write_linux_setup_launcher(setup_exe: &Path, data_home: &Path) -> io::Result<
     Ok(desktop_file)
 }
 
-#[cfg(target_os = "linux")]
-fn integration_installed_impl() -> bool {
-    xdg_data_home()
-        .map(|data_home| linux_integration_installed_at(&data_home))
-        .unwrap_or(false)
-}
-
 /// The owned-state check only looks for the mdo-owned handler desktop entry.
 /// The visible `mdo-setup.desktop` launcher has its own lifecycle and does not
 /// count as handler integration.
@@ -171,22 +345,6 @@ fn linux_integration_installed_at(data_home: &Path) -> bool {
         .join("applications")
         .join(DESKTOP_FILE_NAME)
         .is_file()
-}
-
-#[cfg(target_os = "linux")]
-fn uninstall_impl() -> io::Result<()> {
-    let data_home = xdg_data_home()?;
-    let desktop_dir = data_home.join("applications");
-    remove_linux_handler_files(&data_home)?;
-
-    for mimeapps in mimeapps_paths(&data_home) {
-        remove_desktop_from_mimeapps(&mimeapps)?;
-    }
-
-    run_optional("update-desktop-database", &[desktop_dir.as_os_str()]);
-
-    println!("Done.");
-    Ok(())
 }
 
 #[cfg(target_os = "linux")]
@@ -204,58 +362,12 @@ fn remove_linux_handler_files(data_home: &Path) -> io::Result<()> {
     remove_legacy_nautilus_scripts(data_home)
 }
 
-#[cfg(target_os = "windows")]
-fn install_impl(set_default: bool) -> io::Result<()> {
-    let current_exe = std::env::current_exe()?;
-    install_windows_for_exe(&current_exe, set_default)
-}
-
-#[cfg(target_os = "windows")]
-pub fn install_windows_for_exe(current_exe: &Path, _set_default: bool) -> io::Result<()> {
-    let handler = windows_handler_for(current_exe);
-    let command = windows_registry_command(&handler.path, handler.is_wrapper);
-    let icon_file = install_windows_icon()?;
-    let icon_ref = format!("\"{}\",0", icon_file.display());
-    let current_exe_command = windows_registry_command(current_exe, false);
-
-    // Registry mutation is split into a pure planning step (`install_windows_plan`,
-    // unit-tested below without touching the registry) and a thin executor
-    // (`apply_registry_plan`) that shells out to `reg.exe`. This keeps the
-    // "which keys/values would be written, in what order, with which
-    // failure semantics" logic testable in CI without mutating the real
-    // registry on the CI machine.
-    let plan = install_windows_plan(
-        handler.is_wrapper,
-        &command,
-        &current_exe_command,
-        &icon_ref,
-    );
-    apply_registry_plan(&plan)?;
-
-    println!("Using handler: {}", handler.path.display());
-    println!("Using icon: {}", icon_file.display());
-    if !handler.is_wrapper {
-        println!(
-            "Note: mdo-open.exe was not found next to mdo.exe, so Explorer will launch mdo.exe directly."
-        );
-    }
-    println!("{APP_DISPLAY_NAME} is registered for Markdown files.");
-    println!("To make it the default, use Open with -> Choose another app -> {APP_DISPLAY_NAME} -> Always.");
-
-    Ok(())
-}
-
 /// The single registry key the owned-state check queries: the open command of
 /// mdo's own `mdo.md` ProgID. Install writes it (see [`install_windows_plan`])
 /// and uninstall deletes its parent ProgID key, so its presence tracks exactly
 /// the registration mdo owns — nothing about defaults or other handlers.
 #[cfg(target_os = "windows")]
 const WINDOWS_OWNED_PROGID_COMMAND_KEY: &str = r"HKCU\Software\Classes\mdo.md\shell\open\command";
-
-#[cfg(target_os = "windows")]
-fn integration_installed_impl() -> bool {
-    reg_key_exists(WINDOWS_OWNED_PROGID_COMMAND_KEY)
-}
 
 #[cfg(target_os = "windows")]
 fn reg_key_exists(key: &str) -> bool {
@@ -266,42 +378,6 @@ fn reg_key_exists(key: &str) -> bool {
         .status()
         .map(|status| status.success())
         .unwrap_or(false)
-}
-
-#[cfg(target_os = "windows")]
-fn uninstall_impl() -> io::Result<()> {
-    // Uninstall was already best-effort (every op ignores failures), so this
-    // reduces to applying the plan; `apply_registry_plan` returns `Ok(())`
-    // whenever every op in the plan is best-effort, which is always true here.
-    apply_registry_plan(&uninstall_windows_plan())?;
-    let _ = remove_windows_icon();
-
-    println!("Done.");
-    println!(
-        "If {APP_DISPLAY_NAME} was set as the default handler for .md, Windows will prompt you to pick a new default the next time you open a .md file."
-    );
-    Ok(())
-}
-
-#[cfg(not(any(target_os = "linux", target_os = "windows")))]
-fn install_impl(_set_default: bool) -> io::Result<()> {
-    Err(io::Error::new(
-        io::ErrorKind::Unsupported,
-        "built-in file-manager installation is currently supported on Windows and Linux",
-    ))
-}
-
-#[cfg(not(any(target_os = "linux", target_os = "windows")))]
-fn uninstall_impl() -> io::Result<()> {
-    Err(io::Error::new(
-        io::ErrorKind::Unsupported,
-        "built-in file-manager uninstallation is currently supported on Windows and Linux",
-    ))
-}
-
-#[cfg(not(any(target_os = "linux", target_os = "windows")))]
-fn integration_installed_impl() -> bool {
-    false
 }
 
 #[cfg(target_os = "linux")]
@@ -622,7 +698,7 @@ fn application_registration_ops(exe_name: &str, command: &str, icon_ref: &str) -
     ]
 }
 
-/// Pure planning step for [`install_windows_for_exe`]: given the already
+/// Pure planning step for the install executor below: given the already
 /// pure-computed handler command, current-exe command, and icon reference,
 /// produce the ordered list of registry writes install would perform.
 /// Unit-tested directly (see `windows_tests`) so the composition — which
@@ -690,7 +766,7 @@ fn install_windows_plan(
     ops
 }
 
-/// Pure planning step for [`uninstall_impl`]: every op here is best-effort,
+/// Pure planning step for [`uninstall`]: every op here is best-effort,
 /// matching the original `let _ = reg_delete_*(...)` calls — uninstall
 /// should remove everything it can rather than stop at the first missing
 /// key.
@@ -876,6 +952,104 @@ mod linux_tests {
             quote_desktop_exec_arg(r#"/tmp/a\b"c$d`e/mdo"#),
             r#""/tmp/a\\b\"c\$d\`e/mdo""#
         );
+    }
+
+    #[test]
+    fn linux_install_plan_derives_standard_paths_and_entry_content() {
+        let data_home = Path::new("/home/u/.local/share");
+        let exe = Path::new("/opt/my tools/mdo");
+
+        let plan = linux_install_plan(data_home, exe, true);
+        assert_eq!(
+            plan.desktop_file,
+            data_home.join("applications").join(DESKTOP_FILE_NAME)
+        );
+        assert_eq!(
+            plan.icon_file,
+            data_home
+                .join("icons")
+                .join("hicolor")
+                .join("scalable")
+                .join("apps")
+                .join("mdo.svg")
+        );
+        // The entry content carries the handler invocation contract with the
+        // quoting rules applied (same emitted form the integration registers).
+        assert!(plan
+            .desktop_entry
+            .contains("Exec=\"/opt/my tools/mdo\" --open %f\n"));
+        assert!(plan.set_default);
+        assert_eq!(plan.default_mimes, &["text/markdown", "text/x-markdown"]);
+        assert_eq!(plan.legacy_cleanup_root, Some(data_home.to_path_buf()));
+
+        let plan_without_default = linux_install_plan(data_home, exe, false);
+        assert!(!plan_without_default.set_default);
+    }
+
+    #[test]
+    fn apply_linux_install_plan_writes_entry_and_icon_and_reports() {
+        let dir = std::env::temp_dir().join(format!(
+            "mdo-install-plan-test-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let exe = dir.join("mdo");
+        fs::create_dir_all(&dir).unwrap();
+
+        let mut plan = linux_install_plan(&dir, &exe, false);
+        // No legacy scripts exist in this fixture; the cleanup would be a
+        // no-op either way (it only removes known files if present).
+        plan.legacy_cleanup_root = None;
+
+        let report = apply_linux_install_plan(&plan).expect("apply should write the registration");
+        assert_eq!(
+            report.default,
+            LinuxDefaultOutcome::NotRequested,
+            "no default was requested"
+        );
+
+        let entry = fs::read_to_string(&report.desktop_file).expect("entry written");
+        assert!(entry.contains("[Desktop Entry]\n"));
+        // The entry content carries the handler invocation contract with the
+        // quoting rules applied (exe path comes from this fixture's anchor).
+        assert!(
+            entry.contains(&format!("Exec=\"{}\" --open %f\n", exe.display())),
+            "entry should carry the contract Exec line: {entry}"
+        );
+        let icon = fs::read_to_string(&report.icon_file).expect("icon written");
+        assert!(icon.contains("<svg"));
+
+        use std::os::unix::fs::PermissionsExt;
+        let mode = fs::metadata(&report.desktop_file)
+            .expect("entry metadata")
+            .permissions()
+            .mode();
+        assert_eq!(mode & 0o777, 0o644, "the entry must stay mode 0644");
+
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn apply_linux_install_plan_requested_default_without_mimes_needs_manual_hint() {
+        // set_default=true with an empty mime list cannot spawn xdg-mime at
+        // all, so the branch is deterministic: the executor must not assume
+        // success just because defaulting was requested.
+        let dir = std::env::temp_dir().join(format!(
+            "mdo-install-plan-hint-test-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let exe = dir.join("mdo");
+        fs::create_dir_all(&dir).unwrap();
+
+        let mut plan = linux_install_plan(&dir, &exe, true);
+        plan.default_mimes = &[];
+        plan.legacy_cleanup_root = None;
+
+        let report = apply_linux_install_plan(&plan).expect("apply should complete");
+        assert_eq!(report.default, LinuxDefaultOutcome::NeedsManualHint);
+
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
