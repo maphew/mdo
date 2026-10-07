@@ -33,15 +33,13 @@
 
 use std::io::{self, IsTerminal, Write};
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::channel;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use clap::Parser;
 use mdo_cli::{
-    convert, file_manager, launch_browser, open_setup_sample, temp_output_for, ConvertOutcome,
-    ConvertRequest, RenderError, StageTimings,
+    convert, file_manager, launch_browser, open_setup_sample, temp_output_for, watch,
+    ConvertOutcome, ConvertRequest, RenderError, StageTimings,
 };
-use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
 
 /// Markdown to HTML converter. Converts once by default; pass --watch to keep watching.
 #[derive(Parser)]
@@ -398,190 +396,122 @@ fn main() -> notify::Result<()> {
         (None, false) => (input.with_extension("html"), false),
     };
 
-    // Register the watch BEFORE the initial render so a save that lands
-    // while that render runs is queued by the watcher rather than silently
-    // lost; the watch loop below drains it and re-renders. Registration
-    // failure aborts before any rendering, which is fine — the user asked
-    // for a watch we cannot deliver.
-    //
-    // Watch the parent DIRECTORY rather than the file itself. Editors that
-    // save atomically (write a temp file, then rename it over the target)
-    // replace the target's inode; a watch on the file itself goes dead the
-    // moment that happens because the inode/handle notify was watching is
-    // gone. Watching the directory survives renames, deletes, and recreates
-    // — we just have to filter directory events down to ones that touch our
-    // target file.
-    //
-    // Resolve the target once, up front. Comparing later events against
-    // this fixed absolute path — rather than re-canonicalizing each event's
-    // path — matters because the target may momentarily not exist
-    // mid-rename, which would make canonicalize fail and misclassify a
-    // perfectly relevant event.
-    //
-    // Known limitation: canonicalizing a symlinked input means we watch the
-    // TARGET's parent, so edits made through the link are seen, but an
-    // editor atomically replacing the symlink itself is not. Watching both
-    // parents isn't worth the complexity until someone actually hits this.
-    let watch_setup = if args.watch {
-        let input_absolute = std::fs::canonicalize(&input).unwrap_or_else(|_| {
-            std::env::current_dir()
-                .map(|cwd| cwd.join(&input))
-                .unwrap_or_else(|_| input.clone())
+    if args.watch {
+        // Watch's contract: register before rendering (a save that lands
+        // while the initial render runs is queued by the watcher rather
+        // than silently lost), run the render callback once immediately,
+        // then pump. In watch mode we deliberately do NOT apply the one-shot
+        // exit-code check below: a one-time --open failure must not end
+        // watch mode, since the whole point is to keep re-rendering on
+        // future edits.
+        let mut pending_open_launch = args.open;
+        return watch::run(&input, &mut || {
+            let result = render_and_report(
+                &input,
+                &output,
+                args.bare,
+                args.unsafe_html,
+                args.css.as_deref(),
+                private_output,
+                args.verbose,
+            );
+            if pending_open_launch {
+                // The launch hook is a one-time post-initial-render duty
+                // (the pump runs the callback immediately): consume the
+                // pending flag on the first callback whether or not that
+                // render succeeded, exactly as the pre-module flow did.
+                if result.is_ok() {
+                    launch_open_output(&output, args.verbose);
+                }
+                pending_open_launch = false;
+            }
+            result.map(|_| ())
         });
-        let watch_dir = input_absolute
-            .parent()
-            .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from("."));
-        let target_file_name = input_absolute.file_name().map(|n| n.to_os_string());
+    }
 
-        let (tx, rx) = channel();
-        let mut watcher = recommended_watcher(tx)?;
-        watcher.watch(&watch_dir, RecursiveMode::NonRecursive)?;
-        Some((watcher, rx, watch_dir, target_file_name))
-    } else {
-        None
-    };
-
-    let converted = report_render(
+    let converted = render_and_report(
         &input,
         &output,
-        &convert(ConvertRequest {
-            input: &input,
-            output: &output,
-            bare: args.bare,
-            unsafe_html: args.unsafe_html,
-            private_output,
-            css_override: args.css.as_deref(),
-        }),
+        args.bare,
+        args.unsafe_html,
+        args.css.as_deref(),
+        private_output,
         args.verbose,
-    );
+    )
+    .is_ok();
 
     // Track whether --open promised a browser launch and failed to deliver
     // one, so the one-shot exit code below can be honest about it.
     let mut open_launch_failed = false;
     if args.open && converted {
-        // Browser launch is reported separately from the render workflow:
-        // launch_browser only initiates the launch (fire-and-forget), so
-        // this measures initiation, not the browser starting up.
-        let launch_start = std::time::Instant::now();
-        match launch_browser(&output) {
-            Ok(()) => {
-                if args.verbose {
-                    eprintln!(
-                        "⏱  Browser launch initiated in {:.3} ms",
-                        launch_start.elapsed().as_secs_f64() * 1000.0
-                    );
-                }
-                println!("🌐 Opened {:?} in default browser", output);
-            }
-            Err(e) => {
-                // The render already succeeded and nothing removes the
-                // rendered file on a launch failure, so point the user at it
-                // instead of silently downgrading this to a warning.
-                eprintln!("❌ Failed to launch browser: {}", e);
-                eprintln!("   Rendered output is available at {:?}", output);
-                open_launch_failed = true;
-            }
-        }
+        open_launch_failed = launch_open_output(&output, args.verbose);
     }
 
-    if !args.watch {
-        // Exit non-zero on a failed one-shot render so scripts and the docs
-        // pipeline can detect errors. A failed --open browser launch is the
-        // same kind of broken promise even though the render itself
-        // succeeded: `mdo --open` only fully succeeds when the file is both
-        // rendered AND opened, so it exits non-zero here too. In watch mode
-        // we deliberately do NOT apply this exit-code check: watch's
-        // contract is to keep running regardless of a one-time --open
-        // failure, since the whole point is to keep re-rendering on future
-        // edits. The stderr message above still fires so the user learns
-        // about the failed launch either way.
-        if converted && !open_launch_failed {
-            return Ok(());
-        }
-        std::process::exit(1);
+    // Exit non-zero on a failed one-shot render so scripts and the docs
+    // pipeline can detect errors. A failed --open browser launch is the
+    // same kind of broken promise even though the render itself succeeded:
+    // `mdo --open` only fully succeeds when the file is both rendered AND
+    // opened, so it exits non-zero here too.
+    if converted && !open_launch_failed {
+        return Ok(());
     }
+    std::process::exit(1);
+}
 
-    let (_watcher, rx, watch_dir, target_file_name) =
-        watch_setup.expect("watch setup was built above whenever --watch is set");
+/// Run one render request and report it. All rendering output lives behind
+/// `report_render`, so the one-shot path and watch-mode re-renders report
+/// identically. The typed outcome still comes back: the watch callback
+/// feeds its `Err` into `watch::run`, which must not end watch mode on a
+/// transient filesystem state mid-rename.
+fn render_and_report(
+    input: &Path,
+    output: &Path,
+    bare: bool,
+    unsafe_html: bool,
+    css_override: Option<&Path>,
+    private_output: bool,
+    verbose: bool,
+) -> Result<(), RenderError> {
+    let outcome = convert(ConvertRequest {
+        input,
+        output,
+        bare,
+        unsafe_html,
+        private_output,
+        css_override,
+    });
+    report_render(input, output, &outcome, verbose);
+    outcome.map(|_| ())
+}
 
-    // Still named after the file, not the directory: that's what the user
-    // asked to watch, even though the underlying notify watch is scoped one
-    // level up.
-    println!("👀 Watching {:?} for changes... (Ctrl+C to stop)", input);
-
-    // Trailing-edge debounce window: once a relevant event arrives we keep
-    // draining/absorbing further relevant events for this long before
-    // rendering, so a burst (e.g. truncate + write, or temp-file write +
-    // rename) collapses into exactly one render of the final content. This
-    // is unlike a leading-edge "ignore anything for N ms after the last
-    // render" debounce, which can drop the trailing event of a burst if the
-    // burst runs longer than the window.
-    const DEBOUNCE: Duration = Duration::from_millis(200);
-
-    loop {
-        // Block for the next event. Anything that isn't a relevant,
-        // content-changing event (wrong file, Access events, watcher
-        // errors) is skipped without starting a debounce window.
-        let event = match rx.recv() {
-            Ok(Ok(event)) => event,
-            Ok(Err(e)) => {
-                eprintln!("⚠️  Watcher error: {}", e);
-                continue;
+/// `--open`'s post-render launch hook: initiate the browser launch and
+/// report it. Returns whether the launch failed to deliver on the promise —
+/// the one-shot exit code owes this honesty; watch mode ignores failures
+/// and keeps watching to re-render future edits.
+fn launch_open_output(output: &Path, verbose: bool) -> bool {
+    // Browser launch is reported separately from the render workflow:
+    // launch_browser only initiates the launch (fire-and-forget), so
+    // this measures initiation, not the browser starting up.
+    let launch_start = Instant::now();
+    match launch_browser(output) {
+        Ok(()) => {
+            if verbose {
+                eprintln!(
+                    "⏱  Browser launch initiated in {:.3} ms",
+                    launch_start.elapsed().as_secs_f64() * 1000.0
+                );
             }
-            Err(_) => return Ok(()), // watcher/channel gone; nothing left to watch
-        };
-
-        if !is_relevant_event(&event, target_file_name.as_deref(), &watch_dir) {
-            continue;
+            println!("🌐 Opened {:?} in default browser", output);
+            false
         }
-
-        // Drain/absorb further relevant events for a quiet window, then
-        // render once. This covers direct writes, truncate+rewrite, and
-        // atomic saves (temp file write followed by a rename onto the
-        // target) uniformly: whichever event kinds the editor and platform
-        // happen to emit (Create, Modify, Rename-as-Modify(Name), Remove
-        // followed by a Create), each just extends the quiet window until
-        // the burst settles. Only RELEVANT events extend the deadline:
-        // sibling-file noise merely waits out the remaining window, so a
-        // busy directory (a build churning artifacts next to the watched
-        // file) cannot postpone the render indefinitely.
-        let mut deadline = std::time::Instant::now() + DEBOUNCE;
-        loop {
-            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
-            if remaining.is_zero() {
-                break;
-            }
-            match rx.recv_timeout(remaining) {
-                Ok(Ok(event)) => {
-                    if is_relevant_event(&event, target_file_name.as_deref(), &watch_dir) {
-                        deadline = std::time::Instant::now() + DEBOUNCE;
-                    }
-                    // Irrelevant events neither extend nor cut the window.
-                }
-                Ok(Err(e)) => eprintln!("⚠️  Watcher error: {}", e),
-                Err(_) => break, // quiet window elapsed (or channel closed)
-            }
+        Err(e) => {
+            // The render already succeeded and nothing removes the
+            // rendered file on a launch failure, so point the user at it
+            // instead of silently downgrading this to a warning.
+            eprintln!("❌ Failed to launch browser: {}", e);
+            eprintln!("   Rendered output is available at {:?}", output);
+            true
         }
-
-        println!("🔁 File changed, re-rendering...");
-        // A failed render (e.g. convert returned Err while the file was
-        // momentarily absent mid-rename) must not end watch mode; the ❌
-        // error is reported by `report_render`, so we just loop and wait
-        // for the next event.
-        let _ = report_render(
-            &input,
-            &output,
-            &convert(ConvertRequest {
-                input: &input,
-                output: &output,
-                bare: args.bare,
-                unsafe_html: args.unsafe_html,
-                private_output,
-                css_override: args.css.as_deref(),
-            }),
-            args.verbose,
-        );
     }
 }
 
@@ -641,36 +571,6 @@ fn report_render_timings(input: &Path, timings: &StageTimings) {
     eprintln!("   assemble {:>10.3} ms", ms(timings.assemble));
     eprintln!("   write    {:>10.3} ms", ms(timings.write));
     eprintln!("   total    {:>10.3} ms", ms(timings.total));
-}
-
-/// True if `event` plausibly changed the content of the file named
-/// `target_file_name` inside `watch_dir`. We match by file name (and, when
-/// notify reports one, by parent directory) rather than canonicalizing the
-/// event's path, since the target can momentarily not exist mid-rename.
-/// Access events (reads, permission-bit-only changes) are excluded; every
-/// other kind (Create, Modify, Remove, Any, Other) is treated as a possible
-/// content change so recreation-after-remove and atomic renames are all
-/// covered by the same check.
-fn is_relevant_event(
-    event: &notify::Event,
-    target_file_name: Option<&std::ffi::OsStr>,
-    watch_dir: &std::path::Path,
-) -> bool {
-    if matches!(event.kind, EventKind::Access(_)) {
-        return false;
-    }
-
-    let Some(target_file_name) = target_file_name else {
-        return false;
-    };
-
-    event.paths.iter().any(|p| {
-        p.file_name() == Some(target_file_name)
-            && match p.parent() {
-                Some(parent) => parent == watch_dir,
-                None => true,
-            }
-    })
 }
 
 #[cfg(test)]

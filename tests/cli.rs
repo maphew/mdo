@@ -837,58 +837,6 @@ fn watch_survives_atomic_rename() {
     fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
 }
 
-#[cfg(unix)]
-#[test]
-fn watch_ignores_sibling_changes() {
-    use std::process::Stdio;
-
-    let dir = fixture_dir("watch-sibling-changes");
-    let input = dir.join("sample.md");
-    let output_path = dir.join("sample.html");
-    let sibling = dir.join("other.md");
-    fs::write(&input, "# Initial\n").expect("failed to write markdown fixture");
-
-    let child = Command::new(env!("CARGO_BIN_EXE_mdo"))
-        .arg("--watch")
-        .arg(&input)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .expect("failed to spawn mdo --watch");
-    let _guard = WatchGuard(child);
-
-    assert!(
-        wait_for_file_containing(&output_path, "Initial", Duration::from_secs(10)),
-        "initial render should appear within the timeout"
-    );
-    let rendered_before =
-        fs::read_to_string(&output_path).expect("failed to read initial rendered output");
-    let mtime_before = fs::metadata(&output_path)
-        .and_then(|m| m.modified())
-        .expect("failed to read initial rendered output mtime");
-
-    fs::write(&sibling, "# Sibling\n\nUnrelated file.\n")
-        .expect("failed to write sibling markdown file");
-    std::thread::sleep(Duration::from_secs(1));
-
-    // A sibling-file event must not trigger a re-render. Byte-comparing the
-    // output alone is not conclusive — the embedded generated date is
-    // day-granular and fast renders can format to the same duration — so
-    // also require the file's mtime (nanosecond granularity on Linux) to be
-    // untouched: any rewrite, even byte-identical, would bump it.
-    let rendered_after = fs::read_to_string(&output_path)
-        .expect("failed to read rendered output after sibling change");
-    let mtime_after = fs::metadata(&output_path)
-        .and_then(|m| m.modified())
-        .expect("failed to read rendered output mtime after sibling change");
-    assert_eq!(
-        rendered_before, rendered_after,
-        "watch mode should not re-render sample.html for changes to an unrelated sibling file"
-    );
-    assert_eq!(
-        mtime_before, mtime_after,
-        "sample.html should not have been rewritten (mtime changed) for a sibling-file change"
-    );
-
-    fs::remove_dir_all(dir).expect("failed to clean up temp fixture dir");
-}
+// Sibling-noise and burst semantics moved into src/watch.rs unit tests
+// (fake event channel + virtual clock, cross-platform by construction);
+// this file keeps only the spawned-binary e2e smoke test.
