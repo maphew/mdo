@@ -1,5 +1,5 @@
 {
-  "collected_at": "2026-10-14T13:43:59Z",
+  "collected_at": "2026-10-15T13:26:56Z",
   "crates_io": {
     "crate": {
       "created_at": "2026-05-30T00:01:38.591296Z",
@@ -21,7 +21,7 @@
     "releases": {
       "releases": [
         {
-          "asset_downloads": 48,
+          "asset_downloads": 49,
           "assets": [
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-android-arm64.aab",
@@ -46,7 +46,7 @@
             },
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-x86_64-pc-windows-msvc.zip",
-              "download_count": 21,
+              "download_count": 22,
               "name": "mdo-x86_64-pc-windows-msvc.zip",
               "size": 1263267,
               "updated_at": "2026-07-23T18:40:54Z"
@@ -248,7 +248,7 @@
         "ok": true,
         "status": 200
       },
-      "total_asset_downloads": 91
+      "total_asset_downloads": 92
     },
     "repository": {
       "repository": {
@@ -258,9 +258,9 @@
         "full_name": "maphew/mdo",
         "html_url": "https://github.com/maphew/mdo",
         "open_issues": 1,
-        "pushed_at": "2026-10-13T16:00:03Z",
+        "pushed_at": "2026-10-14T13:44:05Z",
         "stars": 5,
-        "updated_at": "2026-10-14T13:29:53Z",
+        "updated_at": "2026-10-14T13:44:09Z",
         "watchers": 0
       },
       "source": "https://api.github.com/repos/maphew/mdo",
