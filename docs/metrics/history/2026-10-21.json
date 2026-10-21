@@ -1,0 +1,399 @@
+{
+  "collected_at": "2026-10-21T13:48:47Z",
+  "crates_io": {
+    "crate": {
+      "created_at": "2026-05-30T00:01:38.591296Z",
+      "downloads": 66,
+      "html_url": "https://crates.io/crates/mdo-cli",
+      "id": "mdo-cli",
+      "max_version": "0.6.1",
+      "name": "mdo-cli",
+      "recent_downloads": 23,
+      "updated_at": "2026-10-07T04:45:16.623023Z"
+    },
+    "source": "https://crates.io/api/v1/crates/mdo-cli",
+    "status": {
+      "ok": true,
+      "status": 200
+    }
+  },
+  "github": {
+    "releases": {
+      "releases": [
+        {
+          "asset_downloads": 50,
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-android-arm64.aab",
+              "download_count": 0,
+              "name": "mdo-android-arm64.aab",
+              "size": 2254065,
+              "updated_at": "2026-07-23T18:40:54Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-android-arm64.apk",
+              "download_count": 4,
+              "name": "mdo-android-arm64.apk",
+              "size": 2755732,
+              "updated_at": "2026-07-23T18:40:54Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-universal-apple-darwin.tar.gz",
+              "download_count": 2,
+              "name": "mdo-universal-apple-darwin.tar.gz",
+              "size": 2501566,
+              "updated_at": "2026-07-23T18:40:54Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-x86_64-pc-windows-msvc.zip",
+              "download_count": 23,
+              "name": "mdo-x86_64-pc-windows-msvc.zip",
+              "size": 1263267,
+              "updated_at": "2026-07-23T18:40:54Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "download_count": 6,
+              "name": "mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "size": 1704347,
+              "updated_at": "2026-07-23T18:40:54Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/SHA256SUMS",
+              "download_count": 15,
+              "name": "SHA256SUMS",
+              "size": 475,
+              "updated_at": "2026-07-23T18:40:54Z"
+            }
+          ],
+          "html_url": "https://github.com/maphew/mdo/releases/tag/v0.6.1",
+          "name": "v0.6.1",
+          "published_at": "2026-07-23T18:40:54Z",
+          "tag_name": "v0.6.1"
+        },
+        {
+          "asset_downloads": 14,
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-universal-apple-darwin.tar.gz",
+              "download_count": 1,
+              "name": "mdo-universal-apple-darwin.tar.gz",
+              "size": 2474062,
+              "updated_at": "2026-07-18T20:59:18Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-x86_64-pc-windows-msvc.zip",
+              "download_count": 8,
+              "name": "mdo-x86_64-pc-windows-msvc.zip",
+              "size": 1246469,
+              "updated_at": "2026-07-18T20:59:18Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "download_count": 1,
+              "name": "mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "size": 1688782,
+              "updated_at": "2026-07-18T20:59:18Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.0/SHA256SUMS",
+              "download_count": 4,
+              "name": "SHA256SUMS",
+              "size": 299,
+              "updated_at": "2026-07-18T20:59:18Z"
+            }
+          ],
+          "html_url": "https://github.com/maphew/mdo/releases/tag/v0.6.0",
+          "name": "v0.6.0",
+          "published_at": "2026-07-18T20:59:19Z",
+          "tag_name": "v0.6.0"
+        },
+        {
+          "asset_downloads": 7,
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.5.0/mdo-universal-apple-darwin.tar.gz",
+              "download_count": 1,
+              "name": "mdo-universal-apple-darwin.tar.gz",
+              "size": 2467739,
+              "updated_at": "2026-07-10T23:12:25Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.5.0/mdo-x86_64-pc-windows-msvc.zip",
+              "download_count": 2,
+              "name": "mdo-x86_64-pc-windows-msvc.zip",
+              "size": 1241648,
+              "updated_at": "2026-07-10T23:12:25Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.5.0/mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "download_count": 1,
+              "name": "mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "size": 1664712,
+              "updated_at": "2026-07-10T23:12:25Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.5.0/SHA256SUMS",
+              "download_count": 3,
+              "name": "SHA256SUMS",
+              "size": 299,
+              "updated_at": "2026-07-10T23:12:25Z"
+            }
+          ],
+          "html_url": "https://github.com/maphew/mdo/releases/tag/v0.5.0",
+          "name": "v0.5.0",
+          "published_at": "2026-07-10T23:12:25Z",
+          "tag_name": "v0.5.0"
+        },
+        {
+          "asset_downloads": 5,
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.4.0/mdo-universal-apple-darwin.tar.gz",
+              "download_count": 0,
+              "name": "mdo-universal-apple-darwin.tar.gz",
+              "size": 2471695,
+              "updated_at": "2026-06-17T21:00:12Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.4.0/mdo-x86_64-pc-windows-msvc.zip",
+              "download_count": 1,
+              "name": "mdo-x86_64-pc-windows-msvc.zip",
+              "size": 1805752,
+              "updated_at": "2026-06-17T21:00:12Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.4.0/mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "download_count": 1,
+              "name": "mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "size": 2261491,
+              "updated_at": "2026-06-17T21:00:12Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.4.0/SHA256SUMS",
+              "download_count": 3,
+              "name": "SHA256SUMS",
+              "size": 299,
+              "updated_at": "2026-06-17T21:00:12Z"
+            }
+          ],
+          "html_url": "https://github.com/maphew/mdo/releases/tag/v0.4.0",
+          "name": "v0.4.0",
+          "published_at": "2026-06-17T21:00:13Z",
+          "tag_name": "v0.4.0"
+        },
+        {
+          "asset_downloads": 17,
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.3.0/mdo-universal-apple-darwin.tar.gz",
+              "download_count": 4,
+              "name": "mdo-universal-apple-darwin.tar.gz",
+              "size": 1612083,
+              "updated_at": "2026-05-30T00:14:16Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.3.0/mdo-x86_64-pc-windows-msvc.zip",
+              "download_count": 5,
+              "name": "mdo-x86_64-pc-windows-msvc.zip",
+              "size": 629251,
+              "updated_at": "2026-05-30T00:14:16Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.3.0/mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "download_count": 4,
+              "name": "mdo-x86_64-unknown-linux-gnu.tar.gz",
+              "size": 932463,
+              "updated_at": "2026-05-30T00:14:16Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.3.0/SHA256SUMS",
+              "download_count": 4,
+              "name": "SHA256SUMS",
+              "size": 299,
+              "updated_at": "2026-05-30T00:14:16Z"
+            }
+          ],
+          "html_url": "https://github.com/maphew/mdo/releases/tag/v0.3.0",
+          "name": "v0.3.0",
+          "published_at": "2026-05-31T23:43:49Z",
+          "tag_name": "v0.3.0"
+        },
+        {
+          "asset_downloads": 0,
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.2.0/md2htmlx-open.exe",
+              "download_count": 0,
+              "name": "md2htmlx-open.exe",
+              "size": 1188515,
+              "updated_at": "2026-05-12T21:06:46Z"
+            },
+            {
+              "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.2.0/md2htmlx.exe",
+              "download_count": 0,
+              "name": "md2htmlx.exe",
+              "size": 2883476,
+              "updated_at": "2026-05-12T21:06:46Z"
+            }
+          ],
+          "html_url": "https://github.com/maphew/mdo/releases/tag/v0.2.0",
+          "name": "md2htmlx v0.2.0",
+          "published_at": "2026-05-12T21:06:47Z",
+          "tag_name": "v0.2.0"
+        }
+      ],
+      "source": "https://api.github.com/repos/maphew/mdo/releases",
+      "status": {
+        "ok": true,
+        "status": 200
+      },
+      "total_asset_downloads": 93
+    },
+    "repository": {
+      "repository": {
+        "created_at": "2026-05-11T18:15:30Z",
+        "description": "Open Markdown as HTML - small, fast, self-contained Markdown-to-HTML5 converter with reversible file-manager integration (double-click .md, read the rendered page) and live watch mode. Rust; Windows, Linux, macOS.",
+        "forks": 0,
+        "full_name": "maphew/mdo",
+        "html_url": "https://github.com/maphew/mdo",
+        "open_issues": 1,
+        "pushed_at": "2026-10-20T13:33:39Z",
+        "stars": 5,
+        "updated_at": "2026-10-20T13:33:45Z",
+        "watchers": 0
+      },
+      "source": "https://api.github.com/repos/maphew/mdo",
+      "status": {
+        "ok": true,
+        "status": 200
+      }
+    },
+    "traffic": {
+      "available": false,
+      "clones": null,
+      "minimum_public_count": 3,
+      "note": "GitHub traffic endpoints expose only recent aggregate windows. Entries with counts below the public threshold are omitted.",
+      "paths": [],
+      "referrers": [],
+      "sources": {
+        "clones": {
+          "source": "https://api.github.com/repos/maphew/mdo/traffic/clones",
+          "status": {
+            "error": "HTTP 403: Resource not accessible by integration",
+            "ok": false,
+            "status": 403
+          }
+        },
+        "paths": {
+          "source": "https://api.github.com/repos/maphew/mdo/traffic/popular/paths",
+          "status": {
+            "error": "HTTP 403: Resource not accessible by integration",
+            "ok": false,
+            "status": 403
+          }
+        },
+        "referrers": {
+          "source": "https://api.github.com/repos/maphew/mdo/traffic/popular/referrers",
+          "status": {
+            "error": "HTTP 403: Resource not accessible by integration",
+            "ok": false,
+            "status": 403
+          }
+        },
+        "views": {
+          "source": "https://api.github.com/repos/maphew/mdo/traffic/views",
+          "status": {
+            "error": "HTTP 403: Resource not accessible by integration",
+            "ok": false,
+            "status": 403
+          }
+        }
+      },
+      "views": null
+    }
+  },
+  "package_presence": [
+    {
+      "ecosystem": "crates.io",
+      "name": "mdo-cli",
+      "present": true,
+      "source": "https://crates.io/api/v1/crates/mdo-cli",
+      "status": {
+        "ok": true,
+        "status": 200
+      }
+    },
+    {
+      "ecosystem": "Homebrew",
+      "name": "mdo",
+      "present": false,
+      "source": "https://formulae.brew.sh/api/formula/mdo.json",
+      "status": {
+        "error": "HTTP 404",
+        "ok": false,
+        "status": 404
+      }
+    },
+    {
+      "ecosystem": "Scoop main",
+      "name": "mdo",
+      "present": false,
+      "source": "https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket/mdo.json",
+      "status": {
+        "error": "HTTP 404",
+        "ok": false,
+        "status": 404
+      }
+    },
+    {
+      "ecosystem": "WinGet",
+      "name": "Maphew.Mdo",
+      "present": false,
+      "source": "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/m/Maphew/Mdo",
+      "status": {
+        "error": "HTTP 404: Not Found",
+        "ok": false,
+        "status": 404
+      }
+    },
+    {
+      "ecosystem": "AUR",
+      "name": "mdo",
+      "present": false,
+      "source": "https://aur.archlinux.org/rpc/v5/info/mdo",
+      "status": {
+        "ok": true,
+        "status": 200
+      }
+    },
+    {
+      "ecosystem": "AUR",
+      "name": "mdo-bin",
+      "present": false,
+      "source": "https://aur.archlinux.org/rpc/v5/info/mdo-bin",
+      "status": {
+        "ok": true,
+        "status": 200
+      }
+    }
+  ],
+  "privacy": {
+    "excluded": [
+      "runtime telemetry",
+      "IP addresses",
+      "user agents",
+      "cookies",
+      "unique installation IDs",
+      "raw server logs"
+    ],
+    "summary": "Only aggregate or already-public adoption signals are collected. The mdo binary does not phone home."
+  },
+  "project": {
+    "crate": "https://crates.io/crates/mdo-cli",
+    "name": "mdo",
+    "repository": "https://github.com/maphew/mdo",
+    "site": "https://maphew.github.io/mdo/"
+  },
+  "schema_version": 1
+}
