@@ -1,5 +1,5 @@
 {
-  "collected_at": "2026-10-28T15:06:31Z",
+  "collected_at": "2026-10-29T15:13:59Z",
   "crates_io": {
     "crate": {
       "created_at": "2026-05-30T00:01:38.591296Z",
@@ -258,9 +258,9 @@
         "full_name": "maphew/mdo",
         "html_url": "https://github.com/maphew/mdo",
         "open_issues": 1,
-        "pushed_at": "2026-10-27T14:32:12Z",
+        "pushed_at": "2026-10-28T15:06:39Z",
         "stars": 5,
-        "updated_at": "2026-10-27T14:32:18Z",
+        "updated_at": "2026-10-28T15:06:43Z",
         "watchers": 0
       },
       "source": "https://api.github.com/repos/maphew/mdo",
