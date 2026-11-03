@@ -1,5 +1,5 @@
 {
-  "collected_at": "2026-11-02T18:22:52Z",
+  "collected_at": "2026-11-03T16:15:30Z",
   "crates_io": {
     "crate": {
       "created_at": "2026-05-30T00:01:38.591296Z",
@@ -72,7 +72,7 @@
           "tag_name": "v0.6.1"
         },
         {
-          "asset_downloads": 14,
+          "asset_downloads": 15,
           "assets": [
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-universal-apple-darwin.tar.gz",
@@ -90,7 +90,7 @@
             },
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.0/mdo-x86_64-unknown-linux-gnu.tar.gz",
-              "download_count": 1,
+              "download_count": 2,
               "name": "mdo-x86_64-unknown-linux-gnu.tar.gz",
               "size": 1688782,
               "updated_at": "2026-07-18T20:59:18Z"
@@ -248,7 +248,7 @@
         "ok": true,
         "status": 200
       },
-      "total_asset_downloads": 105
+      "total_asset_downloads": 106
     },
     "repository": {
       "repository": {
@@ -258,9 +258,9 @@
         "full_name": "maphew/mdo",
         "html_url": "https://github.com/maphew/mdo",
         "open_issues": 1,
-        "pushed_at": "2026-11-01T15:10:59Z",
+        "pushed_at": "2026-11-02T18:23:00Z",
         "stars": 5,
-        "updated_at": "2026-11-01T15:11:03Z",
+        "updated_at": "2026-11-02T18:23:04Z",
         "watchers": 0
       },
       "source": "https://api.github.com/repos/maphew/mdo",
