@@ -1,5 +1,5 @@
 {
-  "collected_at": "2026-11-24T19:30:14Z",
+  "collected_at": "2026-11-25T18:39:09Z",
   "crates_io": {
     "crate": {
       "created_at": "2026-05-30T00:01:38.591296Z",
@@ -21,7 +21,7 @@
     "releases": {
       "releases": [
         {
-          "asset_downloads": 80,
+          "asset_downloads": 81,
           "assets": [
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-android-arm64.aab",
@@ -46,7 +46,7 @@
             },
             {
               "browser_download_url": "https://github.com/maphew/mdo/releases/download/v0.6.1/mdo-x86_64-pc-windows-msvc.zip",
-              "download_count": 30,
+              "download_count": 31,
               "name": "mdo-x86_64-pc-windows-msvc.zip",
               "size": 1263267,
               "updated_at": "2026-07-23T18:40:54Z"
@@ -248,7 +248,7 @@
         "ok": true,
         "status": 200
       },
-      "total_asset_downloads": 132
+      "total_asset_downloads": 133
     },
     "repository": {
       "repository": {
@@ -258,7 +258,7 @@
         "full_name": "maphew/mdo",
         "html_url": "https://github.com/maphew/mdo",
         "open_issues": 1,
-        "pushed_at": "2026-11-23T20:15:11Z",
+        "pushed_at": "2026-11-24T19:30:22Z",
         "stars": 5,
         "updated_at": "2026-11-11T17:11:27Z",
         "watchers": 0
@@ -352,9 +352,9 @@
       "present": false,
       "source": "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/m/Maphew/Mdo",
       "status": {
-        "error": "HTTP 404: Not Found",
+        "error": "HTTP 403: API rate limit exceeded for 3.42.157.24. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
         "ok": false,
-        "status": 404
+        "status": 403
       }
     },
     {
